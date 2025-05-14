@@ -103,12 +103,39 @@ export default function Dashboard() {
           icon={<Store />}
           iconBgColor="bg-primary"
           iconColor="text-primary"
-          footer={
-            <div className="text-xs text-success flex items-center">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              <span>All stores connected</span>
-            </div>
-          }
+          footer={(() => {
+            if (statsLoading) return (
+              <div className="text-xs text-neutral-500 flex items-center">
+                <span>Loading connection status...</span>
+              </div>
+            );
+            
+            const [connected, total] = (stats?.connectedStores ?? "0/0").split("/").map(Number);
+            const allConnected = connected === total && total > 0;
+            const noStores = total === 0;
+            
+            if (noStores) {
+              return (
+                <div className="text-xs text-neutral-500 flex items-center">
+                  <span>No stores configured</span>
+                </div>
+              );
+            } else if (allConnected) {
+              return (
+                <div className="text-xs text-success flex items-center">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  <span>All stores connected</span>
+                </div>
+              );
+            } else {
+              return (
+                <div className="text-xs text-amber-500 flex items-center">
+                  <Store className="h-3 w-3 mr-1" />
+                  <span>{connected === 0 ? "No stores connected" : `${total - connected} stores need connection`}</span>
+                </div>
+              );
+            }
+          })()}
         />
       </div>
       

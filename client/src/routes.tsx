@@ -6,6 +6,7 @@ import UploadPricing from "@/pages/upload-pricing";
 import UpdateHistory from "@/pages/update-history";
 import DatabaseSettings from "@/pages/database-settings";
 import UserManagement from "@/pages/user-management";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import AppLayout from "@/components/layout/app-layout";
 
@@ -55,6 +56,15 @@ export function Routes() {
         component={() => (
           <AppLayout>
             <UserManagement />
+          </AppLayout>
+        )} 
+      />
+      
+      <ProtectedRoute 
+        path="/settings" 
+        component={() => (
+          <AppLayout>
+            <Settings />
           </AppLayout>
         )} 
       />

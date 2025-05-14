@@ -319,7 +319,7 @@ export function DatabaseSettingsModal({
         
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium text-neutral-600">Connected Stores</h3>
+            <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Connected Stores</h3>
             <Button 
               variant="ghost" 
               size="sm" 

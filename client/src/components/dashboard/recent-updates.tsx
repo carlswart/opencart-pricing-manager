@@ -39,19 +39,19 @@ export function RecentUpdates({
     switch(status) {
       case "completed":
         return (
-          <Badge variant="outline" className="bg-success bg-opacity-10 text-success border-success border-opacity-30">
+          <Badge variant="outline" className="bg-success/10 text-success border-success/30 font-medium">
             Completed
           </Badge>
         );
       case "partial":
         return (
-          <Badge variant="outline" className="bg-warning bg-opacity-10 text-warning border-warning border-opacity-30">
+          <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30 font-medium">
             Partial
           </Badge>
         );
       case "failed":
         return (
-          <Badge variant="outline" className="bg-destructive bg-opacity-10 text-destructive border-destructive border-opacity-30">
+          <Badge variant="outline" className="bg-destructive/10 text-destructive-foreground border-destructive/30 font-medium">
             Failed
           </Badge>
         );

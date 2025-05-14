@@ -40,16 +40,39 @@ export default function UpdateHistory() {
         credentials: "include",
       });
       
+      if (response.status === 404) {
+        toast({
+          title: "Update details not found",
+          description: "The details for this update are not available.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       if (!response.ok) {
         throw new Error("Failed to fetch update details");
       }
       
       const detailsData = await response.json();
+      
+      // Ensure the data has the required structure for the preview modal
+      const formattedData = {
+        filename: detailsData.filename || "Unknown file",
+        recordCount: detailsData.recordCount || 0,
+        validationIssues: detailsData.validationIssues || [],
+        rows: detailsData.rows || [],
+      };
+      
       setSelectedUpdate(id);
-      setPreviewData(detailsData);
+      setPreviewData(formattedData);
       setShowPreview(true);
     } catch (error) {
       console.error("Failed to fetch update details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load update details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
   

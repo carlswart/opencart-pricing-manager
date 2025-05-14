@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -228,6 +229,9 @@ export function DatabaseSettingsModal({
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Database Connection Settings</DialogTitle>
+          <DialogDescription>
+            Configure database connections for your OpenCart stores
+          </DialogDescription>
         </DialogHeader>
         
         <div className="mb-6">

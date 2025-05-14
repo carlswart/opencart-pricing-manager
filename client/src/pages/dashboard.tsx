@@ -132,6 +132,7 @@ export default function Dashboard() {
           onOpenChange={setDbSettingsModalOpen}
           stores={stores}
           connections={connections}
+          selectedStoreId={null}
         />
       )}
     </div>

@@ -41,7 +41,7 @@ export interface IStorage {
   getRecentUpdates(limit?: number): Promise<Update[]>;
   getUpdateById(id: number): Promise<Update | undefined>;
   createUpdate(update: InsertUpdate): Promise<Update>;
-  completeUpdate(id: number, status: 'completed' | 'partial' | 'failed'): Promise<Update | undefined>;
+  completeUpdate(id: number, status: 'completed' | 'partial' | 'failed', details?: any): Promise<Update | undefined>;
   deleteUpdate(id: number): Promise<boolean>;
   
   // Update details methods

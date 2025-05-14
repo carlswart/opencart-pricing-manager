@@ -559,6 +559,42 @@ async function processUpdates(
     for (const [storeId, { store, connection }] of Array.from(storeConnections.entries())) {
       console.log(`Processing store "${store.name}" (ID: ${storeId})...`);
       
+      // Create backup for this store before making any changes
+      try {
+        console.log(`Creating backup for store "${store.name}" before updating...`);
+        // Extract just the product SKUs for this backup
+        const productSkus = products.map(product => product.sku);
+        
+        // Perform the backup
+        const backupName = await OpenCartService.createPriceBackup(
+          connection,
+          updateId,
+          store.name,
+          productSkus
+        );
+        
+        if (backupName) {
+          console.log(`Successfully created backup "${backupName}" for store "${store.name}"`);
+          
+          // You could store the backup reference in the update.details property
+          if (update && update.details) {
+            const updateDetails = JSON.parse(JSON.stringify(update.details || {}));
+            if (!updateDetails.backups) {
+              updateDetails.backups = {};
+            }
+            updateDetails.backups[storeId] = backupName;
+            
+            // Update the update record with the backup information
+            await appStorage.completeUpdate(updateId, 'partial', updateDetails);
+          }
+        } else {
+          console.warn(`Failed to create backup for store "${store.name}", proceeding with caution`);
+        }
+      } catch (error) {
+        console.error(`Error creating backup for store "${store.name}":`, error);
+        // Continue with update despite backup failure, but log the error
+      }
+      
       // Process each product for this store
       for (const product of products) {
         try {

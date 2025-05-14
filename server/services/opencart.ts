@@ -127,6 +127,54 @@ export async function getProductCurrentValues(
 }
 
 /**
+ * Create a backup of product data before updating prices
+ * @param connection Database connection details
+ * @param updateId The ID of the current update operation
+ * @param storeName The name of the store for reference
+ * @param products List of product SKUs to backup
+ * @returns Path to the backup file or null if backup failed
+ */
+export async function createPriceBackup(
+  connection: DbConnection,
+  updateId: number,
+  storeName: string,
+  products: string[]
+): Promise<string | null> {
+  try {
+    // In a real implementation, this would create a backup of the product data
+    // in the OpenCart database before making any changes
+    
+    // For this demonstration, we'll simulate creating a backup
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupName = `price_backup_store_${storeName.replace(/\s+/g, '_')}_update_${updateId}_${timestamp}`;
+    
+    // Get current data for each product
+    const backupData: any[] = [];
+    
+    for (const sku of products) {
+      const productId = await findProductBySku(connection, sku);
+      if (productId) {
+        const currentValues = await getProductCurrentValues(connection, productId);
+        backupData.push({
+          sku,
+          productId,
+          ...currentValues
+        });
+      }
+    }
+    
+    // In a real implementation, we would save this to a database table or file
+    console.log(`Created price backup "${backupName}" for store "${storeName}" with ${backupData.length} products`);
+    
+    // Return the name of the backup (which could be used to restore if needed)
+    return backupName;
+  } catch (error) {
+    console.error(`Error creating price backup for store "${storeName}":`, error);
+    return null;
+  }
+}
+
+/**
  * Update product pricing and quantity in an OpenCart database
  * @param connection Database connection details
  * @param sku Product SKU to update

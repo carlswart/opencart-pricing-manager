@@ -132,13 +132,32 @@ export class DatabaseStorage implements IStorage {
     return newUpdate;
   }
   
-  async completeUpdate(id: number, status: 'completed' | 'partial' | 'failed'): Promise<Update | undefined> {
-    const [updatedUpdate] = await db
-      .update(updates)
-      .set({ status })
-      .where(eq(updates.id, id))
-      .returning();
-    return updatedUpdate;
+  async completeUpdate(id: number, status: 'completed' | 'partial' | 'failed', details?: any): Promise<Update | undefined> {
+    // If we have both status and details to update
+    if (details) {
+      const [updatedUpdate] = await db
+        .update(updates)
+        .set({ 
+          status, 
+          completedAt: status === 'completed' ? new Date() : undefined,
+          details: details
+        })
+        .where(eq(updates.id, id))
+        .returning();
+      return updatedUpdate;
+    } 
+    // If we're just updating the status
+    else {
+      const [updatedUpdate] = await db
+        .update(updates)
+        .set({ 
+          status,
+          completedAt: status === 'completed' ? new Date() : undefined
+        })
+        .where(eq(updates.id, id))
+        .returning();
+      return updatedUpdate;
+    }
   }
   
   async deleteUpdate(id: number): Promise<boolean> {

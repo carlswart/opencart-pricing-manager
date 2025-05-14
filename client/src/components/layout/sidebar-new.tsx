@@ -94,14 +94,14 @@ export default function Sidebar() {
           {mainNavItems.map((item) => (
             <li key={item.href}>
               <Link href={item.href}>
-                <a className={`flex items-center gap-3 px-6 py-2 cursor-pointer ${
+                <div className={`flex items-center gap-3 px-6 py-2 cursor-pointer ${
                   isActive(item.href)
                     ? "border-l-4 border-primary bg-primary/10 text-primary" 
                     : "border-l-4 border-transparent text-neutral-600 hover:bg-neutral-100"
                 }`}>
                   {item.icon}
                   <span>{item.label}</span>
-                </a>
+                </div>
               </Link>
             </li>
           ))}
@@ -113,14 +113,14 @@ export default function Sidebar() {
           {adminNavItems.map((item) => (
             <li key={item.href}>
               <Link href={item.href}>
-                <a className={`flex items-center gap-3 px-6 py-2 cursor-pointer ${
+                <div className={`flex items-center gap-3 px-6 py-2 cursor-pointer ${
                   isActive(item.href)
                     ? "border-l-4 border-primary bg-primary/10 text-primary" 
                     : "border-l-4 border-transparent text-neutral-600 hover:bg-neutral-100"
                 }`}>
                   {item.icon}
                   <span>{item.label}</span>
-                </a>
+                </div>
               </Link>
             </li>
           ))}

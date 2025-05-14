@@ -1,5 +1,5 @@
 import React from "react";
-import Sidebar from "./sidebar";
+import Sidebar from "./sidebar-new";
 import { useLocation } from "wouter";
 import { Bell, HelpCircle } from "lucide-react";
 

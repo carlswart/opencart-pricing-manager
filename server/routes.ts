@@ -1,10 +1,7 @@
 import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import session from "express-session";
-import MemoryStore from "memorystore";
-import passport from "passport";
 import { storage } from "./storage";
-import { authRouter } from "./auth";
+import { setupAuth } from "./auth";
 import * as SpreadsheetService from "./services/spreadsheet";
 import * as OpenCartService from "./services/opencart";
 import { z } from "zod";
@@ -12,24 +9,8 @@ import { fromZodError } from "zod-validation-error";
 import { insertStoreSchema, insertUpdateSchema, insertDbConnectionSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Create session store
-  const SessionStore = MemoryStore(session);
-  
-  // Configure middleware
-  app.use(session({
-    secret: process.env.SESSION_SECRET || "pricesync-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production", maxAge: 24 * 60 * 60 * 1000 },
-    store: new SessionStore({ checkPeriod: 86400000 }), // prune expired entries every 24h
-  }));
-  
-  // Initialize passport
-  app.use(passport.initialize());
-  app.use(passport.session());
-  
-  // Auth routes
-  app.use("/api/auth", authRouter);
+  // Setup authentication
+  setupAuth(app);
   
   // Authentication middleware
   const authenticate = (req: Request, res: Response, next: Function) => {

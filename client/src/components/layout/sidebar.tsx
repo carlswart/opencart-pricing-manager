@@ -110,7 +110,7 @@ export default function Sidebar() {
               <div className="text-xs text-neutral-500">{user.role}</div>
             </div>
             <button 
-              onClick={() => logout()} 
+              onClick={() => logoutMutation.mutate()} 
               className="ml-auto text-neutral-500 hover:text-neutral-700"
             >
               <LogOut className="h-4 w-4" />

@@ -51,8 +51,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const res = await apiRequest("POST", "/api/auth/login", { username, password });
+      console.log("Logging in with username:", username);
+      
+      // Make direct fetch request to debug
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"
+      });
+      
+      console.log("Login response status:", res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Login error:", errorText);
+        throw new Error(`Login failed: ${res.status} ${errorText}`);
+      }
+      
       const userData = await res.json();
+      console.log("User data received:", userData);
       setUser(userData);
       
       toast({

@@ -78,12 +78,15 @@ export class MemStorage implements IStorage {
     this.updateDetailIdCounter = 1;
     
     // Create initial admin user
-    this.createUser({
+    const adminUser = {
       username: 'admin',
       password: '$2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa', // 'password'
       name: 'John Powell',
       role: 'admin'
-    });
+    };
+    
+    console.log('Creating admin user:', adminUser.username);
+    this.createUser(adminUser);
     
     // Create sample stores
     this.initializeSampleData();

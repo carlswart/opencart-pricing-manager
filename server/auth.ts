@@ -13,20 +13,29 @@ export const authRouter = express.Router();
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
+      console.log('Local strategy authenticating user:', username);
+      
       const user = await storage.getUserByUsername(username);
+      console.log('User found:', user ? 'Yes' : 'No');
       
       if (!user) {
+        console.log('User not found');
         return done(null, false, { message: "Incorrect username" });
       }
       
+      console.log('Comparing password...');
       const isPasswordValid = await bcrypt.compare(password, user.password);
+      console.log('Password valid:', isPasswordValid);
       
       if (!isPasswordValid) {
+        console.log('Invalid password');
         return done(null, false, { message: "Incorrect password" });
       }
       
+      console.log('Authentication successful');
       return done(null, user);
     } catch (error) {
+      console.error('Error in authentication:', error);
       return done(error);
     }
   })
@@ -49,19 +58,28 @@ passport.deserializeUser(async (id: number, done) => {
 
 // Login route
 authRouter.post("/login", (req, res, next) => {
+  console.log('Login request received:', req.body);
+  
   passport.authenticate("local", (err: any, user: User, info: any) => {
+    console.log('Passport authenticate result:', { err, user: user?.username, info });
+    
     if (err) {
+      console.error('Authentication error:', err);
       return next(err);
     }
     
     if (!user) {
-      return res.status(401).json({ message: info.message || "Authentication failed" });
+      console.log('Authentication failed - no user');
+      return res.status(401).json({ message: info?.message || "Authentication failed" });
     }
     
     req.logIn(user, (err) => {
       if (err) {
+        console.error('Login error:', err);
         return next(err);
       }
+      
+      console.log('User logged in successfully:', user.username);
       
       // Don't return password in response
       const { password, ...userWithoutPassword } = user;

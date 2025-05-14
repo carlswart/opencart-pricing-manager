@@ -1,4 +1,10 @@
-import { users, type User, type InsertUser, stores, type Store, type InsertStore, dbConnections, type DbConnection, type InsertDbConnection, updates, type Update, type InsertUpdate, updateDetails, type UpdateDetail, type InsertUpdateDetail } from "@shared/schema";
+import { 
+  users, type User, type InsertUser, 
+  stores, type Store, type InsertStore, 
+  dbConnections, type DbConnection, type InsertDbConnection, 
+  updates, type Update, type InsertUpdate, 
+  updateDetails, type UpdateDetail, type InsertUpdateDetail 
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, gt, sql } from "drizzle-orm";
 import { IStorage } from "./storage";
@@ -17,6 +23,24 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
+  }
+  
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(user)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    return !!result;
+  }
+  
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(users.username);
   }
   
   async getAllStores(): Promise<Store[]> {

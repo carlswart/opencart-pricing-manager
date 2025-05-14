@@ -6,7 +6,14 @@ import * as SpreadsheetService from "./services/spreadsheet";
 import * as OpenCartService from "./services/opencart";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { insertStoreSchema, insertUpdateSchema, insertDbConnectionSchema } from "@shared/schema";
+import { 
+  insertStoreSchema, 
+  insertUpdateSchema, 
+  insertDbConnectionSchema,
+  insertUserSchema,
+  InsertUser
+} from "@shared/schema";
+import { hash } from "./auth-utils";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication

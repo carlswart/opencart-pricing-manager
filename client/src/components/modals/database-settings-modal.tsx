@@ -122,6 +122,51 @@ export function DatabaseSettingsModal({
       prefix: 'oc_'
     });
   };
+  
+  const handleAddNewStore = async () => {
+    const storeName = window.prompt("Enter store name:");
+    if (!storeName) return;
+    
+    const storeUrl = window.prompt("Enter store URL (e.g., https://store.example.com):");
+    if (!storeUrl) return;
+    
+    try {
+      const result = await apiRequest(
+        "POST",
+        "/api/stores",
+        { name: storeName, url: storeUrl }
+      );
+      
+      // Parse the response to get the new store
+      const newStore = await result.json();
+      
+      // Invalidate the stores query to fetch updated data
+      queryClient.invalidateQueries({ queryKey: ['/api/stores'] });
+      
+      toast({
+        title: "Store created",
+        description: "New store has been added successfully",
+      });
+      
+      // Automatically select this store for connection configuration
+      setSelectedStoreForNewConnection(newStore.id);
+      setNewConnection({
+        storeId: newStore.id,
+        host: 'localhost',
+        port: '3306',
+        database: '',
+        username: '',
+        password: '',
+        prefix: 'oc_'
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Creation failed",
+        description: error instanceof Error ? error.message : "Failed to create store",
+      });
+    }
+  };
 
   const handleTestConnection = async (connectionId: number) => {
     const connection = editedConnections.find((conn) => conn.id === connectionId);

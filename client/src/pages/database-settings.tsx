@@ -2,13 +2,17 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Plus, StoreIcon } from "lucide-react";
+import { Plus, StoreIcon, Trash } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { DatabaseSettingsModal } from "@/components/modals/database-settings-modal";
 import { Store, DbConnection } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 export default function DatabaseSettings() {
+  const { toast } = useToast();
   const [dbSettingsModalOpen, setDbSettingsModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<number | null>(null);
   
@@ -30,6 +34,58 @@ export default function DatabaseSettings() {
   const handleAddStore = () => {
     setSelectedStore(null);
     setDbSettingsModalOpen(true);
+  };
+  
+  const handleDeleteStore = async (storeId: number) => {
+    // Check if the store has a database connection
+    const hasConnection = connections?.some(conn => conn.storeId === storeId);
+    
+    // Confirm deletion with appropriate warning
+    let confirmMessage = "Are you sure you want to delete this store?";
+    if (hasConnection) {
+      confirmMessage += " This will also delete any associated database connections.";
+    }
+    confirmMessage += " This action cannot be undone.";
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+    
+    try {
+      // First, delete any associated database connections
+      if (hasConnection) {
+        const connection = connections?.find(conn => conn.storeId === storeId);
+        if (connection) {
+          await apiRequest(
+            "DELETE",
+            `/api/database/connections/${connection.id}`,
+            {}
+          );
+        }
+      }
+      
+      // Then delete the store
+      await apiRequest(
+        "DELETE",
+        `/api/stores/${storeId}`,
+        {}
+      );
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/stores'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/database/connections'] });
+      
+      toast({
+        title: "Store deleted",
+        description: "The store and its associated connections have been removed",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Deletion failed",
+        description: error instanceof Error ? error.message : "Failed to delete store",
+      });
+    }
   };
   
   return (
@@ -95,14 +151,25 @@ export default function DatabaseSettings() {
                           <div className="text-sm text-neutral-500">Prefix:</div>
                           <div className="text-sm">{connection?.prefix || "Not set"}</div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => handleConfigureStore(store.id)}
-                        >
-                          Configure Connection
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => handleDeleteStore(store.id)}
+                          >
+                            <Trash className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleConfigureStore(store.id)}
+                          >
+                            Configure
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   );

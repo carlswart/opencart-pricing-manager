@@ -69,6 +69,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.delete("/api/stores/:id", authenticate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if store exists
+      const store = await storage.getStoreById(id);
+      if (!store) {
+        return res.status(404).json({ message: "Store not found" });
+      }
+      
+      // Check if store has database connection and delete if present
+      const connection = await storage.getDbConnectionByStoreId(id);
+      if (connection) {
+        await storage.deleteDbConnection(connection.id);
+      }
+      
+      // Delete the store
+      const success = await storage.deleteStore(id);
+      
+      if (success) {
+        res.json({ success: true, message: "Store deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete store" });
+      }
+    } catch (error) {
+      console.error("Error deleting store:", error);
+      res.status(500).json({ message: "Failed to delete store" });
+    }
+  });
+  
   // Database connection routes
   app.get("/api/database/connections", authenticate, async (req, res) => {
     try {

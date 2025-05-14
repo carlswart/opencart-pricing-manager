@@ -44,6 +44,7 @@ interface SpreadsheetPreviewModalProps {
     hasBackups?: boolean;
   } | null;
   onConfirm: () => void;
+  isHistoryView?: boolean; // Flag to indicate if this is a history view
 }
 
 export function SpreadsheetPreviewModal({
@@ -51,6 +52,7 @@ export function SpreadsheetPreviewModal({
   onOpenChange,
   data,
   onConfirm,
+  isHistoryView = false,
 }: SpreadsheetPreviewModalProps) {
   const [restoringBackup, setRestoringBackup] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -233,11 +235,13 @@ export function SpreadsheetPreviewModal({
         <DialogFooter className="flex justify-end">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {isHistoryView ? "Close" : "Cancel"}
             </Button>
-            <Button onClick={onConfirm}>
-              Continue with Update
-            </Button>
+            {!isHistoryView && (
+              <Button onClick={onConfirm}>
+                Continue with Update
+              </Button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>

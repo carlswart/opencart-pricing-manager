@@ -188,6 +188,7 @@ export default function UpdateHistory() {
         onOpenChange={setShowPreview}
         data={previewData}
         onConfirm={() => setShowPreview(false)}
+        isHistoryView={true}
       />
     </div>
   );

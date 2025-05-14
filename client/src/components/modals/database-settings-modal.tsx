@@ -309,10 +309,10 @@ export function DatabaseSettingsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Database Connection Settings</DialogTitle>
-          <div className="text-sm text-muted-foreground">
+      <DialogContent className="sm:max-w-3xl dark:bg-neutral-900 dark:border-neutral-700">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="dark:text-white">Database Connection Settings</DialogTitle>
+          <div className="text-sm text-muted-foreground dark:text-neutral-400">
             Configure database connections for your OpenCart stores
           </div>
         </DialogHeader>
@@ -323,7 +323,7 @@ export function DatabaseSettingsModal({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="flex items-center text-primary text-sm hover:text-secondary"
+              className="flex items-center text-primary text-sm hover:text-secondary dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-neutral-800"
               onClick={() => setShowNewConnectionForm(true)}
             >
               <Plus className="h-4 w-4 mr-1" />
@@ -414,7 +414,7 @@ export function DatabaseSettingsModal({
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-neutral-700 dark:hover:bg-red-900/20"
                               onClick={() => handleDeleteConnection(connection.id)}
                             >
                               <Trash className="h-4 w-4 mr-1" />
@@ -424,12 +424,14 @@ export function DatabaseSettingsModal({
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                                 onClick={() => handleTestConnection(connection.id)}
                               >
                                 Test Connection
                               </Button>
                               <Button
                                 size="sm"
+                                className="dark:bg-primary dark:text-white dark:hover:bg-primary/90"
                                 onClick={() => handleSaveConnection(connection.id)}
                               >
                                 Save Changes
@@ -466,7 +468,7 @@ export function DatabaseSettingsModal({
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-xs text-primary flex items-center"
+                      className="text-xs text-primary dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-neutral-800 flex items-center"
                       onClick={handleAddNewStore}
                     >
                       <Plus className="h-3 w-3 mr-1" />
@@ -561,12 +563,14 @@ export function DatabaseSettingsModal({
                       <Button
                         variant="outline"
                         size="sm"
+                        className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                         onClick={handleTestNewConnection}
                       >
                         Test Connection
                       </Button>
                       <Button
                         size="sm"
+                        className="dark:bg-primary dark:text-white dark:hover:bg-primary/90"
                         onClick={handleCreateConnection}
                       >
                         Create Connection
@@ -579,8 +583,10 @@ export function DatabaseSettingsModal({
           )}
         </div>
         
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>
+        <DialogFooter className="dark:bg-neutral-900 border-t dark:border-neutral-800 px-4 py-3">
+          <Button 
+            onClick={() => onOpenChange(false)}
+            className="dark:bg-primary dark:text-white dark:hover:bg-primary/90">
             Close
           </Button>
         </DialogFooter>

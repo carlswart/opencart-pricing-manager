@@ -401,10 +401,13 @@ export default function Settings() {
                     </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Card className={`border-2 ${colorTheme === 'default' ? 'border-blue-500' : 'border-transparent'} transition-all`}>
+                      <Card 
+                        className={`border-2 ${colorTheme === 'default' ? 'border-primary' : 'border-transparent'} transition-all hover:bg-accent/50 cursor-pointer`}
+                        onClick={() => handleColorThemeChange('default')}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                               <Paintbrush className="h-4 w-4" />
                             </div>
                             <div>
@@ -417,7 +420,10 @@ export default function Settings() {
                         </CardContent>
                       </Card>
                       
-                      <Card className={`border-2 ${colorTheme === 'green' ? 'border-green-600' : 'border-transparent'} transition-all`}>
+                      <Card 
+                        className={`border-2 ${colorTheme === 'green' ? 'border-primary' : 'border-transparent'} transition-all`}
+                        onClick={() => handleColorThemeChange('green')}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white">
@@ -434,8 +440,11 @@ export default function Settings() {
                       </Card>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                      <Card className={`border-2 ${theme === 'light' || (theme === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'border-primary' : 'border-transparent'} transition-all`}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                      <Card 
+                        className={`border-2 ${theme === 'light' ? 'border-primary' : 'border-transparent'} transition-all hover:bg-accent/50 cursor-pointer`}
+                        onClick={() => handleModeChange('light')}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center">
@@ -451,7 +460,10 @@ export default function Settings() {
                         </CardContent>
                       </Card>
                       
-                      <Card className={`border-2 ${theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'border-primary' : 'border-transparent'} transition-all`}>
+                      <Card 
+                        className={`border-2 ${theme === 'dark' ? 'border-primary' : 'border-transparent'} transition-all hover:bg-accent/50 cursor-pointer`}
+                        onClick={() => handleModeChange('dark')}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
@@ -467,7 +479,10 @@ export default function Settings() {
                         </CardContent>
                       </Card>
                       
-                      <Card className={`border-2 ${theme === 'system' ? 'border-primary' : 'border-transparent'} transition-all`}>
+                      <Card 
+                        className={`border-2 ${theme === 'system' ? 'border-primary' : 'border-transparent'} transition-all hover:bg-accent/50 cursor-pointer`}
+                        onClick={() => handleModeChange('system')}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-slate-100 to-slate-800 flex items-center justify-center">

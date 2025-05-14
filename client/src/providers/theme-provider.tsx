@@ -1,92 +1,99 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+// Context and hook for easy theme access
+type ThemeContextType = {
+  theme: string;
+  setTheme: (theme: string) => void;
+};
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+const THEME_STORAGE_KEY = "vite-ui-theme";
+
+// For system's preferred color scheme
+function getSystemTheme(): "dark" | "light" {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+// The main theme provider
+export function ThemeProvider({ 
+  children, 
+  defaultTheme = "light",
+}: { 
+  children: React.ReactNode;
+  defaultTheme?: string;
+}) {
   const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<string>(() => {
+    if (typeof window === "undefined") return defaultTheme;
+    return localStorage.getItem(THEME_STORAGE_KEY) || defaultTheme;
+  });
+
+  // Apply theme to document
+  useEffect(() => {
+    const root = window.document.documentElement;
+    
+    // Remove existing mode classes
+    root.classList.remove("light", "dark");
+    
+    // Determine theme to apply
+    let appliedTheme = theme;
+    if (theme === "system") {
+      appliedTheme = getSystemTheme();
+    }
+    
+    // Apply the theme
+    root.classList.add(appliedTheme);
+  }, [theme]);
+
+  // Watch for system preferences change
+  useEffect(() => {
+    if (theme !== "system") return;
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    
+    const handleChange = () => {
+      const root = window.document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(getSystemTheme());
+    };
+    
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [theme]);
 
   // Ensure we only render client-side
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const setTheme = (newTheme: string) => {
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    setThemeState(newTheme);
+  };
+
+  const value = {
+    theme,
+    setTheme,
+  };
+
+  // Prevent flash on load
   if (!mounted) {
     return <>{children}</>;
   }
 
   return (
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
-      {children}
-    </NextThemesProvider>
-  );
-}
-
-// Context and hook for easy theme access
-type ThemeContextType = {
-  theme: string | undefined;
-  setTheme: (theme: string) => void;
-};
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export function ThemeProviderContext({ 
-  children,
-  defaultTheme = "system",
-  storageKey = "vite-ui-theme",
-  ...props
-}: {
-  children: React.ReactNode;
-  defaultTheme?: string;
-  storageKey?: string;
-}) {
-  const [theme, setTheme] = useState<string | undefined>(
-    () => localStorage.getItem(storageKey) || defaultTheme
-  );
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    
-    // Only handle light/dark mode, don't remove color themes
-    root.classList.remove("light", "dark");
-    
-    // Get the current color theme class (if any)
-    const hasDefaultTheme = root.classList.contains("theme-default");
-    const hasGreenTheme = root.classList.contains("theme-green");
-    
-    // Handle the system/light/dark theme
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      
-      root.classList.add(systemTheme);
-    } else if (theme === "light" || theme === "dark") {
-      root.classList.add(theme);
-    }
-    
-    // Ensure the color theme class is still applied
-    if (!hasDefaultTheme && !hasGreenTheme) {
-      // If no color theme class is present, add the default one
-      root.classList.add("theme-default");
-    }
-  }, [theme]);
-
-  const value = {
-    theme,
-    setTheme: (theme: string) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
-    },
-  };
-
-  return (
-    <ThemeContext.Provider value={value} {...props}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
 }
+
+// The theme provider context is now just an alias for ThemeProvider
+export const ThemeProviderContext = ThemeProvider;
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);

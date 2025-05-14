@@ -2,55 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Default theme (blue) */
-.theme-default {
-  --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
-  --muted: 60 4.8% 95.9%;
-  --muted-foreground: 25 5.3% 44.7%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
-  --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --primary: 207 90% 54%;
-  --primary-foreground: 211 100% 99%;
-  --secondary: 60 4.8% 95.9%;
-  --secondary-foreground: 24 9.8% 10%;
-  --accent: 60 4.8% 95.9%;
-  --accent-foreground: 24 9.8% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 20 14.3% 4.1%;
-  --radius: 0.5rem;
-}
-
-/* Green theme */
-.theme-green {
-  --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
-  --muted: 142 5% 96%;
-  --muted-foreground: 25 5.3% 44.7%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
-  --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 142 5% 90%;
-  --input: 142 5% 90%;
-  --primary: 142 76% 36%;
-  --primary-foreground: 355 100% 100%;
-  --secondary: 142 5% 96%;
-  --secondary-foreground: 24 9.8% 10%;
-  --accent: 142 5% 96%;
-  --accent-foreground: 24 9.8% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 142 76% 36%;
-  --radius: 0.5rem;
-}
-
-/* Default to the default theme if no class is applied */
+/* Default theme variables (blue) */
 :root {
   --background: 0 0% 100%;
   --foreground: 20 14.3% 4.1%;
@@ -73,6 +25,29 @@
   --ring: 20 14.3% 4.1%;
   --radius: 0.5rem;
 }
+
+/* Blue theme (default) - light mode */
+.theme-default {
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --ring: 207 90% 54%;
+}
+
+/* Green theme - light mode */
+.theme-green {
+  --primary: 142 76% 36%;
+  --primary-foreground: 355 100% 100%;
+  --ring: 142 76% 36%;
+  --secondary: 142 5% 96%;
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 142 5% 96%;
+  --accent-foreground: 24 9.8% 10%;
+  --muted: 142 5% 96%;
+  --border: 142 5% 90%;
+  --input: 142 5% 90%;
+}
+
+/* Dark mode base */
 .dark {
   --background: 220 14% 8%;
   --foreground: 213 31% 91%;
@@ -84,23 +59,12 @@
   --card-foreground: 213 31% 91%;
   --border: 216 14% 14%;
   --input: 216 14% 14%;
-  --primary: 207 90% 54%;
-  --primary-foreground: 210 40% 98%;
   --secondary: 222 14% 15%;
   --secondary-foreground: 210 40% 98%;
   --accent: 216 14% 20%;
   --accent-foreground: 210 40% 98%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
-  --ring: 207 90% 54%;
-  --radius: 0.5rem;
-}
-
-/* Dark mode with green theme */
-.dark.theme-green {
-  --primary: 142 70% 45%;
-  --primary-foreground: 210 40% 98%;
-  --ring: 142 70% 45%;
 }
 
 /* Dark mode with blue/default theme */
@@ -108,6 +72,15 @@
   --primary: 207 90% 54%;
   --primary-foreground: 210 40% 98%;
   --ring: 207 90% 54%;
+}
+
+/* Dark mode with green theme */
+.dark.theme-green {
+  --primary: 142 70% 45%;
+  --primary-foreground: 210 40% 98%;
+  --ring: 142 70% 45%;
+  --accent: 143 15% 25%;
+  --accent-foreground: 210 40% 98%;
 }
 
 @layer base {

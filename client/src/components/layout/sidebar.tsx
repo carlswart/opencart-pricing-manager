@@ -25,11 +25,9 @@ function SidebarItem({ icon, label, href, isActive }: SidebarItemProps) {
   const inactiveClasses = "text-neutral-600 border-l-4 border-transparent";
   
   return (
-    <Link href={href}>
-      <a className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
-        {icon}
-        <span>{label}</span>
-      </a>
+    <Link href={href} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
+      {icon}
+      <span>{label}</span>
     </Link>
   );
 }

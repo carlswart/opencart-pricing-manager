@@ -455,14 +455,14 @@ export function DatabaseSettingsModal({
           
           {/* New connection form */}
           {showNewConnectionForm && (
-            <div className="mt-6 border border-neutral-200 rounded-lg overflow-hidden">
-              <div className="p-4 bg-neutral-50 font-medium text-sm">
+            <div className="mt-6 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
+              <div className="p-4 bg-neutral-50 dark:bg-neutral-800 font-medium text-sm dark:text-neutral-300">
                 Add New Database Connection
               </div>
               <div className="p-4">
                 <div className="mb-4">
                   <div className="flex justify-between items-center">
-                    <Label className="text-xs font-medium text-neutral-500">Select Store</Label>
+                    <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Select Store</Label>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -474,7 +474,7 @@ export function DatabaseSettingsModal({
                     </Button>
                   </div>
                   <select 
-                    className="mt-1 w-full rounded-md border border-neutral-200 p-2"
+                    className="mt-1 w-full rounded-md border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 p-2"
                     value={selectedStoreForNewConnection || ""}
                     onChange={(e) => handleStoreSelect(Number(e.target.value))}
                   >
@@ -487,7 +487,7 @@ export function DatabaseSettingsModal({
                     }
                   </select>
                   {stores.filter(store => !connections.some(conn => conn.storeId === store.id)).length === 0 && (
-                    <div className="mt-2 text-xs text-neutral-500 flex items-center">
+                    <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 flex items-center">
                       <span className="mr-2">All stores have connections. Add a new store to continue.</span>
                     </div>
                   )}
@@ -497,7 +497,7 @@ export function DatabaseSettingsModal({
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-xs font-medium text-neutral-500">Host</Label>
+                        <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Host</Label>
                         <Input 
                           value={newConnection.host} 
                           onChange={(e) => handleNewConnectionInputChange("host", e.target.value)}
@@ -505,7 +505,7 @@ export function DatabaseSettingsModal({
                         />
                       </div>
                       <div>
-                        <Label className="text-xs font-medium text-neutral-500">Port</Label>
+                        <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Port</Label>
                         <Input 
                           value={newConnection.port} 
                           onChange={(e) => handleNewConnectionInputChange("port", e.target.value)}
@@ -513,7 +513,7 @@ export function DatabaseSettingsModal({
                         />
                       </div>
                       <div>
-                        <Label className="text-xs font-medium text-neutral-500">Database Name</Label>
+                        <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Database Name</Label>
                         <Input 
                           value={newConnection.database} 
                           onChange={(e) => handleNewConnectionInputChange("database", e.target.value)}
@@ -521,7 +521,7 @@ export function DatabaseSettingsModal({
                         />
                       </div>
                       <div>
-                        <Label className="text-xs font-medium text-neutral-500">Table Prefix</Label>
+                        <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Table Prefix</Label>
                         <Input 
                           value={newConnection.prefix} 
                           onChange={(e) => handleNewConnectionInputChange("prefix", e.target.value)}
@@ -529,7 +529,7 @@ export function DatabaseSettingsModal({
                         />
                       </div>
                       <div>
-                        <Label className="text-xs font-medium text-neutral-500">Username</Label>
+                        <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Username</Label>
                         <Input 
                           value={newConnection.username} 
                           onChange={(e) => handleNewConnectionInputChange("username", e.target.value)}
@@ -537,7 +537,7 @@ export function DatabaseSettingsModal({
                         />
                       </div>
                       <div>
-                        <Label className="text-xs font-medium text-neutral-500">Password</Label>
+                        <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</Label>
                         <Input 
                           type="password" 
                           value={newConnection.password} 

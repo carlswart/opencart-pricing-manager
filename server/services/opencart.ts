@@ -1,4 +1,6 @@
 import { DbConnection } from "@shared/schema";
+import fs from 'fs';
+import path from 'path';
 
 // Interface for product update parameters
 interface ProductUpdateParams {

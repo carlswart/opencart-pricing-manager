@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import multer from "multer";
 import { storage as appStorage } from "../storage";
 import { User } from "@shared/schema";
-import { calculateDepotPrice, calculateWarehousePrice } from "./pricing";
+import { calculateDepotPrice, calculateWarehousePrice, isValidDepotPrice, isValidWarehousePrice } from "./pricing";
+import * as XLSX from 'xlsx';
 import * as OpenCartService from "./opencart";
 
 // Configure multer for file uploads
@@ -109,40 +110,162 @@ export const handleProcess = [
   }
 ];
 
+// Column headers mapping
+const COLUMN_MAPPINGS = {
+  SKU: ['sku', 'model', 'product code', 'product_code', 'product_model', 'product_sku'],
+  NAME: ['name', 'product name', 'product_name', 'description', 'title', 'product_title'],
+  PRICE: ['price', 'regular price', 'regular_price', 'retail_price', 'retail price', 'base_price', 'base price'],
+  DEPOT_PRICE: ['depot price', 'depot_price', 'discount price', 'discount_price'],
+  WAREHOUSE_PRICE: ['warehouse price', 'warehouse_price', 'wholesale price', 'wholesale_price'],
+  QUANTITY: ['quantity', 'qty', 'stock', 'inventory', 'on hand', 'on_hand', 'available'],
+};
+
 // Parse spreadsheet buffer into product rows
 async function parseSpreadsheet(buffer: Buffer, filename: string): Promise<ProductRow[]> {
   try {
-    // In a real implementation, this would use a library like xlsx
-    // to parse the actual file. For this implementation, we'll simulate parsing.
+    // Read the workbook from buffer
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+
+    // Get the first worksheet
+    if (workbook.SheetNames.length === 0) {
+      throw new Error('No worksheets found in the file');
+    }
+
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     
-    // Generate some sample data based on file name
-    const sampleData: ProductRow[] = [];
-    const productCount = Math.floor(Math.random() * 100) + 50;
+    // Convert to JSON
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
     
-    for (let i = 1; i <= productCount; i++) {
-      const sku = `SKU${i.toString().padStart(4, '0')}`;
-      const regularPrice = Math.floor(Math.random() * 10000) / 100; // Random price between 0 and 100
+    if (jsonData.length < 2) {
+      throw new Error('Spreadsheet must contain at least a header row and one data row');
+    }
+    
+    // Get headers (first row)
+    const headers = jsonData[0] as string[];
+    
+    // Map headers to our expected fields
+    const columnIndices: { [key: string]: number } = {};
+    
+    // Find indices for each column type
+    headers.forEach((header, index) => {
+      const headerLower = header.toString().toLowerCase();
+      
+      for (const [key, possibleNames] of Object.entries(COLUMN_MAPPINGS)) {
+        if (possibleNames.includes(headerLower)) {
+          columnIndices[key] = index;
+          break;
+        }
+      }
+    });
+    
+    // Check if required columns exist
+    if (!columnIndices.SKU) {
+      throw new Error('Required column not found: SKU or Model number');
+    }
+    
+    if (!columnIndices.PRICE) {
+      throw new Error('Required column not found: Price');
+    }
+    
+    // Parse data rows into our format
+    const products: ProductRow[] = [];
+    
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i] as any[];
+      
+      // Skip empty rows
+      if (!row || row.length === 0) continue;
+      
+      // Get values from the row
+      const sku = row[columnIndices.SKU]?.toString()?.trim();
+      if (!sku) continue; // Skip rows with no SKU
+      
+      const name = columnIndices.NAME !== undefined ? row[columnIndices.NAME]?.toString() || '' : '';
+      
+      // Parse price as number
+      const regularPriceRaw = row[columnIndices.PRICE];
+      // Convert price to number, handle currency symbols and commas
+      const regularPrice = typeof regularPriceRaw === 'number' 
+        ? regularPriceRaw 
+        : parseFloat(regularPriceRaw?.toString().replace(/[^0-9.-]+/g, '') || '0');
+      
+      if (isNaN(regularPrice) || regularPrice <= 0) {
+        continue; // Skip invalid prices
+      }
+      
+      // Calculate depot and warehouse prices
       const calculatedDepotPrice = calculateDepotPrice(regularPrice);
       const calculatedWarehousePrice = calculateWarehousePrice(regularPrice);
       
-      // Simulate some validation errors
-      const hasDepotPriceError = Math.random() > 0.9;
-      const hasWarehousePriceError = Math.random() > 0.9;
+      // Parse provided depot price (if exists)
+      let depotPrice = calculatedDepotPrice;
+      let hasDepotPriceError = false;
       
-      sampleData.push({
+      if (columnIndices.DEPOT_PRICE !== undefined) {
+        const depotPriceRaw = row[columnIndices.DEPOT_PRICE];
+        if (depotPriceRaw !== undefined) {
+          // Convert to number
+          const parsedDepotPrice = typeof depotPriceRaw === 'number'
+            ? depotPriceRaw
+            : parseFloat(depotPriceRaw.toString().replace(/[^0-9.-]+/g, '') || '0');
+          
+          if (!isNaN(parsedDepotPrice) && parsedDepotPrice > 0) {
+            depotPrice = parsedDepotPrice;
+            hasDepotPriceError = !isValidDepotPrice(regularPrice, parsedDepotPrice);
+          }
+        }
+      }
+      
+      // Parse provided warehouse price (if exists)
+      let warehousePrice = calculatedWarehousePrice;
+      let hasWarehousePriceError = false;
+      
+      if (columnIndices.WAREHOUSE_PRICE !== undefined) {
+        const warehousePriceRaw = row[columnIndices.WAREHOUSE_PRICE];
+        if (warehousePriceRaw !== undefined) {
+          // Convert to number
+          const parsedWarehousePrice = typeof warehousePriceRaw === 'number'
+            ? warehousePriceRaw
+            : parseFloat(warehousePriceRaw.toString().replace(/[^0-9.-]+/g, '') || '0');
+          
+          if (!isNaN(parsedWarehousePrice) && parsedWarehousePrice > 0) {
+            warehousePrice = parsedWarehousePrice;
+            hasWarehousePriceError = !isValidWarehousePrice(regularPrice, parsedWarehousePrice);
+          }
+        }
+      }
+      
+      // Parse quantity (if exists)
+      let quantity = 0;
+      if (columnIndices.QUANTITY !== undefined) {
+        const quantityRaw = row[columnIndices.QUANTITY];
+        if (quantityRaw !== undefined) {
+          quantity = typeof quantityRaw === 'number' 
+            ? Math.floor(quantityRaw) 
+            : parseInt(quantityRaw.toString().replace(/[^0-9-]+/g, '') || '0');
+        }
+      }
+      
+      // Add product to results
+      products.push({
         sku,
-        name: `Product ${i}`,
+        name,
         regularPrice,
-        depotPrice: hasDepotPriceError ? calculatedDepotPrice + 1 : calculatedDepotPrice,
-        warehousePrice: hasWarehousePriceError ? calculatedWarehousePrice + 1 : calculatedWarehousePrice,
-        quantity: Math.floor(Math.random() * 100) + 10,
-        row: i,
+        depotPrice,
+        warehousePrice,
+        quantity,
+        row: i + 1, // 1-based row number for user display
         hasDepotPriceError,
         hasWarehousePriceError
       });
     }
     
-    return sampleData;
+    if (products.length === 0) {
+      throw new Error('No valid product data found in spreadsheet');
+    }
+    
+    return products;
+    
   } catch (error) {
     console.error("Error parsing spreadsheet:", error);
     throw new Error(`Failed to parse spreadsheet: ${error instanceof Error ? error.message : "Unknown error"}`);

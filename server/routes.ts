@@ -43,6 +43,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // User routes
+  app.get("/api/users", authenticate, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+  
+  app.post("/api/users", authenticate, async (req, res) => {
+    try {
+      // Check if user making the request is an admin
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can create new users" });
+      }
+      
+      // Validate request data
+      const validatedData = insertUserSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      // Hash the password before saving
+      const hashedPassword = await hash(validatedData.password);
+      
+      // Create the user
+      const user = await storage.createUser({
+        ...validatedData,
+        password: hashedPassword
+      });
+      
+      res.status(201).json(user);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+  
+  app.patch("/api/users/:id", authenticate, async (req, res) => {
+    try {
+      // Check if user making the request is an admin
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can update users" });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      // Check if user exists
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Extract and validate update data
+      const { username, password, name, role } = req.body;
+      
+      // Create update object
+      const updateData: Partial<InsertUser> = {};
+      if (name) updateData.name = name;
+      if (role) updateData.role = role;
+      
+      // Only update password if provided
+      if (password) {
+        updateData.password = await hash(password);
+      }
+      
+      // Update the user
+      const updatedUser = await storage.updateUser(id, updateData);
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+  
+  app.delete("/api/users/:id", authenticate, async (req, res) => {
+    try {
+      // Check if user making the request is an admin
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can delete users" });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      // Check if user exists
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Prevent deleting your own account
+      if (id === req.user.id) {
+        return res.status(400).json({ message: "You cannot delete your own account" });
+      }
+      
+      // Delete the user
+      const success = await storage.deleteUser(id);
+      
+      if (success) {
+        res.json({ success: true, message: "User deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete user" });
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // Store routes
   app.get("/api/stores", authenticate, async (req, res) => {
     try {

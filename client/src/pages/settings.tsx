@@ -435,7 +435,7 @@ export default function Settings() {
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                      <Card className={`border-2 ${theme === 'light' ? 'border-primary' : 'border-transparent'} transition-all`}>
+                      <Card className={`border-2 ${theme === 'light' || (theme === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'border-primary' : 'border-transparent'} transition-all`}>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center">
@@ -451,7 +451,7 @@ export default function Settings() {
                         </CardContent>
                       </Card>
                       
-                      <Card className={`border-2 ${theme === 'dark' ? 'border-primary' : 'border-transparent'} transition-all`}>
+                      <Card className={`border-2 ${theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'border-primary' : 'border-transparent'} transition-all`}>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">

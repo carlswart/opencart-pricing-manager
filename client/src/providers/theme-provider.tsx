@@ -50,6 +50,10 @@ export function ThemeProviderContext({
     // Only handle light/dark mode, don't remove color themes
     root.classList.remove("light", "dark");
     
+    // Get the current color theme class (if any)
+    const hasDefaultTheme = root.classList.contains("theme-default");
+    const hasGreenTheme = root.classList.contains("theme-green");
+    
     // Handle the system/light/dark theme
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -60,6 +64,12 @@ export function ThemeProviderContext({
       root.classList.add(systemTheme);
     } else if (theme === "light" || theme === "dark") {
       root.classList.add(theme);
+    }
+    
+    // Ensure the color theme class is still applied
+    if (!hasDefaultTheme && !hasGreenTheme) {
+      // If no color theme class is present, add the default one
+      root.classList.add("theme-default");
     }
   }, [theme]);
 

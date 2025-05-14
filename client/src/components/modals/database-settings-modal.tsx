@@ -461,7 +461,18 @@ export function DatabaseSettingsModal({
               </div>
               <div className="p-4">
                 <div className="mb-4">
-                  <Label className="text-xs font-medium text-neutral-500">Select Store</Label>
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-medium text-neutral-500">Select Store</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs text-primary flex items-center"
+                      onClick={handleAddNewStore}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add New Store
+                    </Button>
+                  </div>
                   <select 
                     className="mt-1 w-full rounded-md border border-neutral-200 p-2"
                     value={selectedStoreForNewConnection || ""}
@@ -475,6 +486,11 @@ export function DatabaseSettingsModal({
                       ))
                     }
                   </select>
+                  {stores.filter(store => !connections.some(conn => conn.storeId === store.id)).length === 0 && (
+                    <div className="mt-2 text-xs text-neutral-500 flex items-center">
+                      <span className="mr-2">All stores have connections. Add a new store to continue.</span>
+                    </div>
+                  )}
                 </div>
                 
                 {newConnection && (

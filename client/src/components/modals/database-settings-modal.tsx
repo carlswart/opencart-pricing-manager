@@ -511,7 +511,7 @@ export function DatabaseSettingsModal({
                         <Input 
                           value={newConnection.port} 
                           onChange={(e) => handleNewConnectionInputChange("port", e.target.value)}
-                          className="mt-1"
+                          className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
                       </div>
                       <div>
@@ -519,7 +519,7 @@ export function DatabaseSettingsModal({
                         <Input 
                           value={newConnection.database} 
                           onChange={(e) => handleNewConnectionInputChange("database", e.target.value)}
-                          className="mt-1"
+                          className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
                       </div>
                       <div>
@@ -527,7 +527,7 @@ export function DatabaseSettingsModal({
                         <Input 
                           value={newConnection.prefix} 
                           onChange={(e) => handleNewConnectionInputChange("prefix", e.target.value)}
-                          className="mt-1"
+                          className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
                       </div>
                       <div>
@@ -535,7 +535,7 @@ export function DatabaseSettingsModal({
                         <Input 
                           value={newConnection.username} 
                           onChange={(e) => handleNewConnectionInputChange("username", e.target.value)}
-                          className="mt-1"
+                          className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
                       </div>
                       <div>
@@ -544,7 +544,7 @@ export function DatabaseSettingsModal({
                           type="password" 
                           value={newConnection.password} 
                           onChange={(e) => handleNewConnectionInputChange("password", e.target.value)}
-                          className="mt-1"
+                          className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
                       </div>
                     </div>

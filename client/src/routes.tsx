@@ -1,5 +1,6 @@
 import { Switch, Route } from "wouter";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { AdminProtectedRoute } from "@/lib/admin-protected-route";
 import Dashboard from "@/pages/dashboard";
 import AuthPage from "@/pages/auth-page";
 import UploadPricing from "@/pages/upload-pricing";
@@ -42,7 +43,7 @@ export function Routes() {
         )} 
       />
       
-      <ProtectedRoute 
+      <AdminProtectedRoute 
         path="/database-settings" 
         component={() => (
           <AppLayout>
@@ -51,7 +52,7 @@ export function Routes() {
         )} 
       />
       
-      <ProtectedRoute 
+      <AdminProtectedRoute 
         path="/user-management" 
         component={() => (
           <AppLayout>

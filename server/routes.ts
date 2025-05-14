@@ -58,8 +58,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // User routes
-  app.get("/api/users", authenticate, async (req, res) => {
+  // User routes - admin only
+  app.get("/api/users", adminOnly, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -69,12 +69,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/users", authenticate, async (req, res) => {
+  app.post("/api/users", adminOnly, async (req, res) => {
     try {
-      // Check if user making the request is an admin
-      if (req.user?.role !== 'admin') {
-        return res.status(403).json({ message: "Only administrators can create new users" });
-      }
       
       // Validate request data
       const validatedData = insertUserSchema.parse(req.body);
@@ -105,12 +101,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/users/:id", authenticate, async (req, res) => {
+  app.put("/api/users/:id", adminOnly, async (req, res) => {
     try {
-      // Check if user making the request is an admin
-      if (req.user?.role !== 'admin') {
-        return res.status(403).json({ message: "Only administrators can update users" });
-      }
       
       const id = parseInt(req.params.id);
       
@@ -143,12 +135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/users/:id", authenticate, async (req, res) => {
+  app.delete("/api/users/:id", adminOnly, async (req, res) => {
     try {
-      // Check if user making the request is an admin
-      if (req.user?.role !== 'admin') {
-        return res.status(403).json({ message: "Only administrators can delete users" });
-      }
       
       const id = parseInt(req.params.id);
       

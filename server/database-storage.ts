@@ -150,7 +150,7 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db
       .select({ count: count() })
       .from(updates)
-      .where(gt(updates.date, thirtyDaysAgo.toISOString()));
+      .where(gt(updates.createdAt, thirtyDaysAgo));
     
     return result?.count || 0;
   }

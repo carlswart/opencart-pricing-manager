@@ -91,7 +91,7 @@ export default function Dashboard() {
           iconBgColor="bg-success"
           iconColor="text-success"
           footer={
-            <div className="text-xs text-neutral-500">
+            <div className="text-xs text-muted-foreground">
               <span>Last update: {statsLoading ? "Loading..." : (stats?.lastUpdateTime ?? "Never")}</span>
             </div>
           }
@@ -105,7 +105,7 @@ export default function Dashboard() {
           iconColor="text-primary"
           footer={(() => {
             if (statsLoading) return (
-              <div className="text-xs text-neutral-500 flex items-center">
+              <div className="text-xs text-muted-foreground flex items-center">
                 <span>Loading connection status...</span>
               </div>
             );
@@ -116,7 +116,7 @@ export default function Dashboard() {
             
             if (noStores) {
               return (
-                <div className="text-xs text-neutral-500 flex items-center">
+                <div className="text-xs text-muted-foreground flex items-center">
                   <span>No stores configured</span>
                 </div>
               );

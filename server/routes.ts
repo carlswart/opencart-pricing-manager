@@ -129,6 +129,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.delete("/api/database/connections/:id", authenticate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDbConnection(id);
+      if (!success) {
+        return res.status(404).json({ message: "Connection not found" });
+      }
+      res.json({ success: true, message: "Connection deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting connection:", error);
+      res.status(500).json({ message: "Failed to delete connection" });
+    }
+  });
+  
   // Spreadsheet processing routes
   app.post("/api/spreadsheet/preview", authenticate, SpreadsheetService.handlePreview);
   app.post("/api/spreadsheet/process", authenticate, SpreadsheetService.handleProcess);

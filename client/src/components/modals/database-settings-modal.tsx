@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Store, DbConnection } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Store as StoreIcon, Plus, CircleCheck } from "lucide-react";
+import { Store as StoreIcon, Plus, CircleCheck, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
@@ -229,6 +229,38 @@ export function DatabaseSettingsModal({
       });
     }
   };
+  
+  const handleDeleteConnection = async (connectionId: number) => {
+    // Confirm deletion
+    if (!window.confirm("Are you sure you want to delete this connection? This action cannot be undone.")) {
+      return;
+    }
+    
+    try {
+      await apiRequest(
+        "DELETE",
+        `/api/database/connections/${connectionId}`,
+        {}
+      );
+      
+      // Invalidate the connections query to fetch updated data
+      queryClient.invalidateQueries({ queryKey: ['/api/database/connections'] });
+      
+      // Remove the deleted connection from the edited connections
+      setEditedConnections(editedConnections.filter(conn => conn.id !== connectionId));
+      
+      toast({
+        title: "Connection deleted",
+        description: "Database connection has been successfully deleted",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Deletion failed",
+        description: error instanceof Error ? error.message : "Failed to delete database connection",
+      });
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -333,20 +365,31 @@ export function DatabaseSettingsModal({
                               />
                             </div>
                           </div>
-                          <div className="flex justify-end mt-4 gap-2">
+                          <div className="flex justify-between mt-4">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleTestConnection(connection.id)}
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => handleDeleteConnection(connection.id)}
                             >
-                              Test Connection
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete Connection
                             </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleSaveConnection(connection.id)}
-                            >
-                              Save Changes
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleTestConnection(connection.id)}
+                              >
+                                Test Connection
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveConnection(connection.id)}
+                              >
+                                Save Changes
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </AccordionContent>

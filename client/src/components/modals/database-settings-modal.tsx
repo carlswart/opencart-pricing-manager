@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -46,12 +45,13 @@ export function DatabaseSettingsModal({
   // Reset form data when modal opens
   useEffect(() => {
     if (open) {
-      setEditedConnections(JSON.parse(JSON.stringify(connections)));
+      // Make a deep copy of connections to avoid modifying the original
+      setEditedConnections(JSON.parse(JSON.stringify(connections || [])));
       
       // If a specific store is selected for configuration
       if (selectedStoreId) {
         // Check if this store already has a connection
-        const existingConnection = connections.find(c => c.storeId === selectedStoreId);
+        const existingConnection = connections?.find(c => c.storeId === selectedStoreId);
         
         if (!existingConnection) {
           // Initialize new connection form for this store
@@ -72,6 +72,12 @@ export function DatabaseSettingsModal({
         setNewConnection(null);
         setSelectedStoreForNewConnection(null);
       }
+    } else {
+      // Reset state when modal closes
+      setEditedConnections([]);
+      setShowNewConnectionForm(false);
+      setNewConnection(null);
+      setSelectedStoreForNewConnection(null);
     }
   }, [open, connections, selectedStoreId]);
 
@@ -229,9 +235,9 @@ export function DatabaseSettingsModal({
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Database Connection Settings</DialogTitle>
-          <DialogDescription>
+          <div className="text-sm text-muted-foreground">
             Configure database connections for your OpenCart stores
-          </DialogDescription>
+          </div>
         </DialogHeader>
         
         <div className="mb-6">

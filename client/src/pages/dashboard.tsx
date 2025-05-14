@@ -14,13 +14,25 @@ export default function Dashboard() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [dbSettingsModalOpen, setDbSettingsModalOpen] = useState(false);
   
+  // Define types for dashboard stats
+  interface DashboardStats {
+    totalProducts: string | number;
+    recentUpdates: number;
+    connectedStores: string;
+    lastUpdateTime: string;
+    productsChange: string;
+  }
+  
+  // Define type for recent updates
+  type RecentUpdate = UpdateRecord;
+  
   // Fetch dashboard stats
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
   });
   
   // Fetch recent updates
-  const { data: recentUpdates, isLoading: updatesLoading } = useQuery({
+  const { data: recentUpdates, isLoading: updatesLoading } = useQuery<RecentUpdate[]>({
     queryKey: ['/api/updates/recent'],
   });
   
@@ -60,34 +72,34 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatsCard
           title="Total Products"
-          value={statsLoading ? "Loading..." : stats?.totalProducts || 0}
+          value={statsLoading ? "Loading..." : (stats?.totalProducts ?? 0)}
           icon={<Box />}
           iconBgColor="bg-primary"
           iconColor="text-primary"
           footer={
             <div className="text-xs text-success flex items-center">
               <ArrowUp className="h-3 w-3 mr-1" />
-              <span>{statsLoading ? "Loading..." : stats?.productsChange || "0%"}</span>
+              <span>{statsLoading ? "Loading..." : (stats?.productsChange ?? "0%")}</span>
             </div>
           }
         />
         
         <StatsCard
           title="Recent Updates"
-          value={statsLoading ? "Loading..." : stats?.recentUpdates || 0}
+          value={statsLoading ? "Loading..." : (stats?.recentUpdates ?? 0)}
           icon={<RefreshCw />}
           iconBgColor="bg-success"
           iconColor="text-success"
           footer={
             <div className="text-xs text-neutral-500">
-              <span>Last update: {statsLoading ? "Loading..." : stats?.lastUpdateTime || "Never"}</span>
+              <span>Last update: {statsLoading ? "Loading..." : (stats?.lastUpdateTime ?? "Never")}</span>
             </div>
           }
         />
         
         <StatsCard
           title="Connected Stores"
-          value={statsLoading ? "Loading..." : stats?.connectedStores || "0/0"}
+          value={statsLoading ? "Loading..." : (stats?.connectedStores ?? "0/0")}
           icon={<Store />}
           iconBgColor="bg-primary"
           iconColor="text-primary"
@@ -110,7 +122,7 @@ export default function Dashboard() {
       {/* Recent Updates */}
       <div className="mt-6">
         <RecentUpdates
-          updates={recentUpdates || []}
+          updates={recentUpdates ?? []}
           isLoading={updatesLoading}
           onViewAll={handleViewAllUpdates}
           onViewDetails={handleViewUpdateDetails}

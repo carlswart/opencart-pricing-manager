@@ -87,14 +87,14 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAllUpdates(): Promise<Update[]> {
-    return db.select().from(updates).orderBy(desc(updates.date));
+    return db.select().from(updates).orderBy(desc(updates.createdAt));
   }
   
   async getRecentUpdates(limit: number = 4): Promise<Update[]> {
     return db
       .select()
       .from(updates)
-      .orderBy(desc(updates.date))
+      .orderBy(desc(updates.createdAt))
       .limit(limit);
   }
   
@@ -173,11 +173,11 @@ export class DatabaseStorage implements IStorage {
   
   async getLastUpdateTime(): Promise<string | null> {
     const [latestUpdate] = await db
-      .select({ date: updates.date })
+      .select({ date: updates.createdAt })
       .from(updates)
-      .orderBy(desc(updates.date))
+      .orderBy(desc(updates.createdAt))
       .limit(1);
     
-    return latestUpdate?.date || null;
+    return latestUpdate?.date ? latestUpdate.date.toISOString() : null;
   }
 }

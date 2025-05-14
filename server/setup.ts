@@ -33,8 +33,7 @@ export async function initializeDemoData() {
       for (const name of storeNames) {
         await db.insert(stores).values({
           name,
-          url: `https://${name.toLowerCase().replace(/\s+/g, '-')}.example.com`,
-          active: Math.random() > 0.3 // Randomly set some as inactive
+          url: `https://${name.toLowerCase().replace(/\s+/g, '-')}.example.com`
         });
       }
       
@@ -53,9 +52,10 @@ export async function initializeDemoData() {
         const [update] = await db.insert(updates).values({
           filename: filenames[Math.floor(Math.random() * filenames.length)],
           productsCount: Math.floor(Math.random() * 500) + 50,
-          uploadedBy: admin.id,
-          date: date.toISOString(),
-          status: statuses[Math.floor(Math.random() * statuses.length)]
+          userId: admin.id,
+          date: date,
+          status: statuses[Math.floor(Math.random() * statuses.length)],
+          details: {}
         }).returning();
         
         // Create some update details
@@ -69,6 +69,7 @@ export async function initializeDemoData() {
           await db.insert(updateDetails).values({
             updateId: update.id,
             storeId: store.id,
+            sku: 'SAMPLE-SKU-' + Math.floor(Math.random() * 10000),
             successCount,
             failureCount,
             skippedCount: update.productsCount - successCount - failureCount
@@ -77,6 +78,8 @@ export async function initializeDemoData() {
       }
       
       console.log('Demo data created successfully');
+    } else {
+      console.log('Database already has data, skipping initialization');
     }
   } catch (error) {
     console.error('Error initializing demo data:', error);

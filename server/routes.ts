@@ -323,6 +323,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/spreadsheet/preview", authenticate, SpreadsheetService.handlePreview);
   app.post("/api/spreadsheet/process", authenticate, SpreadsheetService.handleProcess);
   
+  // Backup restore endpoint
+  app.post("/api/backups/restore", authenticate, async (req, res) => {
+    try {
+      const { storeId, backupName } = req.body;
+      
+      if (!storeId || !backupName) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing required parameters: storeId and backupName are required" 
+        });
+      }
+      
+      // Get the store to verify it exists
+      const store = await storage.getStoreById(storeId);
+      if (!store) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Store not found" 
+        });
+      }
+      
+      // Get the database connection for this store
+      const connection = await storage.getDbConnectionByStoreId(storeId);
+      if (!connection) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No database connection found for this store" 
+        });
+      }
+      
+      // Attempt to restore from the backup
+      const result = await OpenCartService.restoreFromBackup(connection, storeId, backupName);
+      
+      // Return the result
+      res.json(result);
+    } catch (error) {
+      console.error("Error restoring from backup:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: `Failed to restore from backup: ${error instanceof Error ? error.message : "Unknown error"}` 
+      });
+    }
+  });
+  
   // Update history routes
   app.get("/api/updates/recent", authenticate, async (req, res) => {
     try {

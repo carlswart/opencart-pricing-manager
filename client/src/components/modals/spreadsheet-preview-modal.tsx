@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -83,7 +83,12 @@ export function SpreadsheetPreviewModal({
                           <div className="text-sm font-medium">{backup.storeName}</div>
                           <div className="text-xs text-neutral-500">{backup.backupName}</div>
                         </div>
-                        <Button size="sm" variant="ghost" className="h-7 text-blue-600 hover:text-blue-800">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 text-blue-600 hover:text-blue-800"
+                          onClick={() => handleRestoreBackup(backup.storeId, backup.backupName)}
+                        >
                           <Download className="h-3.5 w-3.5 mr-1" /> Restore
                         </Button>
                       </div>

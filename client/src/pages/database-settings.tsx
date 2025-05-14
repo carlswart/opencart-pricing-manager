@@ -131,13 +131,13 @@ export default function DatabaseSettings() {
                           </div>
                         </div>
                         {connection ? (
-                          <Badge className="bg-green-100 text-green-800 border-green-200 font-medium px-2.5 py-0.5">
+                          <div className="bg-green-100 text-green-800 border border-green-200 rounded-full font-medium px-2.5 py-0.5 text-xs hover:bg-green-100 hover:text-green-800">
                             Connected
-                          </Badge>
+                          </div>
                         ) : (
-                          <Badge className="bg-red-100 text-red-800 border-red-200 font-medium px-2.5 py-0.5">
+                          <div className="bg-red-100 text-red-800 border border-red-200 rounded-full font-medium px-2.5 py-0.5 text-xs hover:bg-red-100 hover:text-red-800">
                             Not Connected
-                          </Badge>
+                          </div>
                         )}
                       </div>
                       <div className="p-4 border-t border-neutral-200">

@@ -21,7 +21,10 @@ import {
   SlidersHorizontal,
   AlertTriangle,
   Shield,
-  Download
+  Download,
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +52,46 @@ export function SpreadsheetPreviewModal({
   data,
   onConfirm,
 }: SpreadsheetPreviewModalProps) {
+  const [restoringBackup, setRestoringBackup] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  
+  // Function to handle backup restoration
+  const handleRestoreBackup = async (storeId: number, backupName: string) => {
+    try {
+      setRestoringBackup(true);
+      setRestoreMessage(null);
+      
+      const response = await fetch('/api/backups/restore', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ storeId, backupName }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setRestoreMessage({
+          type: 'success',
+          message: result.message || `Successfully restored ${result.restoredProducts} products`
+        });
+      } else {
+        setRestoreMessage({
+          type: 'error',
+          message: result.message || 'Failed to restore backup'
+        });
+      }
+    } catch (error) {
+      console.error('Error restoring backup:', error);
+      setRestoreMessage({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
+    } finally {
+      setRestoringBackup(false);
+    }
+  };
   if (!data) return null;
 
   const { filename, recordCount, validationIssues, rows, backups = [], hasBackups = false } = data;
@@ -88,11 +131,36 @@ export function SpreadsheetPreviewModal({
                           variant="ghost" 
                           className="h-7 text-blue-600 hover:text-blue-800"
                           onClick={() => handleRestoreBackup(backup.storeId, backup.backupName)}
+                          disabled={restoringBackup}
                         >
-                          <Download className="h-3.5 w-3.5 mr-1" /> Restore
+                          {restoringBackup ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> Restoring...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-3.5 w-3.5 mr-1" /> Restore
+                            </>
+                          )}
                         </Button>
                       </div>
                     ))}
+                    
+                    {/* Restoration Message */}
+                    {restoreMessage && (
+                      <div className={`p-3 mt-3 text-sm rounded ${
+                        restoreMessage.type === 'success' 
+                          ? 'bg-green-50 text-green-700 border border-green-200' 
+                          : 'bg-red-50 text-red-700 border border-red-200'
+                      }`}>
+                        {restoreMessage.type === 'success' ? (
+                          <CheckCircle className="h-4 w-4 inline-block mr-2" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 inline-block mr-2" />
+                        )}
+                        {restoreMessage.message}
+                      </div>
+                    )}
                   </div>
                 </AlertDescription>
               </Alert>

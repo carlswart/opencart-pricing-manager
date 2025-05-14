@@ -119,6 +119,7 @@ export default function DatabaseSettings() {
           onOpenChange={setDbSettingsModalOpen}
           stores={stores}
           connections={connections}
+          selectedStoreId={selectedStore}
         />
       )}
     </div>

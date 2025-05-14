@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Store, DbConnection } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Store as StoreIcon, Plus, CircleCheck, Trash2 } from "lucide-react";
+import { Store as StoreIcon, Plus, CircleCheck, Trash } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
@@ -372,7 +372,7 @@ export function DatabaseSettingsModal({
                               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                               onClick={() => handleDeleteConnection(connection.id)}
                             >
-                              <Trash2 className="h-4 w-4 mr-1" />
+                              <Trash className="h-4 w-4 mr-1" />
                               Delete Connection
                             </Button>
                             <div className="flex gap-2">

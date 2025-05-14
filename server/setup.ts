@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { users, stores, dbConnections, updates, updateDetails } from "@shared/schema";
+import bcrypt from 'bcrypt';
 
 // Initialize demo data for development
 export async function initializeDemoData() {
@@ -9,10 +10,13 @@ export async function initializeDemoData() {
     if (existingUsers.length === 0) {
       console.log('Creating demo data...');
       
+      // Hash the password properly
+      const hashedPassword = await bcrypt.hash('password', 10);
+      
       // Create admin user
       const adminUser = {
         username: 'admin',
-        password: '$2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa', // 'password'
+        password: hashedPassword,
         name: 'John Powell',
         role: 'admin'
       };

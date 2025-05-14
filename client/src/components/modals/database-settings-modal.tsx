@@ -365,7 +365,7 @@ export function DatabaseSettingsModal({
                               <Input 
                                 value={connection.host} 
                                 onChange={(e) => handleInputChange(connection.id, "host", e.target.value)}
-                                className="mt-1"
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                               />
                             </div>
                             <div>
@@ -373,7 +373,7 @@ export function DatabaseSettingsModal({
                               <Input 
                                 value={connection.port} 
                                 onChange={(e) => handleInputChange(connection.id, "port", e.target.value)}
-                                className="mt-1"
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                               />
                             </div>
                             <div>
@@ -381,7 +381,7 @@ export function DatabaseSettingsModal({
                               <Input 
                                 value={connection.database} 
                                 onChange={(e) => handleInputChange(connection.id, "database", e.target.value)}
-                                className="mt-1"
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                               />
                             </div>
                             <div>
@@ -389,7 +389,7 @@ export function DatabaseSettingsModal({
                               <Input 
                                 value={connection.prefix} 
                                 onChange={(e) => handleInputChange(connection.id, "prefix", e.target.value)}
-                                className="mt-1"
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                               />
                             </div>
                             <div>
@@ -397,7 +397,7 @@ export function DatabaseSettingsModal({
                               <Input 
                                 value={connection.username} 
                                 onChange={(e) => handleInputChange(connection.id, "username", e.target.value)}
-                                className="mt-1"
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                               />
                             </div>
                             <div>
@@ -406,7 +406,7 @@ export function DatabaseSettingsModal({
                                 type="password" 
                                 value={connection.password} 
                                 onChange={(e) => handleInputChange(connection.id, "password", e.target.value)}
-                                className="mt-1"
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                               />
                             </div>
                           </div>
@@ -503,7 +503,7 @@ export function DatabaseSettingsModal({
                         <Input 
                           value={newConnection.host} 
                           onChange={(e) => handleNewConnectionInputChange("host", e.target.value)}
-                          className="mt-1"
+                          className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
                       </div>
                       <div>

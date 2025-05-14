@@ -94,33 +94,37 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Hero Section */}
-      <div className="flex-1 bg-gradient-to-br from-blue-500 to-purple-600 p-8 text-white flex flex-col justify-center">
+      <div className="flex-1 bg-gradient-to-br from-primary to-primary/70 p-8 text-primary-foreground flex flex-col justify-center">
         <div className="max-w-md mx-auto">
-          <h1 className="text-4xl font-bold mb-6">Product Pricing Manager</h1>
+          <h1 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-primary-foreground to-primary-foreground/80 bg-clip-text text-transparent">PriceSync</h1>
           <p className="text-xl mb-6">
             Manage product pricing across multiple OpenCart webstores from a
             single dashboard.
           </p>
           <ul className="space-y-3">
             <li className="flex items-center">
-              <span className="mr-2 text-lg">✓</span> Update pricing with spreadsheet uploads
+              <span className="mr-2 text-lg bg-primary-foreground/20 rounded-full flex items-center justify-center h-6 w-6 text-primary-foreground">✓</span> 
+              <span>Update pricing with spreadsheet uploads</span>
             </li>
             <li className="flex items-center">
-              <span className="mr-2 text-lg">✓</span> Automatic discount calculations
+              <span className="mr-2 text-lg bg-primary-foreground/20 rounded-full flex items-center justify-center h-6 w-6 text-primary-foreground">✓</span>
+              <span>Automatic discount calculations</span>
             </li>
             <li className="flex items-center">
-              <span className="mr-2 text-lg">✓</span> Manage inventory levels
+              <span className="mr-2 text-lg bg-primary-foreground/20 rounded-full flex items-center justify-center h-6 w-6 text-primary-foreground">✓</span>
+              <span>Manage inventory levels</span>
             </li>
             <li className="flex items-center">
-              <span className="mr-2 text-lg">✓</span> Track update history
+              <span className="mr-2 text-lg bg-primary-foreground/20 rounded-full flex items-center justify-center h-6 w-6 text-primary-foreground">✓</span>
+              <span>Track update history</span>
             </li>
           </ul>
         </div>
       </div>
 
       {/* Auth Forms */}
-      <div className="flex-1 p-8 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="flex-1 p-8 flex items-center justify-center bg-card">
+        <Card className="w-full max-w-md border shadow-lg">
           <CardHeader>
             <CardTitle>Welcome</CardTitle>
             <CardDescription>

@@ -44,16 +44,16 @@ const mainNavItems: MenuItem[] = [
     icon: <History className="h-5 w-5" />,
     label: "Update History",
     href: "/update-history"
-  },
-  {
-    icon: <Database className="h-5 w-5" />,
-    label: "Database Settings",
-    href: "/database-settings"
   }
 ];
 
 // Admin navigation items
 const adminNavItems: MenuItem[] = [
+  {
+    icon: <Database className="h-5 w-5" />,
+    label: "Database Settings",
+    href: "/database-settings"
+  },
   {
     icon: <Users className="h-5 w-5" />,
     label: "User Management",
@@ -107,24 +107,28 @@ export default function Sidebar() {
           ))}
         </ul>
         
-        {/* Admin Navigation */}
-        <div className="px-4 py-2 mt-4 text-sm text-neutral-500 uppercase">Admin</div>
-        <ul>
-          {adminNavItems.map((item) => (
-            <li key={item.href}>
-              <Link href={item.href}>
-                <div className={`flex items-center gap-3 px-6 py-2 cursor-pointer ${
-                  isActive(item.href)
-                    ? "border-l-4 border-primary bg-primary/10 text-primary" 
-                    : "border-l-4 border-transparent text-neutral-600 hover:bg-neutral-100"
-                }`}>
-                  {item.icon}
-                  <span>{item.label}</span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {/* Admin Navigation - Only show to admin users */}
+        {user?.role === 'admin' && (
+          <>
+            <div className="px-4 py-2 mt-4 text-sm text-neutral-500 uppercase">Admin</div>
+            <ul>
+              {adminNavItems.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href}>
+                    <div className={`flex items-center gap-3 px-6 py-2 cursor-pointer ${
+                      isActive(item.href)
+                        ? "border-l-4 border-primary bg-primary/10 text-primary" 
+                        : "border-l-4 border-transparent text-neutral-600 hover:bg-neutral-100"
+                    }`}>
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </nav>
       
       {/* User Profile */}

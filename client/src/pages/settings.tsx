@@ -421,7 +421,7 @@ export default function Settings() {
                       </Card>
                       
                       <Card 
-                        className={`border-2 ${colorTheme === 'green' ? 'border-primary' : 'border-transparent'} transition-all`}
+                        className={`border-2 ${colorTheme === 'green' ? 'border-primary' : 'border-transparent'} transition-all hover:bg-accent/50 cursor-pointer`}
                         onClick={() => handleColorThemeChange('green')}
                       >
                         <CardContent className="p-4">

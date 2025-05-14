@@ -131,11 +131,11 @@ export default function DatabaseSettings() {
                           </div>
                         </div>
                         {connection ? (
-                          <div className="border border-green-500 text-green-600 dark:text-green-400 dark:border-green-700 rounded-full font-medium px-2.5 py-0.5 text-xs">
+                          <div className="bg-green-500 bg-opacity-10 border border-green-500 text-green-600 dark:text-green-400 dark:border-green-500 dark:bg-green-500/20 rounded-full font-medium px-2.5 py-0.5 text-xs">
                             Connected
                           </div>
                         ) : (
-                          <div className="border border-red-500 text-red-600 dark:text-red-400 dark:border-red-700 rounded-full font-medium px-2.5 py-0.5 text-xs">
+                          <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-600 dark:text-red-400 dark:border-red-500 dark:bg-red-500/20 rounded-full font-medium px-2.5 py-0.5 text-xs">
                             Not Connected
                           </div>
                         )}

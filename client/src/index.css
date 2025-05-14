@@ -96,6 +96,20 @@
   --radius: 0.5rem;
 }
 
+/* Dark mode with green theme */
+.dark.theme-green {
+  --primary: 142 70% 45%;
+  --primary-foreground: 210 40% 98%;
+  --ring: 142 70% 45%;
+}
+
+/* Dark mode with blue theme */
+.dark.theme-blue {
+  --primary: 207 90% 54%;
+  --primary-foreground: 210 40% 98%;
+  --ring: 207 90% 54%;
+}
+
 @layer base {
   * {
     @apply border-border;

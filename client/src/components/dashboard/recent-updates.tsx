@@ -39,19 +39,19 @@ export function RecentUpdates({
     switch(status) {
       case "completed":
         return (
-          <Badge className="bg-green-100 text-green-800 border-green-200 font-medium">
+          <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400 dark:border-green-700 font-medium">
             Completed
           </Badge>
         );
       case "partial":
         return (
-          <Badge className="bg-amber-100 text-amber-800 border-amber-200 font-medium">
+          <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400 dark:border-amber-700 font-medium">
             Partial
           </Badge>
         );
       case "failed":
         return (
-          <Badge className="bg-red-100 text-red-800 border-red-200 font-medium">
+          <Badge variant="outline" className="border-red-500 text-red-600 dark:text-red-400 dark:border-red-700 font-medium">
             Failed
           </Badge>
         );
@@ -76,13 +76,13 @@ export function RecentUpdates({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-neutral-50">
-                <TableHead className="text-xs">Date</TableHead>
-                <TableHead className="text-xs">Filename</TableHead>
-                <TableHead className="text-xs">Products Updated</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="text-xs">User</TableHead>
-                <TableHead className="text-xs">Actions</TableHead>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-xs text-muted-foreground">Date</TableHead>
+                <TableHead className="text-xs text-muted-foreground">Filename</TableHead>
+                <TableHead className="text-xs text-muted-foreground">Products Updated</TableHead>
+                <TableHead className="text-xs text-muted-foreground">Status</TableHead>
+                <TableHead className="text-xs text-muted-foreground">User</TableHead>
+                <TableHead className="text-xs text-muted-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,9 +134,9 @@ export function RecentUpdates({
           </Table>
         </div>
       </CardContent>
-      <CardFooter className="px-6 py-4 border-t border-neutral-200 bg-neutral-50">
+      <CardFooter className="px-6 py-4 border-t border-border bg-muted/50">
         <div className="flex items-center justify-between w-full">
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-muted-foreground">
             <span>Showing {updates.length} of {updates.length} updates</span>
           </div>
           <div className="flex gap-2">

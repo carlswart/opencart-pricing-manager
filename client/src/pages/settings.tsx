@@ -10,12 +10,14 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X, CircleDotDashed, Paintbrush } from "lucide-react";
 import { useTheme } from "@/providers/theme-provider";
+import { useColorTheme } from "@/hooks/use-color-theme";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { colorTheme, setColorTheme } = useColorTheme();
   const [activeTab, setActiveTab] = useState("general");
   const [saving, setSaving] = useState(false);
   
@@ -85,13 +87,22 @@ export default function Settings() {
     }, 800);
   };
   
-  // Handle theme change
-  const handleThemeChange = (value: string) => {
-    const newTheme = value as "default" | "green";
-    setTheme(newTheme);
+  // Handle color theme change
+  const handleColorThemeChange = (value: string) => {
+    const newColorTheme = value as "default" | "green";
+    setColorTheme(newColorTheme);
     toast({
-      title: "Theme Updated",
-      description: `App theme has been changed to ${newTheme === "default" ? "Blue" : "Green"}`,
+      title: "Color Theme Updated",
+      description: `App color theme has been changed to ${newColorTheme === "default" ? "Blue" : "Green"}`,
+    });
+  };
+  
+  // Handle light/dark mode change
+  const handleModeChange = (value: string) => {
+    setTheme(value);
+    toast({
+      title: "Mode Updated",
+      description: `App mode has been changed to ${value.charAt(0).toUpperCase() + value.slice(1)}`,
     });
   };
 

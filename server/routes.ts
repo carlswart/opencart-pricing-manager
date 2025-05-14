@@ -79,13 +79,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Store not found" });
       }
       
+      // Get the references from update_details for this store
+      const updateDetails = await storage.getUpdateDetailsByStoreId(id);
+      
+      // Get unique update IDs to check if we need to delete any updates
+      const updateIds = Array.from(new Set(updateDetails.map(detail => detail.updateId)));
+      
+      // For each update detail related to this store, delete it
+      for (const detail of updateDetails) {
+        await storage.deleteUpdateDetail(detail.id);
+      }
+      
+      // After clearing update details, check if any updates are now empty and can be deleted
+      for (const updateId of updateIds) {
+        const remainingDetails = await storage.getUpdateDetails(updateId);
+        if (remainingDetails.length === 0) {
+          // If no details remain, delete the update
+          await storage.deleteUpdate(updateId);
+        }
+      }
+      
       // Check if store has database connection and delete if present
       const connection = await storage.getDbConnectionByStoreId(id);
       if (connection) {
         await storage.deleteDbConnection(connection.id);
       }
       
-      // Delete the store
+      // Finally delete the store
       const success = await storage.deleteStore(id);
       
       if (success) {

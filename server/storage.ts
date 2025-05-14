@@ -39,10 +39,13 @@ export interface IStorage {
   getUpdateById(id: number): Promise<Update | undefined>;
   createUpdate(update: InsertUpdate): Promise<Update>;
   completeUpdate(id: number, status: 'completed' | 'partial' | 'failed'): Promise<Update | undefined>;
+  deleteUpdate(id: number): Promise<boolean>;
   
   // Update details methods
   getUpdateDetails(updateId: number): Promise<UpdateDetail[]>;
+  getUpdateDetailsByStoreId(storeId: number): Promise<UpdateDetail[]>;
   createUpdateDetail(detail: InsertUpdateDetail): Promise<UpdateDetail>;
+  deleteUpdateDetail(id: number): Promise<boolean>;
   
   // Dashboard stats methods
   getTotalProducts(): Promise<number>;

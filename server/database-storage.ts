@@ -117,11 +117,23 @@ export class DatabaseStorage implements IStorage {
     return updatedUpdate;
   }
   
+  async deleteUpdate(id: number): Promise<boolean> {
+    const result = await db.delete(updates).where(eq(updates.id, id));
+    return !!result;
+  }
+  
   async getUpdateDetails(updateId: number): Promise<UpdateDetail[]> {
     return db
       .select()
       .from(updateDetails)
       .where(eq(updateDetails.updateId, updateId));
+  }
+  
+  async getUpdateDetailsByStoreId(storeId: number): Promise<UpdateDetail[]> {
+    return db
+      .select()
+      .from(updateDetails)
+      .where(eq(updateDetails.storeId, storeId));
   }
   
   async createUpdateDetail(detail: InsertUpdateDetail): Promise<UpdateDetail> {
@@ -130,6 +142,11 @@ export class DatabaseStorage implements IStorage {
       .values(detail)
       .returning();
     return newDetail;
+  }
+  
+  async deleteUpdateDetail(id: number): Promise<boolean> {
+    const result = await db.delete(updateDetails).where(eq(updateDetails.id, id));
+    return !!result;
   }
   
   async getTotalProducts(): Promise<number> {

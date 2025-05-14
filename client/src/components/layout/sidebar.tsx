@@ -12,23 +12,27 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-interface SidebarItemProps {
+type SidebarItemProps = {
   icon: React.ReactNode;
   label: string;
   href: string;
-  isActive?: boolean;
-}
+  active: boolean;
+};
 
-function SidebarItem({ icon, label, href, isActive }: SidebarItemProps) {
-  const baseClasses = "flex items-center gap-3 px-6 py-2";
-  const activeClasses = "bg-primary bg-opacity-10 border-l-4 border-primary text-primary hover:bg-primary hover:bg-opacity-15";
-  const inactiveClasses = "text-neutral-600 border-l-4 border-transparent hover:bg-neutral-100";
-  
+function SidebarItem({ icon, label, href, active }: SidebarItemProps) {
   return (
-    <Link href={href} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
-      {icon}
-      <span>{label}</span>
-    </Link>
+    <div>
+      <Link href={href}>
+        <div className={`flex items-center gap-3 px-6 py-2 cursor-pointer ${
+          active 
+            ? "border-l-4 border-primary bg-primary/10 text-primary" 
+            : "border-l-4 border-transparent text-neutral-600 hover:bg-neutral-100"
+        }`}>
+          {icon}
+          <span>{label}</span>
+        </div>
+      </Link>
+    </div>
   );
 }
 
@@ -36,21 +40,20 @@ export default function Sidebar() {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   
-  // Check if current location matches the route
-  const isActive = (path: string) => {
-    if (path === '/' && location === '/') {
-      return true;
-    }
-    // For other routes, do a prefix match
-    return path !== '/' && location.startsWith(path);
-  };
-  
   const getInitials = (name: string) => {
     return name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase();
+  };
+
+  // Function to check if a route is active
+  const isActive = (path: string) => {
+    if (path === '/' && location === '/') {
+      return true;
+    }
+    return path !== '/' && location.startsWith(path);
   };
 
   return (
@@ -66,25 +69,25 @@ export default function Sidebar() {
           icon={<LayoutDashboard className="h-5 w-5" />} 
           label="Dashboard" 
           href="/" 
-          isActive={isActive("/")} 
+          active={isActive("/")} 
         />
         <SidebarItem 
           icon={<FileUp className="h-5 w-5" />} 
           label="Upload Pricing" 
           href="/upload-pricing" 
-          isActive={isActive("/upload-pricing")} 
+          active={isActive("/upload-pricing")} 
         />
         <SidebarItem 
           icon={<History className="h-5 w-5" />} 
           label="Update History" 
           href="/update-history" 
-          isActive={isActive("/update-history")} 
+          active={isActive("/update-history")} 
         />
         <SidebarItem 
           icon={<Database className="h-5 w-5" />} 
           label="Database Settings" 
           href="/database-settings" 
-          isActive={isActive("/database-settings")} 
+          active={isActive("/database-settings")} 
         />
         
         <div className="px-4 py-2 mt-4 text-sm text-neutral-500 uppercase">Admin</div>
@@ -92,13 +95,13 @@ export default function Sidebar() {
           icon={<Users className="h-5 w-5" />} 
           label="User Management" 
           href="/user-management" 
-          isActive={isActive("/user-management")} 
+          active={isActive("/user-management")} 
         />
         <SidebarItem 
           icon={<Settings className="h-5 w-5" />} 
           label="Settings" 
           href="/settings" 
-          isActive={isActive("/settings")} 
+          active={isActive("/settings")} 
         />
       </nav>
       

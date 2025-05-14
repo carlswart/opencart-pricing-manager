@@ -353,17 +353,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const details = await storage.getUpdateDetails(updateId);
+      
+      if (!details || details.length === 0) {
+        return res.status(404).json({ message: "No details found for this update" });
+      }
+      
+      // Format according to what SpreadsheetPreviewModal expects
       const previewData = {
-        filename: update.filename,
-        recordCount: update.productsCount,
+        filename: update.filename || "Unknown File",
+        recordCount: update.productsCount || details.length,
         validationIssues: [], // These would be stored in the update.details in a real app
         rows: details.map(detail => ({
           sku: detail.sku,
-          name: "Product Name", // This would be stored in the update.details in a real app
-          regularPrice: detail.newRegularPrice,
-          depotPrice: detail.newDepotPrice,
-          warehousePrice: detail.newWarehousePrice,
-          quantity: detail.newQuantity,
+          name: `Product ${detail.sku}`, // Use the SKU as a fallback name
+          regularPrice: detail.newRegularPrice || 0,
+          depotPrice: detail.newDepotPrice || 0,
+          warehousePrice: detail.newWarehousePrice || 0,
+          quantity: detail.newQuantity || 0,
           hasDepotPriceError: false,
           hasWarehousePriceError: false,
         })),

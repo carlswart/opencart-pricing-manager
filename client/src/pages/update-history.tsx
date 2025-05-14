@@ -16,8 +16,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { UpdateRecord } from "@/components/dashboard/recent-updates";
 import { SpreadsheetPreviewModal } from "@/components/modals/spreadsheet-preview-modal";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UpdateHistory() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [selectedUpdate, setSelectedUpdate] = useState<number | null>(null);

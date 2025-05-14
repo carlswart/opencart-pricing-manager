@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, Download } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export default function UpdateHistory() {
   const [showPreview, setShowPreview] = useState(false);
   const [selectedUpdate, setSelectedUpdate] = useState<number | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [isExporting, setIsExporting] = useState(false);
   
   // Fetch update history
   const { data: updates, isLoading } = useQuery<UpdateRecord[]>({
@@ -81,6 +82,74 @@ export default function UpdateHistory() {
     }
   };
   
+  // Generate CSV content from update records
+  const generateCSV = (data: UpdateRecord[]) => {
+    // CSV header
+    const header = ['ID', 'Date', 'Filename', 'Products Updated', 'Status', 'User'];
+    const rows = data.map(record => [
+      record.id.toString(),
+      record.date,
+      record.filename,
+      record.productsCount.toString(),
+      record.status,
+      record.user
+    ]);
+    
+    // Combine header and rows
+    const csvContent = [
+      header.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    return csvContent;
+  };
+
+  // Handle CSV export
+  const handleExportLog = () => {
+    if (!updates || updates.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no update records to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsExporting(true);
+    
+    try {
+      // Generate CSV content
+      const csvContent = generateCSV(filteredUpdates.length > 0 ? filteredUpdates : updates);
+      
+      // Create a blob from the CSV content
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      // Create a download link and trigger a click
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `price-sync-update-history-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Export successful",
+        description: "Update history has been exported as CSV.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Failed to export CSV:", error);
+      toast({
+        title: "Export failed",
+        description: "Failed to export update history. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const getStatusBadge = (status: UpdateRecord["status"]) => {
     switch(status) {
       case "completed":
@@ -125,8 +194,39 @@ export default function UpdateHistory() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline">
-              Export Log
+            <Button 
+              variant="outline" 
+              onClick={handleExportLog} 
+              disabled={isLoading || isExporting || (!updates || updates.length === 0)}
+            >
+              {isExporting ? (
+                <>
+                  <span className="mr-2">Exporting...</span>
+                  <span className="animate-spin">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24">
+                      <circle 
+                        className="opacity-25" 
+                        cx="12" 
+                        cy="12" 
+                        r="10" 
+                        stroke="currentColor" 
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path 
+                        className="opacity-75" 
+                        fill="currentColor" 
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Log
+                </>
+              )}
             </Button>
           </div>
           

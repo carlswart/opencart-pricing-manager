@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
 import multer from "multer";
 import { storage as appStorage } from "../storage";
-import { User } from "@shared/schema";
+import { User, DbConnection } from "@shared/schema";
 import { calculateDepotPrice, calculateWarehousePrice, isValidDepotPrice, isValidWarehousePrice } from "./pricing";
 import * as XLSX from 'xlsx';
+
+// Extend the Request type to include multer's file property
+declare global {
+  namespace Express {
+    interface Request {
+      file?: Express.Multer.File;
+    }
+  }
+}
 import * as OpenCartService from "./opencart";
 
 // Configure multer for file uploads
@@ -313,16 +322,69 @@ async function validateProducts(products: ProductRow[], storeIds: number[]): Pro
     issues.push(`${warehousePriceErrors} rows have incorrect Warehouse prices (should be 26% discount, rounded to nearest whole number)`);
   }
   
-  // Check if SKUs exist in the stores
-  // In a real implementation, this would query each store's database
-  // to verify that the SKUs exist. For now, we'll simulate some results.
-  const nonExistentSkus = products
-    .filter(() => Math.random() > 0.95) // Randomly flag some SKUs as not found
-    .map(product => product.sku);
-  
-  if (nonExistentSkus.length > 0) {
-    const sampleSku = nonExistentSkus[0];
-    issues.push(`SKU "${sampleSku}" not found in any connected store (row ${products.find(p => p.sku === sampleSku)?.row || 0})`);
+  // Check if SKUs exist in the selected stores
+  try {
+    const notFoundSkus = new Map<string, string[]>(); // SKU -> store names where not found
+    
+    // Fetch all store connections first
+    const storeConnections = new Map<number, { store: { id: number, name: string }, connection: DbConnection }>();
+    
+    for (const storeId of storeIds) {
+      const store = await appStorage.getStoreById(storeId);
+      if (!store) {
+        issues.push(`Store ID ${storeId} not found`);
+        continue;
+      }
+      
+      const connection = await appStorage.getDbConnectionByStoreId(storeId);
+      if (!connection) {
+        issues.push(`No database connection found for store "${store.name}"`);
+        continue;
+      }
+      
+      storeConnections.set(storeId, { store, connection });
+    }
+    
+    // Check each product SKU across all selected stores
+    // Use Promise.all for better performance when checking many products
+    await Promise.all(products.map(async (product) => {
+      let foundInAnyStore = false;
+      
+      // Convert Map iterator to array for compatibility
+      for (const [_, { store, connection }] of Array.from(storeConnections.entries())) {
+        try {
+          const productId = await OpenCartService.findProductBySku(connection, product.sku);
+          
+          if (productId) {
+            foundInAnyStore = true;
+          } else {
+            // Track stores where this SKU isn't found
+            if (!notFoundSkus.has(product.sku)) {
+              notFoundSkus.set(product.sku, []);
+            }
+            notFoundSkus.get(product.sku)!.push(store.name);
+          }
+        } catch (error) {
+          console.error(`Error checking SKU ${product.sku} in store ${store.name}:`, error);
+          // Don't add to issues, as connection errors will be shown separately
+        }
+      }
+    }));
+    
+    // Report issues with SKUs not found in stores
+    // Convert Map iterator to array for compatibility
+    for (const [sku, storeNames] of Array.from(notFoundSkus.entries())) {
+      const rowNumber = products.find(p => p.sku === sku)?.row || 0;
+      
+      if (storeNames.length === storeConnections.size) {
+        issues.push(`SKU "${sku}" (row ${rowNumber}) not found in any connected store`);
+      } else if (storeNames.length > 0) {
+        issues.push(`SKU "${sku}" (row ${rowNumber}) not found in store${storeNames.length > 1 ? 's' : ''}: ${storeNames.join(', ')}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error validating products against stores:", error);
+    issues.push(`Error validating products: ${error instanceof Error ? error.message : "unknown error"}`);
   }
   
   return issues;

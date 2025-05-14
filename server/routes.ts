@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.patch("/api/users/:id", authenticate, async (req, res) => {
+  app.put("/api/users/:id", authenticate, async (req, res) => {
     try {
       // Check if user making the request is an admin
       if (req.user?.role !== 'admin') {

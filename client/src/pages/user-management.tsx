@@ -107,7 +107,7 @@ export default function UserManagement() {
           delete updateData.password;
         }
         
-        await apiRequest("PATCH", `/api/users/${selectedUser.id}`, updateData);
+        await apiRequest("PUT", `/api/users/${selectedUser.id}`, updateData);
         toast({
           title: "User updated",
           description: "User information has been updated successfully",

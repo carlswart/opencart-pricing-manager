@@ -20,6 +20,8 @@ import {
   File,
   SlidersHorizontal,
   AlertTriangle,
+  Shield,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,12 @@ interface SpreadsheetPreviewModalProps {
     recordCount: number;
     validationIssues: string[];
     rows: any[];
+    backups?: Array<{
+      storeId: number;
+      storeName: string;
+      backupName: string;
+    }>;
+    hasBackups?: boolean;
   } | null;
   onConfirm: () => void;
 }
@@ -43,7 +51,7 @@ export function SpreadsheetPreviewModal({
 }: SpreadsheetPreviewModalProps) {
   if (!data) return null;
 
-  const { filename, recordCount, validationIssues, rows } = data;
+  const { filename, recordCount, validationIssues, rows, backups = [], hasBackups = false } = data;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,6 +67,32 @@ export function SpreadsheetPreviewModal({
               <span className="text-sm text-neutral-500 ml-2">{recordCount} products</span>
             </div>
           </div>
+          
+          {/* Backup Information */}
+          {hasBackups && backups.length > 0 && (
+            <div className="mb-4">
+              <Alert className="bg-blue-50 border-blue-200">
+                <Shield className="h-4 w-4 text-blue-600" />
+                <AlertTitle className="text-blue-800">Backup Information</AlertTitle>
+                <AlertDescription className="text-blue-700">
+                  <p className="mb-2">This update includes automatic backups that were created before changes were made:</p>
+                  <div className="space-y-2 mt-3">
+                    {backups.map((backup, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white p-2 border border-blue-100 rounded-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium">{backup.storeName}</div>
+                          <div className="text-xs text-neutral-500">{backup.backupName}</div>
+                        </div>
+                        <Button size="sm" variant="ghost" className="h-7 text-blue-600 hover:text-blue-800">
+                          <Download className="h-3.5 w-3.5 mr-1" /> Restore
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
           
           <div className="flex-1 overflow-auto">
             <div className="border border-neutral-200 rounded overflow-hidden">

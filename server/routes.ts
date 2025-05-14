@@ -358,6 +358,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No details found for this update" });
       }
       
+      // Check if there are any backups stored in the update details
+      let backupInfo: any = {};
+      if (update.details && typeof update.details === 'object') {
+        const details = update.details as any;
+        if (details.backups) {
+          backupInfo = details.backups;
+        }
+      }
+      
+      // Get all stores to display store names with backups
+      const stores = await storage.getAllStores();
+      const storeMap = new Map(stores.map(store => [store.id, store]));
+      
       // Format according to what SpreadsheetPreviewModal expects
       const previewData = {
         filename: update.filename || "Unknown File",
@@ -373,6 +386,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hasDepotPriceError: false,
           hasWarehousePriceError: false,
         })),
+        // Add backup information
+        backups: Object.entries(backupInfo).map(([storeId, backupName]) => ({
+          storeId: parseInt(storeId),
+          storeName: storeMap.get(parseInt(storeId))?.name || 'Unknown Store',
+          backupName: backupName as string
+        })),
+        hasBackups: Object.keys(backupInfo).length > 0
       };
       
       res.json(previewData);

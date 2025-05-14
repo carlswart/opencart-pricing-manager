@@ -63,6 +63,9 @@ export default function UpdateHistory() {
         recordCount: detailsData.recordCount || 0,
         validationIssues: detailsData.validationIssues || [],
         rows: detailsData.rows || [],
+        // Include backup information if available
+        backups: detailsData.backups || [],
+        hasBackups: detailsData.hasBackups || false
       };
       
       setSelectedUpdate(id);

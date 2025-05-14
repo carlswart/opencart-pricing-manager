@@ -338,19 +338,19 @@ export function DatabaseSettingsModal({
                 {editedConnections.map((connection) => {
                   const store = stores.find(s => s.id === connection.storeId);
                   return (
-                    <AccordionItem key={connection.id} value={`connection-${connection.id}`} className="border border-neutral-200 rounded-lg overflow-hidden">
-                      <div className="p-4 bg-neutral-50 flex justify-between items-center">
+                    <AccordionItem key={connection.id} value={`connection-${connection.id}`} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
+                      <div className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 flex items-center justify-center text-primary mr-3">
+                          <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 dark:bg-opacity-20 flex items-center justify-center text-primary mr-3">
                             <StoreIcon className="h-4 w-4" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-medium text-neutral-600">{store?.name}</h4>
-                            <p className="text-xs text-neutral-500">{store?.url}</p>
+                            <h4 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">{store?.name}</h4>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">{store?.url}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="flex items-center text-xs text-success">
+                          <span className="flex items-center text-xs text-success dark:text-green-400">
                             <CircleCheck className="h-3 w-3 mr-1" />
                             Connected
                           </span>
@@ -358,10 +358,10 @@ export function DatabaseSettingsModal({
                         </div>
                       </div>
                       <AccordionContent>
-                        <div className="p-4 border-t border-neutral-200">
+                        <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label className="text-xs font-medium text-neutral-500">Host</Label>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Host</Label>
                               <Input 
                                 value={connection.host} 
                                 onChange={(e) => handleInputChange(connection.id, "host", e.target.value)}
@@ -369,7 +369,7 @@ export function DatabaseSettingsModal({
                               />
                             </div>
                             <div>
-                              <Label className="text-xs font-medium text-neutral-500">Port</Label>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Port</Label>
                               <Input 
                                 value={connection.port} 
                                 onChange={(e) => handleInputChange(connection.id, "port", e.target.value)}
@@ -377,7 +377,7 @@ export function DatabaseSettingsModal({
                               />
                             </div>
                             <div>
-                              <Label className="text-xs font-medium text-neutral-500">Database Name</Label>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Database Name</Label>
                               <Input 
                                 value={connection.database} 
                                 onChange={(e) => handleInputChange(connection.id, "database", e.target.value)}
@@ -385,7 +385,7 @@ export function DatabaseSettingsModal({
                               />
                             </div>
                             <div>
-                              <Label className="text-xs font-medium text-neutral-500">Table Prefix</Label>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Table Prefix</Label>
                               <Input 
                                 value={connection.prefix} 
                                 onChange={(e) => handleInputChange(connection.id, "prefix", e.target.value)}
@@ -393,7 +393,7 @@ export function DatabaseSettingsModal({
                               />
                             </div>
                             <div>
-                              <Label className="text-xs font-medium text-neutral-500">Username</Label>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Username</Label>
                               <Input 
                                 value={connection.username} 
                                 onChange={(e) => handleInputChange(connection.id, "username", e.target.value)}
@@ -401,7 +401,7 @@ export function DatabaseSettingsModal({
                               />
                             </div>
                             <div>
-                              <Label className="text-xs font-medium text-neutral-500">Password</Label>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</Label>
                               <Input 
                                 type="password" 
                                 value={connection.password} 
@@ -443,8 +443,8 @@ export function DatabaseSettingsModal({
                 })}
               </Accordion>
             ) : !showNewConnectionForm && (
-              <div className="text-center p-6 border border-dashed border-neutral-300 rounded-lg">
-                <p className="text-neutral-500 mb-4">No database connections configured</p>
+              <div className="text-center p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg">
+                <p className="text-neutral-500 dark:text-neutral-400 mb-4">No database connections configured</p>
                 <Button onClick={() => setShowNewConnectionForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Connection

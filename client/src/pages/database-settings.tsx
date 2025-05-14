@@ -119,37 +119,37 @@ export default function DatabaseSettings() {
                 {stores?.map((store) => {
                   const connection = connections?.find(c => c.storeId === store.id);
                   return (
-                    <div key={store.id} className="border border-neutral-200 rounded-lg overflow-hidden">
-                      <div className="bg-neutral-50 p-4 flex items-center justify-between">
+                    <div key={store.id} className="border border-border rounded-lg overflow-hidden">
+                      <div className="bg-muted/50 p-4 flex items-center justify-between">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center text-primary mr-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
                             <StoreIcon className="h-5 w-5" />
                           </div>
                           <div>
-                            <h3 className="font-medium text-neutral-700">{store.name}</h3>
-                            <p className="text-xs text-neutral-500">{store.url}</p>
+                            <h3 className="font-medium text-foreground">{store.name}</h3>
+                            <p className="text-xs text-muted-foreground">{store.url}</p>
                           </div>
                         </div>
                         {connection ? (
-                          <div className="bg-green-100 text-green-800 border border-green-200 rounded-full font-medium px-2.5 py-0.5 text-xs hover:bg-green-100 hover:text-green-800">
+                          <div className="border border-green-500 text-green-600 dark:text-green-400 dark:border-green-700 rounded-full font-medium px-2.5 py-0.5 text-xs">
                             Connected
                           </div>
                         ) : (
-                          <div className="bg-red-100 text-red-800 border border-red-200 rounded-full font-medium px-2.5 py-0.5 text-xs hover:bg-red-100 hover:text-red-800">
+                          <div className="border border-red-500 text-red-600 dark:text-red-400 dark:border-red-700 rounded-full font-medium px-2.5 py-0.5 text-xs">
                             Not Connected
                           </div>
                         )}
                       </div>
-                      <div className="p-4 border-t border-neutral-200">
+                      <div className="p-4 border-t border-border">
                         <div className="grid grid-cols-2 gap-y-2 mb-4">
-                          <div className="text-sm text-neutral-500">Host:</div>
-                          <div className="text-sm">{connection?.host || "Not set"}</div>
+                          <div className="text-sm text-muted-foreground">Host:</div>
+                          <div className="text-sm text-foreground">{connection?.host || "Not set"}</div>
                           
-                          <div className="text-sm text-neutral-500">Database:</div>
-                          <div className="text-sm">{connection?.database || "Not set"}</div>
+                          <div className="text-sm text-muted-foreground">Database:</div>
+                          <div className="text-sm text-foreground">{connection?.database || "Not set"}</div>
                           
-                          <div className="text-sm text-neutral-500">Prefix:</div>
-                          <div className="text-sm">{connection?.prefix || "Not set"}</div>
+                          <div className="text-sm text-muted-foreground">Prefix:</div>
+                          <div className="text-sm text-foreground">{connection?.prefix || "Not set"}</div>
                         </div>
                         <div className="flex gap-2">
                           <Button

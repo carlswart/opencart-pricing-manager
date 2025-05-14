@@ -2,6 +2,7 @@ import React from "react";
 import Sidebar from "./sidebar-new";
 import { useLocation } from "wouter";
 import { Bell, HelpCircle } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -13,14 +14,15 @@ interface HeaderProps {
 
 function Header({ title }: HeaderProps) {
   return (
-    <header className="bg-white border-b border-neutral-200 shadow-sm">
+    <header className="bg-card border-b border-border shadow-sm">
       <div className="flex items-center justify-between px-6 py-3">
-        <h1 className="text-xl font-semibold text-neutral-600">{title}</h1>
+        <h1 className="text-xl font-semibold text-card-foreground">{title}</h1>
         <div className="flex items-center gap-4">
-          <button className="text-neutral-500 hover:text-neutral-700">
+          <ThemeToggle />
+          <button className="text-muted-foreground hover:text-foreground">
             <Bell className="h-5 w-5" />
           </button>
-          <button className="text-neutral-500 hover:text-neutral-700">
+          <button className="text-muted-foreground hover:text-foreground">
             <HelpCircle className="h-5 w-5" />
           </button>
         </div>

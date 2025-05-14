@@ -390,12 +390,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Update not found" });
       }
       
+      // Find all unique store IDs that were actually updated in this batch
+      // by checking the update details
+      const updateDetails = await storage.getUpdateDetails(updateId);
+      
+      // Extract unique store IDs from the update details
+      const updatedStoreIds = [...new Set(updateDetails.map(detail => detail.storeId))];
+      
+      // If no stores were found in details, return an empty list
+      if (updatedStoreIds.length === 0) {
+        res.json({
+          overall: update.completedAt ? 100 : 0,
+          stores: [],
+        });
+        return;
+      }
+      
+      // Fetch only the stores that were actually updated
+      const allStores = await storage.getAllStores();
+      const updatedStores = allStores.filter(store => updatedStoreIds.includes(store.id));
+      
       // For a complete update, return 100% progress
       if (update.completedAt) {
-        const stores = await storage.getAllStores();
         res.json({
           overall: 100,
-          stores: stores.map(store => ({
+          stores: updatedStores.map(store => ({
             id: store.id,
             name: store.name,
             progress: 100,
@@ -413,10 +432,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         100
       );
       
-      const stores = await storage.getAllStores();
       res.json({
         overall: progress,
-        stores: stores.map(store => ({
+        stores: updatedStores.map(store => ({
           id: store.id,
           name: store.name,
           // Randomly vary progress per store for demonstration

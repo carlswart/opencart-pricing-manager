@@ -1,4 +1,4 @@
-import { Link, useRoute } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
@@ -34,13 +34,16 @@ function SidebarItem({ icon, label, href, isActive }: SidebarItemProps) {
 
 export default function Sidebar() {
   const { user, logoutMutation } = useAuth();
+  const [location] = useLocation();
   
-  const [isDashboardActive] = useRoute("/");
-  const [isUploadActive] = useRoute("/upload-pricing");
-  const [isHistoryActive] = useRoute("/update-history");
-  const [isDatabaseActive] = useRoute("/database-settings");
-  const [isUserManagementActive] = useRoute("/user-management");
-  const [isSettingsActive] = useRoute("/settings");
+  // Check if current location matches the route
+  const isActive = (path: string) => {
+    if (path === '/' && location === '/') {
+      return true;
+    }
+    // For other routes, do a prefix match
+    return path !== '/' && location.startsWith(path);
+  };
   
   const getInitials = (name: string) => {
     return name
@@ -63,25 +66,25 @@ export default function Sidebar() {
           icon={<LayoutDashboard className="h-5 w-5" />} 
           label="Dashboard" 
           href="/" 
-          isActive={isDashboardActive} 
+          isActive={isActive("/")} 
         />
         <SidebarItem 
           icon={<FileUp className="h-5 w-5" />} 
           label="Upload Pricing" 
           href="/upload-pricing" 
-          isActive={isUploadActive} 
+          isActive={isActive("/upload-pricing")} 
         />
         <SidebarItem 
           icon={<History className="h-5 w-5" />} 
           label="Update History" 
           href="/update-history" 
-          isActive={isHistoryActive} 
+          isActive={isActive("/update-history")} 
         />
         <SidebarItem 
           icon={<Database className="h-5 w-5" />} 
           label="Database Settings" 
           href="/database-settings" 
-          isActive={isDatabaseActive} 
+          isActive={isActive("/database-settings")} 
         />
         
         <div className="px-4 py-2 mt-4 text-sm text-neutral-500 uppercase">Admin</div>
@@ -89,13 +92,13 @@ export default function Sidebar() {
           icon={<Users className="h-5 w-5" />} 
           label="User Management" 
           href="/user-management" 
-          isActive={isUserManagementActive} 
+          isActive={isActive("/user-management")} 
         />
         <SidebarItem 
           icon={<Settings className="h-5 w-5" />} 
           label="Settings" 
           href="/settings" 
-          isActive={isSettingsActive} 
+          isActive={isActive("/settings")} 
         />
       </nav>
       

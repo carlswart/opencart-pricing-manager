@@ -47,8 +47,10 @@ export function ThemeProviderContext({
   useEffect(() => {
     const root = window.document.documentElement;
     
+    // Only handle light/dark mode, don't remove color themes
     root.classList.remove("light", "dark");
     
+    // Handle the system/light/dark theme
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
@@ -56,10 +58,9 @@ export function ThemeProviderContext({
         : "light";
       
       root.classList.add(systemTheme);
-      return;
+    } else if (theme === "light" || theme === "dark") {
+      root.classList.add(theme);
     }
-    
-    root.classList.add(theme!);
   }, [theme]);
 
   const value = {

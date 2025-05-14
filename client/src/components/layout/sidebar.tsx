@@ -20,9 +20,9 @@ interface SidebarItemProps {
 }
 
 function SidebarItem({ icon, label, href, isActive }: SidebarItemProps) {
-  const baseClasses = "flex items-center gap-3 px-6 py-2 hover:bg-neutral-100";
-  const activeClasses = "bg-primary bg-opacity-10 border-l-4 border-primary text-primary";
-  const inactiveClasses = "text-neutral-600 border-l-4 border-transparent";
+  const baseClasses = "flex items-center gap-3 px-6 py-2";
+  const activeClasses = "bg-primary bg-opacity-10 border-l-4 border-primary text-primary hover:bg-primary hover:bg-opacity-15";
+  const inactiveClasses = "text-neutral-600 border-l-4 border-transparent hover:bg-neutral-100";
   
   return (
     <Link href={href} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>

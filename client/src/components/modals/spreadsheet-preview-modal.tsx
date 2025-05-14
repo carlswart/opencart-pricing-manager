@@ -58,16 +58,6 @@ export function SpreadsheetPreviewModal({
               <span className="text-sm font-medium text-neutral-600">{filename}</span>
               <span className="text-sm text-neutral-500 ml-2">{recordCount} products</span>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="text-primary">
-                <File className="h-4 w-4 mr-1" />
-                <span>Download</span>
-              </Button>
-              <Button variant="outline" size="sm" className="text-primary">
-                <SlidersHorizontal className="h-4 w-4 mr-1" />
-                <span>Map Columns</span>
-              </Button>
-            </div>
           </div>
           
           <div className="flex-1 overflow-auto">
@@ -95,18 +85,18 @@ export function SpreadsheetPreviewModal({
                       >
                         <TableCell className="border-r border-neutral-200">{row.sku}</TableCell>
                         <TableCell className="border-r border-neutral-200">{row.name}</TableCell>
-                        <TableCell className="border-r border-neutral-200">${row.regularPrice}</TableCell>
+                        <TableCell className="border-r border-neutral-200">R {row.regularPrice}</TableCell>
                         <TableCell className={cn(
                           "border-r border-neutral-200",
                           row.hasDepotPriceError && "font-medium text-destructive"
                         )}>
-                          ${row.depotPrice}
+                          R {row.depotPrice}
                         </TableCell>
                         <TableCell className={cn(
                           "border-r border-neutral-200",
                           row.hasWarehousePriceError && "font-medium text-destructive"
                         )}>
-                          ${row.warehousePrice}
+                          R {row.warehousePrice}
                         </TableCell>
                         <TableCell>{row.quantity}</TableCell>
                       </TableRow>
@@ -118,7 +108,7 @@ export function SpreadsheetPreviewModal({
           </div>
           
           {validationIssues.length > 0 && (
-            <Alert variant="warning" className="mt-4">
+            <Alert className="mt-4 border-amber-500 text-amber-800 bg-amber-50">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Validation Issues Found</AlertTitle>
               <AlertDescription>
@@ -133,11 +123,7 @@ export function SpreadsheetPreviewModal({
           )}
         </div>
         
-        <DialogFooter className="flex justify-between">
-          <Button variant="outline" className="text-warning">
-            <AlertTriangle className="h-4 w-4 mr-1" />
-            <span>Fix Validation Issues</span>
-          </Button>
+        <DialogFooter className="flex justify-end">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

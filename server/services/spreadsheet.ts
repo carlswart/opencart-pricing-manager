@@ -122,12 +122,12 @@ export const handleProcess = [
 
 // Column headers mapping
 const COLUMN_MAPPINGS = {
-  SKU: ['sku', 'model', 'product code', 'product_code', 'product_model', 'product_sku', 'product sku', 'model number', 'model_number', 'item code', 'item_code', 'item number', 'item_number', 'article', 'article number', 'article_number', 'code', 'id', 'product id', 'product_id'],
-  NAME: ['name', 'product name', 'product_name', 'description', 'title', 'product_title', 'product title', 'item', 'item name', 'item_name', 'product description', 'product_description'],
-  PRICE: ['price', 'regular price', 'regular_price', 'retail_price', 'retail price', 'base_price', 'base price', 'normal price', 'normal_price', 'selling price', 'selling_price', 'unit price', 'unit_price', 'list price', 'list_price', 'price (regular)', 'price_regular', 'srp', 'recommended price', 'full price'],
-  DEPOT_PRICE: ['depot price', 'depot_price', 'discount price', 'discount_price', 'depot', 'special price', 'special_price', 'sale price', 'sale_price', 'depot discount', 'depot_discount', 'price (depot)', 'price_depot'],
-  WAREHOUSE_PRICE: ['warehouse price', 'warehouse_price', 'wholesale price', 'wholesale_price', 'warehouse', 'bulk price', 'bulk_price', 'distributor price', 'distributor_price', 'trade price', 'trade_price', 'price (warehouse)', 'price_warehouse', 'b2b price', 'b2b_price'],
-  QUANTITY: ['quantity', 'qty', 'stock', 'inventory', 'on hand', 'on_hand', 'available', 'stock level', 'stock_level', 'count', 'on-hand', 'in stock', 'in_stock', 'stock quantity', 'stock_quantity', 'units'],
+  SKU: ['sku', 'model', 'product code', 'product_code', 'product_model', 'product_sku', 'product sku', 'model number', 'model_number', 'item code', 'item_code', 'item number', 'item_number', 'article', 'article number', 'article_number', 'code', 'id', 'product id', 'product_id', 'reference', 'ref', 'ref no', 'part number', 'part no'],
+  NAME: ['name', 'product name', 'product_name', 'description', 'title', 'product_title', 'product title', 'item', 'item name', 'item_name', 'product description', 'product_description', 'item description', 'item_description'],
+  PRICE: ['price', 'regular price', 'regular_price', 'retail_price', 'retail price', 'base_price', 'base price', 'normal price', 'normal_price', 'selling price', 'selling_price', 'unit price', 'unit_price', 'list price', 'list_price', 'price (regular)', 'price_regular', 'srp', 'recommended price', 'full price', 'price (zar)', 'price zar', 'zar price', 'zar', 'rand price', 'price (rand)', 'rrp', 'recommended retail price', 'msrp'],
+  DEPOT_PRICE: ['depot price', 'depot_price', 'discount price', 'discount_price', 'depot', 'special price', 'special_price', 'sale price', 'sale_price', 'depot discount', 'depot_discount', 'price (depot)', 'price_depot', 'tier 1 price', 'tier1 price', 'tier_1_price', 'tier1', 'tier 1', 'tier_1', 'dealer price', 'dealer_price', 'trade price', 'trade_price'],
+  WAREHOUSE_PRICE: ['warehouse price', 'warehouse_price', 'wholesale price', 'wholesale_price', 'warehouse', 'bulk price', 'bulk_price', 'distributor price', 'distributor_price', 'trade price', 'trade_price', 'price (warehouse)', 'price_warehouse', 'b2b price', 'b2b_price', 'tier 2 price', 'tier2 price', 'tier_2_price', 'tier2', 'tier 2', 'tier_2'],
+  QUANTITY: ['quantity', 'qty', 'stock', 'inventory', 'on hand', 'on_hand', 'available', 'stock level', 'stock_level', 'count', 'on-hand', 'in stock', 'in_stock', 'stock quantity', 'stock_quantity', 'units', 'on shelf', 'on_shelf', 'available stock', 'available_stock', 'qty on hand', 'qty_on_hand'],
 };
 
 // Parse spreadsheet buffer into product rows

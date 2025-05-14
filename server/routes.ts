@@ -27,6 +27,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(401).json({ message: "Unauthorized" });
   };
   
+  // Admin-only middleware
+  const adminOnly = (req: Request, res: Response, next: Function) => {
+    if (req.isAuthenticated() && req.user?.role === 'admin') {
+      return next();
+    }
+    res.status(403).json({ message: "Admin privileges required" });
+  };
+  
   // Dashboard stats
   app.get("/api/dashboard/stats", authenticate, async (req, res) => {
     try {
@@ -169,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Store routes
+  // Store routes - admin only
   app.get("/api/stores", authenticate, async (req, res) => {
     try {
       const stores = await storage.getAllStores();

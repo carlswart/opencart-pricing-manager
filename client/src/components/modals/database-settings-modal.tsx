@@ -341,7 +341,7 @@ export function DatabaseSettingsModal({
                     <AccordionItem key={connection.id} value={`connection-${connection.id}`} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
                       <div className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 dark:bg-opacity-20 flex items-center justify-center text-primary mr-3">
+                          <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 dark:bg-opacity-20 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 mr-3">
                             <StoreIcon className="h-4 w-4" />
                           </div>
                           <div>
@@ -350,7 +350,7 @@ export function DatabaseSettingsModal({
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="flex items-center text-xs text-success dark:text-green-400">
+                          <span className="flex items-center text-xs text-success dark:text-green-400 dark:bg-green-900/20 dark:px-2 dark:py-1 dark:rounded-full">
                             <CircleCheck className="h-3 w-3 mr-1" />
                             Connected
                           </span>
@@ -552,6 +552,7 @@ export function DatabaseSettingsModal({
                       <Button 
                         variant="outline" 
                         size="sm"
+                        className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                         onClick={() => {
                           setShowNewConnectionForm(false);
                           setNewConnection(null);

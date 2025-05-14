@@ -60,6 +60,7 @@ export const updates = pgTable("updates", {
   filename: text("filename").notNull(),
   productsCount: integer("products_count").notNull(),
   status: text("status").notNull(), // completed, partial, failed
+  date: timestamp("date").notNull().defaultNow(), // For sorting and display
   details: jsonb("details"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

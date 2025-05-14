@@ -10,6 +10,7 @@ import {
   UpdateDetail, 
   InsertUpdateDetail 
 } from "@shared/schema";
+import { DatabaseStorage } from "./database-storage";
 
 export interface IStorage {
   // User methods

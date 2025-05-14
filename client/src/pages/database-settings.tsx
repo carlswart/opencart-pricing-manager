@@ -131,11 +131,11 @@ export default function DatabaseSettings() {
                           </div>
                         </div>
                         {connection ? (
-                          <Badge variant="outline" className="bg-success bg-opacity-10 text-success border-success border-opacity-30">
+                          <Badge className="bg-green-100 text-green-800 border-green-200 font-medium px-2.5 py-0.5">
                             Connected
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-destructive bg-opacity-10 text-destructive border-destructive border-opacity-30">
+                          <Badge className="bg-red-100 text-red-800 border-red-200 font-medium px-2.5 py-0.5">
                             Not Connected
                           </Badge>
                         )}

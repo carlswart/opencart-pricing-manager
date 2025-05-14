@@ -99,19 +99,42 @@ export default function UploadPricing() {
         credentials: "include",
       });
       
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        throw new Error("Failed to preview spreadsheet");
+        // Extract the detailed error message from the response
+        const errorMessage = responseData.message || "Failed to preview spreadsheet";
+        throw new Error(errorMessage);
       }
       
-      const previewResult = await response.json();
-      setPreviewData(previewResult);
+      setPreviewData(responseData);
       setShowPreview(true);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload file",
-      });
+      // Format the error message for better display - split by newlines
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload file";
+      const errorLines = errorMessage.split('\n');
+      
+      // If it's a multi-line error (like our column format guide)
+      if (errorLines.length > 1) {
+        toast({
+          variant: "destructive",
+          title: "Spreadsheet Format Error",
+          description: (
+            <div className="mt-2 text-sm space-y-1">
+              {errorLines.map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          ),
+          duration: 10000, // Show longer for detailed messages
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Upload failed",
+          description: errorMessage,
+        });
+      }
     }
   };
 

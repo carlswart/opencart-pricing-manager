@@ -68,7 +68,8 @@ export const handlePreview = [
       });
     } catch (error) {
       console.error("Error previewing spreadsheet:", error);
-      res.status(500).json({ 
+      // Return a more useful error message to the client
+      res.status(400).json({ 
         message: error instanceof Error ? error.message : "Failed to preview spreadsheet" 
       });
     }
@@ -112,7 +113,7 @@ export const handleProcess = [
       res.json({ updateId: update.id });
     } catch (error) {
       console.error("Error processing spreadsheet:", error);
-      res.status(500).json({ 
+      res.status(400).json({ 
         message: error instanceof Error ? error.message : "Failed to process spreadsheet" 
       });
     }
@@ -121,12 +122,12 @@ export const handleProcess = [
 
 // Column headers mapping
 const COLUMN_MAPPINGS = {
-  SKU: ['sku', 'model', 'product code', 'product_code', 'product_model', 'product_sku'],
-  NAME: ['name', 'product name', 'product_name', 'description', 'title', 'product_title'],
-  PRICE: ['price', 'regular price', 'regular_price', 'retail_price', 'retail price', 'base_price', 'base price'],
-  DEPOT_PRICE: ['depot price', 'depot_price', 'discount price', 'discount_price'],
-  WAREHOUSE_PRICE: ['warehouse price', 'warehouse_price', 'wholesale price', 'wholesale_price'],
-  QUANTITY: ['quantity', 'qty', 'stock', 'inventory', 'on hand', 'on_hand', 'available'],
+  SKU: ['sku', 'model', 'product code', 'product_code', 'product_model', 'product_sku', 'product sku', 'model number', 'model_number', 'item code', 'item_code', 'item number', 'item_number', 'article', 'article number', 'article_number', 'code', 'id', 'product id', 'product_id'],
+  NAME: ['name', 'product name', 'product_name', 'description', 'title', 'product_title', 'product title', 'item', 'item name', 'item_name', 'product description', 'product_description'],
+  PRICE: ['price', 'regular price', 'regular_price', 'retail_price', 'retail price', 'base_price', 'base price', 'normal price', 'normal_price', 'selling price', 'selling_price', 'unit price', 'unit_price', 'list price', 'list_price', 'price (regular)', 'price_regular', 'srp', 'recommended price', 'full price'],
+  DEPOT_PRICE: ['depot price', 'depot_price', 'discount price', 'discount_price', 'depot', 'special price', 'special_price', 'sale price', 'sale_price', 'depot discount', 'depot_discount', 'price (depot)', 'price_depot'],
+  WAREHOUSE_PRICE: ['warehouse price', 'warehouse_price', 'wholesale price', 'wholesale_price', 'warehouse', 'bulk price', 'bulk_price', 'distributor price', 'distributor_price', 'trade price', 'trade_price', 'price (warehouse)', 'price_warehouse', 'b2b price', 'b2b_price'],
+  QUANTITY: ['quantity', 'qty', 'stock', 'inventory', 'on hand', 'on_hand', 'available', 'stock level', 'stock_level', 'count', 'on-hand', 'in stock', 'in_stock', 'stock quantity', 'stock_quantity', 'units'],
 };
 
 // Parse spreadsheet buffer into product rows
@@ -155,25 +156,64 @@ async function parseSpreadsheet(buffer: Buffer, filename: string): Promise<Produ
     // Map headers to our expected fields
     const columnIndices: { [key: string]: number } = {};
     
-    // Find indices for each column type
+    // Find indices for each column type using fuzzy matching
     headers.forEach((header, index) => {
-      const headerLower = header.toString().toLowerCase();
+      if (!header) return; // Skip empty headers
       
+      const headerLower = header.toString().toLowerCase().trim();
+      
+      // Try exact match first
       for (const [key, possibleNames] of Object.entries(COLUMN_MAPPINGS)) {
         if (possibleNames.includes(headerLower)) {
           columnIndices[key] = index;
           break;
         }
       }
+      
+      // If no exact match, try partial match (contains)
+      if (Object.keys(columnIndices).length < Object.keys(COLUMN_MAPPINGS).length) {
+        for (const [key, possibleNames] of Object.entries(COLUMN_MAPPINGS)) {
+          // Skip if we already found this column
+          if (columnIndices[key] !== undefined) continue;
+          
+          // Try to find a column that contains one of our known names
+          for (const name of possibleNames) {
+            if (headerLower.includes(name)) {
+              columnIndices[key] = index;
+              console.log(`Found partial match for ${key}: "${header}" contains "${name}"`);
+              break;
+            }
+          }
+        }
+      }
     });
     
-    // Check if required columns exist
-    if (!columnIndices.SKU) {
-      throw new Error('Required column not found: SKU or Model number');
+    console.log("Detected columns:", columnIndices);
+    
+    // Check if required columns exist and provide helpful error messages
+    const missingColumns = [];
+    
+    if (columnIndices.SKU === undefined) {
+      missingColumns.push("SKU/Model Number");
     }
     
-    if (!columnIndices.PRICE) {
-      throw new Error('Required column not found: Price');
+    if (columnIndices.PRICE === undefined) {
+      missingColumns.push("Price");
+    }
+    
+    if (missingColumns.length > 0) {
+      // Create a helpful error message with column examples
+      const errorMessage = `Required columns not found: ${missingColumns.join(", ")}.\n\n` +
+        `Your spreadsheet should include the following column headers:\n` +
+        `- SKU/Model: ${COLUMN_MAPPINGS.SKU.slice(0, 5).join(", ")}...\n` +
+        `- Price: ${COLUMN_MAPPINGS.PRICE.slice(0, 5).join(", ")}...\n\n` +
+        `Optional columns:\n` +
+        `- Product Name: ${COLUMN_MAPPINGS.NAME.slice(0, 3).join(", ")}...\n` +
+        `- Depot Price: ${COLUMN_MAPPINGS.DEPOT_PRICE.slice(0, 3).join(", ")}...\n` +
+        `- Warehouse Price: ${COLUMN_MAPPINGS.WAREHOUSE_PRICE.slice(0, 3).join(", ")}...\n` +
+        `- Quantity: ${COLUMN_MAPPINGS.QUANTITY.slice(0, 3).join(", ")}...`;
+      
+      throw new Error(errorMessage);
     }
     
     // Parse data rows into our format

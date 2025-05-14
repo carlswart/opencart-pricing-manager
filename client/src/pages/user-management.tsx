@@ -186,10 +186,10 @@ export default function UserManagement() {
                     </TableCell>
                     <TableCell>{user.username}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         user.role === 'admin' 
-                          ? 'bg-primary bg-opacity-10 text-primary' 
-                          : 'bg-neutral-100 text-neutral-600'
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          : 'bg-slate-100 text-slate-800 border border-slate-200'
                       }`}>
                         {user.role}
                       </span>

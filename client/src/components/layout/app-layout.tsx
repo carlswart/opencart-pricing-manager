@@ -45,6 +45,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
         return "Database Settings";
       case location === "/user-management":
         return "User Management";
+      case location === "/settings":
+        return "Settings";
       default:
         return "Dashboard";
     }

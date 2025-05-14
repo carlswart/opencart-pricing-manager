@@ -19,7 +19,7 @@ export default function Settings() {
   // General settings state
   const [companyName, setCompanyName] = useState("PriceSync Inc");
   const [contactEmail, setContactEmail] = useState("admin@pricesync.com");
-  const [defaultCurrency, setDefaultCurrency] = useState("USD");
+  const [defaultCurrency, setDefaultCurrency] = useState("ZAR");
   
   // Notification settings state
   const [emailNotifications, setEmailNotifications] = useState(true);

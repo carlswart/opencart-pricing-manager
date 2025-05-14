@@ -33,7 +33,7 @@ function SidebarItem({ icon, label, href, isActive }: SidebarItemProps) {
 }
 
 export default function Sidebar() {
-  const { user, logout } = useAuth();
+  const { user, logoutMutation } = useAuth();
   
   const [isDashboardActive] = useRoute("/");
   const [isUploadActive] = useRoute("/upload-pricing");

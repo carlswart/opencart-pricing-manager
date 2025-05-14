@@ -103,8 +103,8 @@
   --ring: 142 70% 45%;
 }
 
-/* Dark mode with blue theme */
-.dark.theme-blue {
+/* Dark mode with blue/default theme */
+.dark.theme-default {
   --primary: 207 90% 54%;
   --primary-foreground: 210 40% 98%;
   --ring: 207 90% 54%;

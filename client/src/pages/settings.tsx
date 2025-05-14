@@ -329,14 +329,14 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-base font-medium">Application Theme</Label>
+                    <Label className="text-base font-medium">Color Theme</Label>
                     <p className="text-sm text-muted-foreground mb-4">
                       Select a color theme for the application
                     </p>
                     
                     <RadioGroup 
-                      value={theme} 
-                      onValueChange={handleThemeChange}
+                      value={colorTheme} 
+                      onValueChange={handleColorThemeChange}
                       className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2"
                     >
                       <div className="flex items-center space-x-2">
@@ -357,9 +357,51 @@ export default function Settings() {
                     </RadioGroup>
                   </div>
                   
+                  <div>
+                    <Label className="text-base font-medium">Display Mode</Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Choose light, dark, or system mode
+                    </p>
+                    
+                    <RadioGroup 
+                      value={theme}
+                      onValueChange={handleModeChange}
+                      className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="light" id="mode-light" />
+                        <Label htmlFor="mode-light" className="flex items-center">
+                          <div className="w-4 h-4 rounded-full bg-slate-100 border border-slate-300 mr-2"></div>
+                          Light
+                        </Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="dark" id="mode-dark" />
+                        <Label htmlFor="mode-dark" className="flex items-center">
+                          <div className="w-4 h-4 rounded-full bg-slate-800 mr-2"></div>
+                          Dark
+                        </Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="system" id="mode-system" />
+                        <Label htmlFor="mode-system" className="flex items-center">
+                          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-slate-100 to-slate-800 mr-2"></div>
+                          System
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
                   <div className="pt-4">
+                    <Label className="text-base font-medium">Theme Preview</Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Current color theme and display mode
+                    </p>
+                    
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Card className={`border-2 ${theme === 'default' ? 'border-blue-500' : 'border-transparent'} transition-all`}>
+                      <Card className={`border-2 ${colorTheme === 'default' ? 'border-blue-500' : 'border-transparent'} transition-all`}>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
@@ -367,13 +409,15 @@ export default function Settings() {
                             </div>
                             <div>
                               <h3 className="font-medium">Blue Theme</h3>
-                              <p className="text-xs text-muted-foreground">Default application theme</p>
+                              <p className="text-xs text-muted-foreground">
+                                {colorTheme === 'default' ? 'Current color theme' : 'Default application theme'}
+                              </p>
                             </div>
                           </div>
                         </CardContent>
                       </Card>
                       
-                      <Card className={`border-2 ${theme === 'green' ? 'border-green-600' : 'border-transparent'} transition-all`}>
+                      <Card className={`border-2 ${colorTheme === 'green' ? 'border-green-600' : 'border-transparent'} transition-all`}>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white">
@@ -381,7 +425,59 @@ export default function Settings() {
                             </div>
                             <div>
                               <h3 className="font-medium">Green Theme</h3>
-                              <p className="text-xs text-muted-foreground">Alternative green theme</p>
+                              <p className="text-xs text-muted-foreground">
+                                {colorTheme === 'green' ? 'Current color theme' : 'Alternative green theme'}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                      <Card className={`border-2 ${theme === 'light' ? 'border-primary' : 'border-transparent'} transition-all`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center">
+                              <CircleDotDashed className="h-4 w-4 text-slate-800" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">Light Mode</h3>
+                              <p className="text-xs text-muted-foreground">
+                                {theme === 'light' ? 'Current display mode' : 'Standard light background'}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className={`border-2 ${theme === 'dark' ? 'border-primary' : 'border-transparent'} transition-all`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                              <CircleDotDashed className="h-4 w-4 text-slate-100" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">Dark Mode</h3>
+                              <p className="text-xs text-muted-foreground">
+                                {theme === 'dark' ? 'Current display mode' : 'Reduced eye strain at night'}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className={`border-2 ${theme === 'system' ? 'border-primary' : 'border-transparent'} transition-all`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-slate-100 to-slate-800 flex items-center justify-center">
+                              <CircleDotDashed className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">System Mode</h3>
+                              <p className="text-xs text-muted-foreground">
+                                {theme === 'system' ? 'Current display mode' : 'Follows your device settings'}
+                              </p>
                             </div>
                           </div>
                         </CardContent>

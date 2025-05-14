@@ -84,6 +84,16 @@ export default function Settings() {
       });
     }, 800);
   };
+  
+  // Handle theme change
+  const handleThemeChange = (value: string) => {
+    const newTheme = value as "default" | "green";
+    setTheme(newTheme);
+    toast({
+      title: "Theme Updated",
+      description: `App theme has been changed to ${newTheme === "default" ? "Blue" : "Green"}`,
+    });
+  };
 
   return (
     <div>
@@ -94,10 +104,11 @@ export default function Settings() {
       
       <div className="mt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full md:w-auto grid-cols-3 mb-6">
+          <TabsList className="grid w-full md:w-auto grid-cols-4 mb-6">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
           </TabsList>
           
           <TabsContent value="general">
@@ -292,6 +303,81 @@ export default function Settings() {
                     </Button>
                   </div>
                 </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="appearance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Appearance Settings</CardTitle>
+                <CardDescription>
+                  Customize the look and feel of the application
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-base font-medium">Application Theme</Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Select a color theme for the application
+                    </p>
+                    
+                    <RadioGroup 
+                      value={theme} 
+                      onValueChange={handleThemeChange}
+                      className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="default" id="theme-default" />
+                        <Label htmlFor="theme-default" className="flex items-center">
+                          <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
+                          Blue Theme
+                        </Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="green" id="theme-green" />
+                        <Label htmlFor="theme-green" className="flex items-center">
+                          <div className="w-4 h-4 rounded-full bg-green-600 mr-2"></div>
+                          Green Theme
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Card className={`border-2 ${theme === 'default' ? 'border-blue-500' : 'border-transparent'} transition-all`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                              <Paintbrush className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">Blue Theme</h3>
+                              <p className="text-xs text-muted-foreground">Default application theme</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className={`border-2 ${theme === 'green' ? 'border-green-600' : 'border-transparent'} transition-all`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white">
+                              <Paintbrush className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">Green Theme</h3>
+                              <p className="text-xs text-muted-foreground">Alternative green theme</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

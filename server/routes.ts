@@ -178,7 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Store routes - admin only
-  app.get("/api/stores", authenticate, async (req, res) => {
+  app.get("/api/stores", adminOnly, async (req, res) => {
     try {
       const stores = await storage.getAllStores();
       res.json(stores);
@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/stores", authenticate, async (req, res) => {
+  app.post("/api/stores", adminOnly, async (req, res) => {
     try {
       const validatedData = insertStoreSchema.parse(req.body);
       const store = await storage.createStore(validatedData);
@@ -203,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/stores/:id", authenticate, async (req, res) => {
+  app.delete("/api/stores/:id", adminOnly, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -253,8 +253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Database connection routes
-  app.get("/api/database/connections", authenticate, async (req, res) => {
+  // Database connection routes - admin only
+  app.get("/api/database/connections", adminOnly, async (req, res) => {
     try {
       const connections = await storage.getAllDbConnections();
       res.json(connections);
@@ -264,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/database/test-connection", authenticate, async (req, res) => {
+  app.post("/api/database/test-connection", adminOnly, async (req, res) => {
     try {
       const connectionData = req.body;
       const success = await OpenCartService.testConnection(connectionData);
@@ -279,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/database/connections", authenticate, async (req, res) => {
+  app.post("/api/database/connections", adminOnly, async (req, res) => {
     try {
       const validatedData = insertDbConnectionSchema.parse(req.body);
       const connection = await storage.createDbConnection(validatedData);
@@ -294,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/database/connections/:id", authenticate, async (req, res) => {
+  app.put("/api/database/connections/:id", adminOnly, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertDbConnectionSchema.parse(req.body);
@@ -313,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/database/connections/:id", authenticate, async (req, res) => {
+  app.delete("/api/database/connections/:id", adminOnly, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteDbConnection(id);

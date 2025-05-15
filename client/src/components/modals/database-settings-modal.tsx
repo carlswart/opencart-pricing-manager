@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,12 +42,16 @@ export function DatabaseSettingsModal({
   const [newConnection, setNewConnection] = useState<Partial<DbConnection> & { storeId: number } | null>(null);
   const [selectedStoreForNewConnection, setSelectedStoreForNewConnection] = useState<number | null>(null);
   const [showNewConnectionForm, setShowNewConnectionForm] = useState(false);
+  const [openItems, setOpenItems] = useState<Set<number>>(new Set());
   
   // Reset form data when modal opens
   useEffect(() => {
     if (open) {
       // Make a deep copy of connections to avoid modifying the original
       setEditedConnections(JSON.parse(JSON.stringify(connections || [])));
+      
+      // Reset open accordion items
+      setOpenItems(new Set());
       
       // If a specific store is selected for configuration
       if (selectedStoreId) {

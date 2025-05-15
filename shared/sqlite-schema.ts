@@ -14,12 +14,12 @@ export const users = sqliteTable('users', {
   password: text('password').notNull(),
   name: text('name').notNull(),
   role: text('role').notNull(),
-  createdAt: text('created_at').notNull().default(''),
+  created_at: text('created_at').notNull().default(''),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Store schema

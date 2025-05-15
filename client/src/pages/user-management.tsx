@@ -52,7 +52,7 @@ export default function UserManagement() {
   });
   
   // Fetch users
-  const { data: users, isLoading } = useQuery<User[]>({
+  const { data: users, isLoading } = useQuery({
     queryKey: ['/api/users'],
   });
   
@@ -207,7 +207,7 @@ export default function UserManagement() {
                         {user.role}
                       </span>
                     </TableCell>
-                    <TableCell>{formatDate(user.createdAt)}</TableCell>
+                    <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button

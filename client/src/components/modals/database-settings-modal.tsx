@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,13 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-// Removed accordion imports
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Store, DbConnection } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Store as StoreIcon, Plus, CircleCheck, Trash } from "lucide-react";
+import { Store as StoreIcon, Plus, CircleCheck, Trash, Database, Pencil } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
@@ -37,16 +36,12 @@ export function DatabaseSettingsModal({
   const [newConnection, setNewConnection] = useState<Partial<DbConnection> & { storeId: number } | null>(null);
   const [selectedStoreForNewConnection, setSelectedStoreForNewConnection] = useState<number | null>(null);
   const [showNewConnectionForm, setShowNewConnectionForm] = useState(false);
-  const [openItems, setOpenItems] = useState<Set<number>>(new Set());
   
   // Reset form data when modal opens
   useEffect(() => {
     if (open) {
       // Make a deep copy of connections to avoid modifying the original
       setEditedConnections(JSON.parse(JSON.stringify(connections || [])));
-      
-      // Reset open accordion items
-      setOpenItems(new Set());
       
       // If a specific store is selected for configuration
       if (selectedStoreId) {
@@ -307,6 +302,10 @@ export function DatabaseSettingsModal({
     }
   };
 
+  // Determine if we should show the connections list
+  // We'll hide it when we're specifically adding a connection for a store that doesn't have one
+  const shouldShowConnectionsList = !selectedStoreId || connections?.find(c => c.storeId === selectedStoreId);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl dark:bg-neutral-900 dark:border-neutral-700">
@@ -317,9 +316,10 @@ export function DatabaseSettingsModal({
           </DialogDescription>
         </DialogHeader>
         
+        {/* Content area */}
         <div className="mb-6">
-          {/* Only show connections list if user isn't specifically adding a connection for a store that doesn't have one */}
-          {(!selectedStoreId || (selectedStoreId && connections?.find(c => c.storeId === selectedStoreId))) && (
+          {/* Only show connections list if NOT adding a connection for a store without one */}
+          {shouldShowConnectionsList && (
             <div>
               <div className="flex justify-between items-center mb-4 pb-2 border-b dark:border-neutral-800">
                 <h3 className="text-base font-medium text-neutral-800 dark:text-white">Connected Stores</h3>
@@ -335,175 +335,175 @@ export function DatabaseSettingsModal({
               </div>
               
               {/* Existing connections */}
-              <div className="space-y-4">
-                {editedConnections.length > 0 ? (
-                  <div className="space-y-4">
-                    {editedConnections.map((connection) => {
-                      const store = stores.find(s => s.id === connection.storeId);
-                      return (
-                    <div key={connection.id} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                      <div className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 dark:bg-opacity-20 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 mr-3">
-                            <StoreIcon className="h-4 w-4" />
+              {editedConnections.length > 0 ? (
+                <div className="space-y-4">
+                  {editedConnections.map((connection) => {
+                    const store = stores.find(s => s.id === connection.storeId);
+                    return (
+                      <div key={connection.id} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
+                        <div className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 dark:bg-opacity-20 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 mr-3">
+                              <StoreIcon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">{store?.name}</h4>
+                              <p className="text-xs text-neutral-500 dark:text-neutral-400">{store?.url}</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">{store?.name}</h4>
-                            <p className="text-xs text-neutral-500 dark:text-neutral-400">{store?.url}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="flex items-center text-xs text-success dark:text-green-400 dark:bg-green-900/20 dark:px-2 dark:py-1 dark:rounded-full">
-                            <CircleCheck className="h-3 w-3 mr-1" />
-                            Connected
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Host</Label>
-                            <Input 
-                              value={connection.host} 
-                              onChange={(e) => handleInputChange(connection.id, "host", e.target.value)}
-                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Port</Label>
-                            <Input 
-                              value={connection.port} 
-                              onChange={(e) => handleInputChange(connection.id, "port", e.target.value)}
-                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Database Name</Label>
-                            <Input 
-                              value={connection.database} 
-                              onChange={(e) => handleInputChange(connection.id, "database", e.target.value)}
-                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Table Prefix</Label>
-                            <Input 
-                              value={connection.prefix} 
-                              onChange={(e) => handleInputChange(connection.id, "prefix", e.target.value)}
-                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Username</Label>
-                            <Input 
-                              value={connection.username} 
-                              onChange={(e) => handleInputChange(connection.id, "username", e.target.value)}
-                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</Label>
-                            <Input 
-                              type="password" 
-                              value={connection.password} 
-                              onChange={(e) => handleInputChange(connection.id, "password", e.target.value)}
-                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                            />
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center text-xs text-success dark:text-green-400 dark:bg-green-900/20 dark:px-2 dark:py-1 dark:rounded-full">
+                              <CircleCheck className="h-3 w-3 mr-1" />
+                              Connected
+                            </span>
                           </div>
                         </div>
-                        <div className="flex justify-between mt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-neutral-700 dark:hover:bg-red-900/20"
-                            onClick={() => handleDeleteConnection(connection.id)}
-                          >
-                            <Trash className="h-4 w-4 mr-1" />
-                            Delete Connection
-                          </Button>
-                          <div className="flex gap-2">
+                        <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Host</Label>
+                              <Input 
+                                value={connection.host} 
+                                onChange={(e) => handleInputChange(connection.id, "host", e.target.value)}
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Port</Label>
+                              <Input 
+                                value={connection.port} 
+                                onChange={(e) => handleInputChange(connection.id, "port", e.target.value)}
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Database Name</Label>
+                              <Input 
+                                value={connection.database} 
+                                onChange={(e) => handleInputChange(connection.id, "database", e.target.value)}
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Table Prefix</Label>
+                              <Input 
+                                value={connection.prefix} 
+                                onChange={(e) => handleInputChange(connection.id, "prefix", e.target.value)}
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Username</Label>
+                              <Input 
+                                value={connection.username} 
+                                onChange={(e) => handleInputChange(connection.id, "username", e.target.value)}
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</Label>
+                              <Input 
+                                type="password" 
+                                value={connection.password} 
+                                onChange={(e) => handleInputChange(connection.id, "password", e.target.value)}
+                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-between mt-4">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                              onClick={() => handleTestConnection(connection.id)}
+                              className="text-xs dark:bg-neutral-800 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-900/20"
+                              onClick={() => handleDeleteConnection(connection.id)}
                             >
-                              Test Connection
+                              <Trash className="h-3 w-3 mr-1" />
+                              Delete
                             </Button>
-                            <Button
-                              size="sm"
-                              className="dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                              onClick={() => handleSaveConnection(connection.id)}
-                            >
-                              Save Changes
-                            </Button>
+                            <div className="space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700"
+                                onClick={() => handleTestConnection(connection.id)}
+                              >
+                                <Database className="h-3 w-3 mr-1" />
+                                Test Connection
+                              </Button>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="text-xs bg-primary text-white hover:bg-primary/90 dark:bg-primary"
+                                onClick={() => handleSaveConnection(connection.id)}
+                              >
+                                Save Changes
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : !showNewConnectionForm && (
-              <div className="text-center p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg">
-                <p className="text-neutral-500 dark:text-neutral-400 mb-4">No database connections configured</p>
-                <Button onClick={() => setShowNewConnectionForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Connection
-                </Button>
-              </div>
-            )}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : !showNewConnectionForm && (
+                <div className="text-center p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg">
+                  <p className="text-neutral-500 dark:text-neutral-400 mb-4">No database connections configured</p>
+                  <Button onClick={() => setShowNewConnectionForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Connection
+                  </Button>
+                </div>
+              )}
             </div>
           )}
           
           {/* New connection form */}
           {showNewConnectionForm && (
             <div className="mt-6 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-              <div className="p-4 bg-neutral-50 dark:bg-neutral-800 font-medium text-sm dark:text-neutral-300">
-                Add New Database Connection
+              <div className="p-4 bg-neutral-50 dark:bg-neutral-800">
+                <h3 className="text-base font-medium text-neutral-800 dark:text-white">
+                  Add New Database Connection
+                </h3>
               </div>
               <div className="p-4">
                 <div className="mb-4">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Select Store</Label>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-xs bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700 flex items-center"
-                      onClick={handleAddNewStore}
+                  <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Store</Label>
+                  <div className="grid grid-cols-1 gap-2 mt-1">
+                    <select
+                      value={selectedStoreForNewConnection || ''}
+                      onChange={(e) => handleStoreSelect(Number(e.target.value))}
+                      className="w-full p-2 border border-neutral-200 rounded-md dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                      disabled={selectedStoreId !== undefined && selectedStoreId !== null}
                     >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add Store
-                    </Button>
-                  </div>
-                  <select 
-                    className="mt-1 w-full rounded-md border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 p-2"
-                    value={selectedStoreForNewConnection || ""}
-                    onChange={(e) => handleStoreSelect(Number(e.target.value))}
-                  >
-                    <option value="">Select a store</option>
-                    {stores
-                      .filter(store => !connections.some(conn => conn.storeId === store.id))
-                      .map(store => (
-                        <option key={store.id} value={store.id}>{store.name}</option>
-                      ))
-                    }
-                  </select>
-                  {stores.filter(store => !connections.some(conn => conn.storeId === store.id)).length === 0 && (
-                    <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 flex items-center">
-                      <span className="mr-2">All stores have connections. Add a new store to continue.</span>
+                      <option value="">Select a store...</option>
+                      {stores
+                        .filter(store => !connections.some(c => c.storeId === store.id))
+                        .map(store => (
+                          <option key={store.id} value={store.id}>{store.name}</option>
+                        ))
+                      }
+                    </select>
+                    <div className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddNewStore}
+                        className="text-xs dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add New Store
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </div>
                 
-                {newConnection && (
-                  <>
+                {selectedStoreForNewConnection && (
+                  <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Host</Label>
                         <Input 
-                          value={newConnection.host} 
+                          value={newConnection?.host || ''} 
                           onChange={(e) => handleNewConnectionInputChange("host", e.target.value)}
                           className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
@@ -511,7 +511,7 @@ export function DatabaseSettingsModal({
                       <div>
                         <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Port</Label>
                         <Input 
-                          value={newConnection.port} 
+                          value={newConnection?.port || ''} 
                           onChange={(e) => handleNewConnectionInputChange("port", e.target.value)}
                           className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
@@ -519,7 +519,7 @@ export function DatabaseSettingsModal({
                       <div>
                         <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Database Name</Label>
                         <Input 
-                          value={newConnection.database} 
+                          value={newConnection?.database || ''} 
                           onChange={(e) => handleNewConnectionInputChange("database", e.target.value)}
                           className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
@@ -527,7 +527,7 @@ export function DatabaseSettingsModal({
                       <div>
                         <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Table Prefix</Label>
                         <Input 
-                          value={newConnection.prefix} 
+                          value={newConnection?.prefix || ''} 
                           onChange={(e) => handleNewConnectionInputChange("prefix", e.target.value)}
                           className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
@@ -535,7 +535,7 @@ export function DatabaseSettingsModal({
                       <div>
                         <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Username</Label>
                         <Input 
-                          value={newConnection.username} 
+                          value={newConnection?.username || ''} 
                           onChange={(e) => handleNewConnectionInputChange("username", e.target.value)}
                           className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
@@ -544,17 +544,16 @@ export function DatabaseSettingsModal({
                         <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</Label>
                         <Input 
                           type="password" 
-                          value={newConnection.password} 
+                          value={newConnection?.password || ''} 
                           onChange={(e) => handleNewConnectionInputChange("password", e.target.value)}
                           className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
                         />
                       </div>
                     </div>
-                    <div className="flex justify-end mt-4 gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    <div className="flex justify-between pt-4">
+                      <Button
+                        variant="outline"
+                        className="text-sm bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700"
                         onClick={() => {
                           setShowNewConnectionForm(false);
                           setNewConnection(null);
@@ -563,33 +562,33 @@ export function DatabaseSettingsModal({
                       >
                         Cancel
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                        onClick={handleTestNewConnection}
-                      >
-                        Test Connection
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                        onClick={handleCreateConnection}
-                      >
-                        Create Connection
-                      </Button>
+                      <div className="space-x-2">
+                        <Button
+                          variant="outline"
+                          className="text-sm bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700"
+                          onClick={handleTestNewConnection}
+                        >
+                          <Database className="h-4 w-4 mr-1" />
+                          Test Connection
+                        </Button>
+                        <Button
+                          variant="default"
+                          className="text-sm bg-primary text-white hover:bg-primary/90 dark:bg-primary"
+                          onClick={handleCreateConnection}
+                        >
+                          Create Connection
+                        </Button>
+                      </div>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           )}
         </div>
         
-        <DialogFooter className="dark:bg-neutral-900 border-t dark:border-neutral-800 px-4 py-3">
-          <Button 
-            onClick={() => onOpenChange(false)}
-            className="dark:bg-primary dark:text-white dark:hover:bg-primary/90">
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)} className="dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700">
             Close
           </Button>
         </DialogFooter>

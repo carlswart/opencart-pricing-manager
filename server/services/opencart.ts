@@ -28,9 +28,14 @@ interface ProductUpdateResult {
 /**
  * Test a database connection to an OpenCart store using secure connection
  * @param connection Database connection details
- * @returns True if connection is successful, false otherwise
+ * @returns Object containing success status and security information
  */
-export async function testConnection(connection: DbConnection): Promise<boolean> {
+export async function testConnection(connection: DbConnection): Promise<{
+  success: boolean;
+  isSecure?: boolean;
+  securityDetails?: any;
+  error?: string;
+}> {
   let pool: Pool | null = null;
   
   try {
@@ -40,10 +45,30 @@ export async function testConnection(connection: DbConnection): Promise<boolean>
     // Run a simple query to verify connectivity
     const results = await DbConnector.executeQuery(pool, 'SELECT 1 as test');
     
-    return Array.isArray(results) && results.length > 0;
+    if (Array.isArray(results) && results.length > 0) {
+      // Connection successful, check if it's secure
+      const securityInfo = await DbConnector.checkConnectionSecurity(pool);
+      
+      return {
+        success: true,
+        isSecure: securityInfo.isSecure,
+        securityDetails: {
+          cipher: securityInfo.cipher,
+          version: securityInfo.version
+        }
+      };
+    } else {
+      return {
+        success: false,
+        error: "Connection succeeded but no data was returned"
+      };
+    }
   } catch (error) {
     console.error(`Connection test failed for store ${connection.storeId}:`, error);
-    return false;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
   } finally {
     // Ensure connection is closed even if there was an error
     if (pool) {

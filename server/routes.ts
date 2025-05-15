@@ -255,15 +255,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/database/test-connection", adminOnly, async (req, res) => {
     try {
       const connectionData = req.body;
-      const success = await OpenCartService.testConnection(connectionData);
-      if (success) {
-        res.json({ success: true, message: "Connection successful" });
+      const result = await OpenCartService.testConnection(connectionData);
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          message: "Connection successful",
+          isSecure: result.isSecure,
+          securityDetails: result.securityDetails
+        });
       } else {
-        res.status(400).json({ success: false, message: "Connection failed" });
+        res.status(400).json({ 
+          success: false, 
+          message: "Connection failed", 
+          error: result.error 
+        });
       }
     } catch (error) {
       console.error("Error testing connection:", error);
-      res.status(500).json({ message: "Failed to test connection" });
+      res.status(500).json({ 
+        message: "Failed to test connection",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   

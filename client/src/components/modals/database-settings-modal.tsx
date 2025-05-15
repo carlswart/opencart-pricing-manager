@@ -177,9 +177,18 @@ export function DatabaseSettingsModal({
         connection
       );
       
+      const data = await response.json();
+      
+      let securityMessage = "";
+      if (data.isSecure) {
+        securityMessage = `\nSecure connection using ${data.securityDetails.cipher} (${data.securityDetails.version})`;
+      } else {
+        securityMessage = "\nWarning: Connection is not encrypted";
+      }
+      
       toast({
         title: "Connection successful",
-        description: "Successfully connected to the database",
+        description: `Successfully connected to the database${securityMessage}`,
       });
     } catch (error) {
       toast({
@@ -222,15 +231,24 @@ export function DatabaseSettingsModal({
     if (!newConnection) return;
     
     try {
-      await apiRequest(
+      const response = await apiRequest(
         "POST",
         "/api/database/test-connection",
         newConnection
       );
       
+      const data = await response.json();
+      
+      let securityMessage = "";
+      if (data.isSecure) {
+        securityMessage = `\nSecure connection using ${data.securityDetails.cipher} (${data.securityDetails.version})`;
+      } else {
+        securityMessage = "\nWarning: Connection is not encrypted";
+      }
+      
       toast({
         title: "Connection successful",
-        description: "Successfully connected to the database",
+        description: `Successfully connected to the database${securityMessage}`,
       });
     } catch (error) {
       toast({

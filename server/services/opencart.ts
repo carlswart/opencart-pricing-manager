@@ -1,6 +1,8 @@
 import { DbConnection } from "@shared/schema";
 import fs from 'fs';
 import path from 'path';
+import * as DbConnector from './db-connector';
+import type { Pool } from 'mysql2/promise';
 
 // Interface for product update parameters
 interface ProductUpdateParams {
@@ -24,27 +26,29 @@ interface ProductUpdateResult {
 }
 
 /**
- * Test a database connection to an OpenCart store
+ * Test a database connection to an OpenCart store using secure connection
  * @param connection Database connection details
  * @returns True if connection is successful, false otherwise
  */
 export async function testConnection(connection: DbConnection): Promise<boolean> {
+  let pool: Pool | null = null;
+  
   try {
-    // In a real implementation, this would establish a database connection
-    // and run a simple query to verify connectivity.
+    // Create a secure database connection
+    pool = await DbConnector.createSecureConnection(connection);
     
-    // For now, just simulate a successful connection unless the password is "error"
-    if (connection.password === "error") {
-      throw new Error("Invalid credentials");
-    }
+    // Run a simple query to verify connectivity
+    const results = await DbConnector.executeQuery(pool, 'SELECT 1 as test');
     
-    // Simulate connection delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return true;
+    return Array.isArray(results) && results.length > 0;
   } catch (error) {
     console.error(`Connection test failed for store ${connection.storeId}:`, error);
     return false;
+  } finally {
+    // Ensure connection is closed even if there was an error
+    if (pool) {
+      await DbConnector.closeConnection(pool);
+    }
   }
 }
 
@@ -55,21 +59,39 @@ export async function testConnection(connection: DbConnection): Promise<boolean>
  * @returns Product ID if found, null otherwise
  */
 export async function findProductBySku(connection: DbConnection, sku: string): Promise<number | null> {
+  let pool: Pool | null = null;
+  
   try {
-    // In a real implementation, this would query the OpenCart database
-    // to find a product with the given SKU.
+    // Create a secure database connection
+    pool = await DbConnector.createSecureConnection(connection);
     
-    // For now, simulate by generating a random product ID
-    // If SKU starts with "INVALID", simulate not found
-    if (sku.startsWith("INVALID")) {
-      return null;
+    // Use the configured table prefix
+    const prefix = connection.prefix || 'oc_';
+    
+    // Use parameterized query to prevent SQL injection
+    const query = `
+      SELECT product_id 
+      FROM ${prefix}product 
+      WHERE model = ? OR sku = ? 
+      LIMIT 1
+    `;
+    
+    const results = await DbConnector.executeQuery(pool, query, [sku, sku]);
+    
+    if (Array.isArray(results) && results.length > 0) {
+      // @ts-ignore - We know this exists because we selected it
+      return results[0].product_id;
     }
     
-    const productId = parseInt(sku.replace(/\D/g, ""));
-    return productId || Math.floor(Math.random() * 10000) + 1;
+    return null;
   } catch (error) {
     console.error(`Error finding product ${sku} in store ${connection.storeId}:`, error);
     return null;
+  } finally {
+    // Ensure connection is closed even if there was an error
+    if (pool) {
+      await DbConnector.closeConnection(pool);
+    }
   }
 }
 

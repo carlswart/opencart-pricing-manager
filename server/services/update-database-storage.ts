@@ -31,14 +31,14 @@ export async function createUpdateDetail(detail: {
   success: boolean;
   error_message: string | null;
 }) {
-  // Convert to camelCase for existing function
+  // Properly format the data for the existing database-storage module
   return appStorage.createUpdateDetail({
     updateId: detail.update_id,
     storeId: detail.store_id,
     sku: detail.sku,
-    productId: detail.product_id,
-    oldPrice: detail.old_regular_price,  // Simplified for compatibility
-    newPrice: detail.new_regular_price,  // Simplified for compatibility
+    productId: detail.product_id || 0, // Convert null to 0 for compatibility
+    oldPrice: detail.old_regular_price,
+    newPrice: detail.new_regular_price,
     oldQuantity: detail.old_quantity,
     newQuantity: detail.new_quantity,
     success: detail.success,

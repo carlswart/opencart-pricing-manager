@@ -440,7 +440,7 @@ async function processUpdates(
   
   try {
     // Get update record to update status
-    const update = await appStorage.getUpdateById(updateId);
+    const update = await storage.getUpdateById(updateId);
     if (!update) {
       throw new Error(`Update ${updateId} not found`);
     }

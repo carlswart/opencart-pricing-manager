@@ -14,15 +14,15 @@ interface ProductUpdateParams {
 
 // Interface for update result
 interface ProductUpdateResult {
-  productId: number;
-  oldRegularPrice: number | null;
-  newRegularPrice: number | null;
-  oldDepotPrice: number | null;
-  newDepotPrice: number | null;
-  oldWarehousePrice: number | null;
-  newWarehousePrice: number | null;
-  oldQuantity: number | null;
-  newQuantity: number | null;
+  product_id: number;
+  old_regular_price: number | null;
+  new_regular_price: number | null;
+  old_depot_price: number | null;
+  new_depot_price: number | null;
+  old_warehouse_price: number | null;
+  new_warehouse_price: number | null;
+  old_quantity: number | null;
+  new_quantity: number | null;
 }
 
 /**

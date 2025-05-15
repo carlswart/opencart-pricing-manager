@@ -99,9 +99,9 @@ export const handleProcess = [
       // Create update record
       const user = req.user as User;
       const update = await appStorage.createUpdate({
-        userId: user.id,
+        user_id: user.id,
         filename: req.file.originalname,
-        productsCount: products.length,
+        products_count: products.length,
         status: 'completed',
         details: {}
       });
@@ -414,101 +414,121 @@ async function validateProducts(products: ProductRow[], storeIds: number[]): Pro
     // Report issues with SKUs not found in stores
     // Convert Map iterator to array for compatibility
     for (const [sku, storeNames] of Array.from(notFoundSkus.entries())) {
-      const rowNumber = products.find(p => p.sku === sku)?.row || 0;
-      
       if (storeNames.length === storeConnections.size) {
-        issues.push(`SKU "${sku}" (row ${rowNumber}) not found in any connected store`);
-      } else if (storeNames.length > 0) {
-        issues.push(`SKU "${sku}" (row ${rowNumber}) not found in store${storeNames.length > 1 ? 's' : ''}: ${storeNames.join(', ')}`);
+        issues.push(`SKU ${sku} not found in any store`);
+      } else {
+        issues.push(`SKU ${sku} not found in stores: ${storeNames.join(', ')}`);
       }
     }
+    
   } catch (error) {
-    console.error("Error validating products against stores:", error);
-    issues.push(`Error validating products: ${error instanceof Error ? error.message : "unknown error"}`);
+    console.error("Error validating products:", error);
+    issues.push(`Error validating products: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
   
   return issues;
 }
 
-// Process updates asynchronously
+// Main function to process updates for all products across stores
 async function processUpdates(
   updateId: number, 
   products: ProductRow[], 
   storeIds: number[], 
-  updateOptions: any
-) {
+  updateOptions: any = {}): Promise<void> {
+  console.log(`Processing update #${updateId} with ${products.length} products across ${storeIds.length} stores`);
+  
   try {
+    // Get update record to update status
     const update = await appStorage.getUpdateById(updateId);
     if (!update) {
       throw new Error(`Update ${updateId} not found`);
     }
     
-    // Track total processed and failed counts
-    let totalProductCount = 0;
-    let processedCount = 0;
+    // Track success/failure stats
+    let successCount = 0;
     let failedCount = 0;
     
-    // Store connections - centralize all connections for efficiency
-    const storeConnections = new Map<number, { store: { id: number, name: string }, connection: DbConnection }>();
-    
-    // Load all store connections first and validate them
+    // Load store connections
     console.log(`Loading connections for ${storeIds.length} stores...`);
     for (const storeId of storeIds) {
       const store = await appStorage.getStoreById(storeId);
       if (!store) {
         console.error(`Store ID ${storeId} not found, skipping`);
-        continue;
-      }
-      
-      const connection = await appStorage.getDbConnectionByStoreId(storeId);
-      if (!connection) {
-        console.error(`No database connection found for store "${store.name}", skipping`);
         // Create an update detail to record this error
         for (const product of products) {
           await appStorage.createUpdateDetail({
-            updateId,
-            storeId,
+            update_id: updateId,
+            store_id: storeId,
             sku: product.sku,
-            productId: null,
-            oldRegularPrice: null,
-            newRegularPrice: null,
-            oldDepotPrice: null,
-            newDepotPrice: null,
-            oldWarehousePrice: null,
-            newWarehousePrice: null,
-            oldQuantity: null,
-            newQuantity: null,
+            product_id: null,
+            old_regular_price: null,
+            new_regular_price: null,
+            old_depot_price: null,
+            new_depot_price: null,
+            old_warehouse_price: null,
+            new_warehouse_price: null,
+            old_quantity: null,
+            new_quantity: null,
             success: false,
-            errorMessage: `No database connection configured for store "${store.name}"`
+            error_message: `Store with ID ${storeId} not found`
           });
           failedCount++;
         }
         continue;
       }
       
-      // Test the connection before proceeding
+      console.log(`Processing store: ${store.name} (ID: ${store.id})`);
+      
+      // Get database connection for this store
+      const connection = await appStorage.getDbConnectionByStoreId(storeId);
+      if (!connection) {
+        console.error(`No database connection found for store "${store.name}", skipping`);
+        // Create an update detail to record this error
+        for (const product of products) {
+          await appStorage.createUpdateDetail({
+            update_id: updateId,
+            store_id: storeId,
+            sku: product.sku,
+            product_id: null,
+            old_regular_price: null,
+            new_regular_price: null,
+            old_depot_price: null,
+            new_depot_price: null,
+            old_warehouse_price: null,
+            new_warehouse_price: null,
+            old_quantity: null,
+            new_quantity: null,
+            success: false,
+            error_message: `No database connection configured for store "${store.name}"`
+          });
+          failedCount++;
+        }
+        continue;
+      }
+      
+      // Test connection
       try {
-        const connectionValid = await OpenCartService.testConnection(connection);
-        if (!connectionValid) {
-          console.error(`Database connection for store "${store.name}" is invalid, skipping`);
+        const isConnected = await OpenCartService.testConnection(connection);
+        if (!isConnected) {
+          console.error(`Failed to connect to database for store "${store.name}", skipping`);
           
           // Create update details for all products to record this error
           for (const product of products) {
             await appStorage.createUpdateDetail({
-              updateId,
-              storeId,
+              update_id: updateId,
+              store_id: storeId,
               sku: product.sku,
-              productId: null,
-              oldRegularPrice: null,
-              newRegularPrice: null,
-              oldDepotPrice: null,
-              newDepotPrice: null,
-              oldWarehousePrice: null,
-              newWarehousePrice: null,
-              oldQuantity: null,
-              newQuantity: null,
+              product_id: null,
+              old_regular_price: null,
+              new_regular_price: null,
+              old_depot_price: null,
+              new_depot_price: null,
+              old_warehouse_price: null,
+              new_warehouse_price: null,
+              old_quantity: null,
+              new_quantity: null,
               success: false,
-              errorMessage: `Failed to connect to database for store "${store.name}"`
+              error_message: `Failed to connect to database for store "${store.name}"`
             });
             failedCount++;
           }
@@ -520,250 +540,189 @@ async function processUpdates(
         // Create update details for all products to record this error
         for (const product of products) {
           await appStorage.createUpdateDetail({
-            updateId,
-            storeId,
+            update_id: updateId,
+            store_id: storeId,
             sku: product.sku,
-            productId: null,
-            oldRegularPrice: null,
-            newRegularPrice: null,
-            oldDepotPrice: null,
-            newDepotPrice: null,
-            oldWarehousePrice: null,
-            newWarehousePrice: null,
-            oldQuantity: null,
-            newQuantity: null,
+            product_id: null,
+            old_regular_price: null,
+            new_regular_price: null,
+            old_depot_price: null,
+            new_depot_price: null,
+            old_warehouse_price: null,
+            new_warehouse_price: null,
+            old_quantity: null,
+            new_quantity: null,
             success: false,
-            errorMessage: `Connection error for store "${store.name}": ${error instanceof Error ? error.message : "Unknown error"}`
+            error_message: `Connection error for store "${store.name}": ${error instanceof Error ? error.message : "Unknown error"}`
           });
           failedCount++;
         }
         continue;
       }
       
-      storeConnections.set(storeId, { store, connection });
-    }
-    
-    // Calculate total expected product updates
-    totalProductCount = products.length * storeConnections.size;
-    
-    // If no valid store connections, abort early
-    if (storeConnections.size === 0) {
-      console.error('No valid store connections found, aborting update');
-      await appStorage.completeUpdate(updateId, 'failed');
-      return;
-    }
-    
-    console.log(`Processing ${products.length} products across ${storeConnections.size} stores...`);
-    
-    // Process each store with a valid connection
-    for (const [storeId, { store, connection }] of Array.from(storeConnections.entries())) {
-      console.log(`Processing store "${store.name}" (ID: ${storeId})...`);
-      
-      // Create backup for this store before making any changes
-      try {
-        console.log(`Creating backup for store "${store.name}" before updating...`);
-        // Extract just the product SKUs for this backup
-        const productSkus = products.map(product => product.sku);
-        
-        // Perform the backup
-        const backupName = await OpenCartService.createPriceBackup(
-          connection,
-          updateId,
-          store.name,
-          productSkus
-        );
-        
-        if (backupName) {
-          console.log(`Successfully created backup "${backupName}" for store "${store.name}"`);
-          
-          // You could store the backup reference in the update.details property
-          if (update && update.details) {
-            const updateDetails = JSON.parse(JSON.stringify(update.details || {}));
-            if (!updateDetails.backups) {
-              updateDetails.backups = {};
-            }
-            updateDetails.backups[storeId] = backupName;
-            
-            // Update the update record with the backup information
-            await appStorage.completeUpdate(updateId, 'partial', updateDetails);
-          }
-        } else {
-          console.warn(`Failed to create backup for store "${store.name}", proceeding with caution`);
-        }
-      } catch (error) {
-        console.error(`Error creating backup for store "${store.name}":`, error);
-        // Continue with update despite backup failure, but log the error
-      }
-      
       // Process each product for this store
+      console.log(`Processing ${products.length} products for store "${store.name}"`);
+      
+      let storeSuccessCount = 0;
+      let storeFailedCount = 0;
+      
+      // Process products sequentially to avoid database connection issues
       for (const product of products) {
         try {
-          // First check if the product exists in this store
+          // Find product in store
           const productId = await OpenCartService.findProductBySku(connection, product.sku);
           
           if (!productId) {
-            console.log(`Product with SKU "${product.sku}" not found in store "${store.name}"`);
-            failedCount++;
+            console.log(`Product with SKU "${product.sku}" not found in store "${store.name}", skipping`);
             
-            // Record the product not found error
             await appStorage.createUpdateDetail({
-              updateId,
-              storeId,
+              update_id: updateId,
+              store_id: storeId,
               sku: product.sku,
-              productId: null,
-              oldRegularPrice: null,
-              newRegularPrice: null,
-              oldDepotPrice: null,
-              newDepotPrice: null,
-              oldWarehousePrice: null,
-              newWarehousePrice: null,
-              oldQuantity: null,
-              newQuantity: null,
+              product_id: null,
+              old_regular_price: null,
+              new_regular_price: null,
+              old_depot_price: null,
+              new_depot_price: null,
+              old_warehouse_price: null,
+              new_warehouse_price: null,
+              old_quantity: null,
+              new_quantity: null,
               success: false,
-              errorMessage: `Product with SKU "${product.sku}" not found in store "${store.name}"`
+              error_message: `Product with SKU "${product.sku}" not found in store "${store.name}"`
             });
+            
+            storeFailedCount++;
             continue;
           }
           
-          // Get current values before updating
+          // Get current values
           const currentValues = await OpenCartService.getProductCurrentValues(connection, productId);
           
-          // Determine what needs to be updated based on user options
-          const updateParams: any = {};
+          // Determine what needs to be updated based on options
+          const updatePrices = updateOptions.updatePrices !== false; // Default true
+          const updateQuantity = updateOptions.updateQuantity === true; // Default false
+          const updateSpecialPrices = updateOptions.updateSpecialPrices !== false; // Default true
           
-          if (updateOptions.updateRegularPrices && product.regularPrice !== undefined) {
-            updateParams.regularPrice = product.regularPrice;
-          }
+          let changesMade = false;
           
-          if (updateOptions.updateDepotPrices) {
-            // If depot price is provided in spreadsheet, use it (even if it's incorrect)
-            if (product.depotPrice !== undefined) {
-              updateParams.depotPrice = product.depotPrice;
-            } 
-            // Otherwise, if we're updating regular price, calculate depot price from it
-            else if (updateParams.regularPrice !== undefined) {
-              updateParams.depotPrice = calculateDepotPrice(updateParams.regularPrice);
+          // Update the product data
+          const result = await OpenCartService.updateProduct(
+            connection, 
+            productId, 
+            product,
+            {
+              updatePrices,
+              updateQuantity,
+              updateSpecialPrices,
+              currentValues
             }
+          );
+          
+          if (result.changes > 0) {
+            changesMade = true;
           }
           
-          if (updateOptions.updateWarehousePrices) {
-            // If warehouse price is provided in spreadsheet, use it (even if it's incorrect)
-            if (product.warehousePrice !== undefined) {
-              updateParams.warehousePrice = product.warehousePrice;
-            } 
-            // Otherwise, if we're updating regular price, calculate warehouse price from it
-            else if (updateParams.regularPrice !== undefined) {
-              updateParams.warehousePrice = calculateWarehousePrice(updateParams.regularPrice);
-            }
-          }
-          
-          if (updateOptions.updateQuantities && product.quantity !== undefined) {
-            updateParams.quantity = product.quantity;
-          }
-          
-          // Only perform update if there are actual changes to make
-          if (Object.keys(updateParams).length > 0) {
-            console.log(`Updating SKU "${product.sku}" in store "${store.name}" with:`, updateParams);
-            
-            // Update the product in the database
-            const result = await OpenCartService.updateProduct(
-              connection,
-              product.sku,
-              updateParams
-            );
-            
-            // Record the successful update
+          // Record the updates
+          if (changesMade) {
             await appStorage.createUpdateDetail({
-              updateId,
-              storeId,
+              update_id: updateId,
+              store_id: storeId,
               sku: product.sku,
-              productId: result.productId,
-              oldRegularPrice: result.oldRegularPrice,
-              newRegularPrice: result.newRegularPrice,
-              oldDepotPrice: result.oldDepotPrice,
-              newDepotPrice: result.newDepotPrice,
-              oldWarehousePrice: result.oldWarehousePrice,
-              newWarehousePrice: result.newWarehousePrice,
-              oldQuantity: result.oldQuantity,
-              newQuantity: result.newQuantity,
+              product_id: result.productId,
+              old_regular_price: result.oldRegularPrice,
+              new_regular_price: result.newRegularPrice,
+              old_depot_price: result.oldDepotPrice,
+              new_depot_price: result.newDepotPrice,
+              old_warehouse_price: result.oldWarehousePrice,
+              new_warehouse_price: result.newWarehousePrice,
+              old_quantity: result.oldQuantity,
+              new_quantity: result.newQuantity,
               success: true,
-              errorMessage: null
+              error_message: null
             });
             
-            processedCount++;
+            storeSuccessCount++;
           } else {
-            // No changes needed based on update options
-            console.log(`No changes needed for SKU "${product.sku}" in store "${store.name}" based on selected options`);
-            
-            // Record the "no change needed" update
+            // No changes needed (values already match)
             await appStorage.createUpdateDetail({
-              updateId,
-              storeId,
+              update_id: updateId,
+              store_id: storeId,
               sku: product.sku,
-              productId,
-              oldRegularPrice: currentValues.regularPrice,
-              newRegularPrice: currentValues.regularPrice,
-              oldDepotPrice: currentValues.depotPrice,
-              newDepotPrice: currentValues.depotPrice,
-              oldWarehousePrice: currentValues.warehousePrice,
-              newWarehousePrice: currentValues.warehousePrice,
-              oldQuantity: currentValues.quantity,
-              newQuantity: currentValues.quantity,
+              product_id: result.productId,
+              old_regular_price: result.oldRegularPrice,
+              new_regular_price: result.oldRegularPrice, // No change
+              old_depot_price: result.oldDepotPrice,
+              new_depot_price: result.oldDepotPrice, // No change
+              old_warehouse_price: result.oldWarehousePrice,
+              new_warehouse_price: result.oldWarehousePrice, // No change
+              old_quantity: result.oldQuantity,
+              new_quantity: result.oldQuantity, // No change
               success: true,
-              errorMessage: 'No changes needed based on selected update options'
+              error_message: 'No changes needed based on selected update options'
             });
             
-            processedCount++;
+            // Still count as success since we found the product and processed it
+            storeSuccessCount++;
           }
-        } catch (error) {
-          failedCount++;
-          console.error(`Error updating product ${product.sku} in store "${store.name}":`, error);
           
-          // Record the failure with a detailed error message
+        } catch (error) {
+          console.error(`Error updating product "${product.sku}" in store "${store.name}":`, error);
+          
           await appStorage.createUpdateDetail({
-            updateId,
-            storeId,
+            update_id: updateId,
+            store_id: storeId,
             sku: product.sku,
-            productId: null,
-            oldRegularPrice: null,
-            newRegularPrice: null,
-            oldDepotPrice: null,
-            newDepotPrice: null,
-            oldWarehousePrice: null,
-            newWarehousePrice: null,
-            oldQuantity: null,
-            newQuantity: null,
+            product_id: null,
+            old_regular_price: null,
+            new_regular_price: null,
+            old_depot_price: null,
+            new_depot_price: null,
+            old_warehouse_price: null,
+            new_warehouse_price: null,
+            old_quantity: null,
+            new_quantity: null,
             success: false,
-            errorMessage: `Update failed: ${error instanceof Error ? error.message : "Unknown error"}`
+            error_message: `Update failed: ${error instanceof Error ? error.message : "Unknown error"}`
           });
+          
+          storeFailedCount++;
         }
       }
       
-      console.log(`Finished processing store "${store.name}"`);
+      console.log(`Completed processing for store "${store.name}": ${storeSuccessCount} successful, ${storeFailedCount} failed`);
+      successCount += storeSuccessCount;
+      failedCount += storeFailedCount;
     }
     
-    // Determine final status
-    let status: 'completed' | 'partial' | 'failed';
+    // Record update completion
+    console.log(`Completed update #${updateId}: ${successCount} successful, ${failedCount} failed`);
     
-    if (totalProductCount === 0) {
-      status = 'failed'; // No products were processed
-    } else if (failedCount === 0) {
-      status = 'completed'; // All updates were successful
-    } else if (processedCount === 0) {
-      status = 'failed'; // No updates were successful
+    if (failedCount === 0) {
+      // All products succeeded
+      await appStorage.completeUpdate(updateId, 'completed');
+    } else if (successCount === 0) {
+      // All products failed
+      await appStorage.completeUpdate(updateId, 'failed');
     } else {
-      status = 'partial'; // Some updates were successful, some failed
+      // Mixed results
+      const updateDetails = {
+        success_count: successCount,
+        failed_count: failedCount,
+        total_count: successCount + failedCount
+      };
+      
+      await appStorage.completeUpdate(updateId, 'partial', updateDetails);
     }
     
-    console.log(`Update ${updateId} completed with status: ${status}`);
-    console.log(`Total products: ${totalProductCount}, Processed: ${processedCount}, Failed: ${failedCount}`);
-    
-    // Mark the update as completed with appropriate status
-    await appStorage.completeUpdate(updateId, status);
   } catch (error) {
-    console.error("Error processing updates:", error);
-    
-    // Mark the update as failed
-    await appStorage.completeUpdate(updateId, 'failed');
+    console.error(`Error processing update #${updateId}:`, error);
+    try {
+      await appStorage.completeUpdate(updateId, 'failed', {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    } catch (e) {
+      console.error(`Failed to update the status of update #${updateId}:`, e);
+    }
   }
 }

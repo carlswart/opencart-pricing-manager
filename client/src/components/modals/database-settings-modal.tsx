@@ -22,6 +22,7 @@ interface DatabaseSettingsModalProps {
   stores: Store[];
   connections: DbConnection[];
   selectedStoreId?: number | null;
+  onAddStore?: () => void;
 }
 
 export function DatabaseSettingsModal({
@@ -29,7 +30,8 @@ export function DatabaseSettingsModal({
   onOpenChange,
   stores,
   connections,
-  selectedStoreId
+  selectedStoreId,
+  onAddStore
 }: DatabaseSettingsModalProps) {
   const { toast } = useToast();
   const [editedConnections, setEditedConnections] = useState<DbConnection[]>([]);
@@ -487,7 +489,7 @@ export function DatabaseSettingsModal({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={handleAddNewStore}
+                        onClick={onAddStore || handleAddNewStore}
                         className="text-xs dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700"
                       >
                         <Plus className="h-3 w-3 mr-1" />

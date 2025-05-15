@@ -187,6 +187,7 @@ export default function DatabaseSettings() {
           stores={stores}
           connections={connections}
           selectedStoreId={selectedStore}
+          onAddStore={handleAddStore}
         />
       )}
     </div>

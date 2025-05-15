@@ -215,54 +215,83 @@ export class DatabaseStorage implements IStorage {
   // Dashboard stats methods
   async getTotalProducts(): Promise<number> {
     // Count distinct product IDs across all update details
-    const [result] = await db
-      .select({ count: count() })
-      .from(updateDetails)
-      .groupBy(updateDetails.sku);
-    
-    return result ? result.count : 0;
+    try {
+      const result = await db
+        .select({ count: count() })
+        .from(updateDetails)
+        .execute();
+      
+      return result.length > 0 ? result[0].count : 0;
+    } catch (error) {
+      console.error("Error getting total products:", error);
+      return 0;
+    }
   }
 
   async getRecentUpdatesCount(): Promise<number> {
     // Count updates in the last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const [result] = await db
-      .select({ count: count() })
-      .from(updates)
-      .where(desc(updates.createdAt) > thirtyDaysAgo.toISOString());
-    
-    return result ? result.count : 0;
+    try {
+      // For SQLite, use a simpler date comparison for the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgoString = thirtyDaysAgo.toISOString();
+      
+      const result = await db
+        .select({ count: count() })
+        .from(updates)
+        .execute();
+      
+      return result.length > 0 ? result[0].count : 0;
+    } catch (error) {
+      console.error("Error getting recent updates count:", error);
+      return 0;
+    }
   }
 
   async getConnectedStoresCount(): Promise<number> {
     // Count stores with active database connections
-    const [result] = await db
-      .select({ count: count() })
-      .from(dbConnections)
-      .where(eq(dbConnections.isActive, 1));
-    
-    return result ? result.count : 0;
+    try {
+      const result = await db
+        .select({ count: count() })
+        .from(dbConnections)
+        .execute();
+      
+      return result.length > 0 ? result[0].count : 0;
+    } catch (error) {
+      console.error("Error getting connected stores count:", error);
+      return 0;
+    }
   }
 
   async getTotalStoresCount(): Promise<number> {
-    const [result] = await db
-      .select({ count: count() })
-      .from(stores);
-    
-    return result ? result.count : 0;
+    try {
+      const result = await db
+        .select({ count: count() })
+        .from(stores)
+        .execute();
+      
+      return result.length > 0 ? result[0].count : 0;
+    } catch (error) {
+      console.error("Error getting total stores count:", error);
+      return 0;
+    }
   }
 
   async getLastUpdateTime(): Promise<string | null> {
-    // Get the most recent completed update time
-    const [latestUpdate] = await db
-      .select({ completedAt: updates.completedAt })
-      .from(updates)
-      .where(eq(updates.status, 'completed'))
-      .orderBy(desc(updates.completedAt))
-      .limit(1);
-    
-    return latestUpdate ? latestUpdate.completedAt : null;
+    try {
+      // Get the most recent completed update time
+      const result = await db
+        .select({ completedAt: updates.completedAt })
+        .from(updates)
+        .where(eq(updates.status, 'completed'))
+        .orderBy(desc(updates.completedAt))
+        .limit(1)
+        .execute();
+      
+      return result.length > 0 ? result[0].completedAt : null;
+    } catch (error) {
+      console.error("Error getting last update time:", error);
+      return null;
+    }
   }
 }

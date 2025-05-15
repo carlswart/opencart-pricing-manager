@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -312,9 +313,9 @@ export function DatabaseSettingsModal({
       <DialogContent className="sm:max-w-3xl dark:bg-neutral-900 dark:border-neutral-700">
         <DialogHeader className="pb-4">
           <DialogTitle className="dark:text-white">Database Connection Settings</DialogTitle>
-          <div className="text-sm text-muted-foreground dark:text-neutral-400">
+          <DialogDescription className="text-sm text-muted-foreground dark:text-neutral-400">
             Configure database connections for your OpenCart stores
-          </div>
+          </DialogDescription>
         </DialogHeader>
         
         <div className="mb-6">
@@ -339,7 +340,7 @@ export function DatabaseSettingsModal({
                   const store = stores.find(s => s.id === connection.storeId);
                   return (
                     <AccordionItem key={connection.id} value={`connection-${connection.id}`} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                      <div className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center">
+                      <AccordionTrigger className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center hover:no-underline hover:bg-neutral-100 dark:hover:bg-neutral-700">
                         <div className="flex items-center">
                           <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 dark:bg-opacity-20 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 mr-3">
                             <StoreIcon className="h-4 w-4" />
@@ -354,9 +355,8 @@ export function DatabaseSettingsModal({
                             <CircleCheck className="h-3 w-3 mr-1" />
                             Connected
                           </span>
-                          <AccordionTrigger className="p-0" />
                         </div>
-                      </div>
+                      </AccordionTrigger>
                       <AccordionContent>
                         <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

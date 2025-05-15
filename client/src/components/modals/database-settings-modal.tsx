@@ -339,12 +339,12 @@ export function DatabaseSettingsModal({
           {/* Existing connections */}
           <div className="space-y-4">
             {editedConnections.length > 0 ? (
-              <Accordion type="multiple" className="w-full">
+              <div className="space-y-4">
                 {editedConnections.map((connection) => {
                   const store = stores.find(s => s.id === connection.storeId);
                   return (
-                    <AccordionItem key={connection.id} value={`connection-${connection.id}`} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                      <AccordionTrigger className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center hover:no-underline hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                    <div key={connection.id} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
+                      <div className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center">
                         <div className="flex items-center">
                           <div className="w-8 h-8 rounded-full bg-primary bg-opacity-10 dark:bg-opacity-20 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 mr-3">
                             <StoreIcon className="h-4 w-4" />
@@ -360,94 +360,92 @@ export function DatabaseSettingsModal({
                             Connected
                           </span>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Host</Label>
-                              <Input 
-                                value={connection.host} 
-                                onChange={(e) => handleInputChange(connection.id, "host", e.target.value)}
-                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Port</Label>
-                              <Input 
-                                value={connection.port} 
-                                onChange={(e) => handleInputChange(connection.id, "port", e.target.value)}
-                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Database Name</Label>
-                              <Input 
-                                value={connection.database} 
-                                onChange={(e) => handleInputChange(connection.id, "database", e.target.value)}
-                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Table Prefix</Label>
-                              <Input 
-                                value={connection.prefix} 
-                                onChange={(e) => handleInputChange(connection.id, "prefix", e.target.value)}
-                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Username</Label>
-                              <Input 
-                                value={connection.username} 
-                                onChange={(e) => handleInputChange(connection.id, "username", e.target.value)}
-                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</Label>
-                              <Input 
-                                type="password" 
-                                value={connection.password} 
-                                onChange={(e) => handleInputChange(connection.id, "password", e.target.value)}
-                                className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
-                              />
-                            </div>
+                      </div>
+                      <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Host</Label>
+                            <Input 
+                              value={connection.host} 
+                              onChange={(e) => handleInputChange(connection.id, "host", e.target.value)}
+                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                            />
                           </div>
-                          <div className="flex justify-between mt-4">
+                          <div>
+                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Port</Label>
+                            <Input 
+                              value={connection.port} 
+                              onChange={(e) => handleInputChange(connection.id, "port", e.target.value)}
+                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Database Name</Label>
+                            <Input 
+                              value={connection.database} 
+                              onChange={(e) => handleInputChange(connection.id, "database", e.target.value)}
+                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Table Prefix</Label>
+                            <Input 
+                              value={connection.prefix} 
+                              onChange={(e) => handleInputChange(connection.id, "prefix", e.target.value)}
+                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Username</Label>
+                            <Input 
+                              value={connection.username} 
+                              onChange={(e) => handleInputChange(connection.id, "username", e.target.value)}
+                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Password</Label>
+                            <Input 
+                              type="password" 
+                              value={connection.password} 
+                              onChange={(e) => handleInputChange(connection.id, "password", e.target.value)}
+                              className="mt-1 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-between mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-neutral-700 dark:hover:bg-red-900/20"
+                            onClick={() => handleDeleteConnection(connection.id)}
+                          >
+                            <Trash className="h-4 w-4 mr-1" />
+                            Delete Connection
+                          </Button>
+                          <div className="flex gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-neutral-700 dark:hover:bg-red-900/20"
-                              onClick={() => handleDeleteConnection(connection.id)}
+                              className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                              onClick={() => handleTestConnection(connection.id)}
                             >
-                              <Trash className="h-4 w-4 mr-1" />
-                              Delete Connection
+                              Test Connection
                             </Button>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                                onClick={() => handleTestConnection(connection.id)}
-                              >
-                                Test Connection
-                              </Button>
-                              <Button
-                                size="sm"
-                                className="dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                                onClick={() => handleSaveConnection(connection.id)}
-                              >
-                                Save Changes
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              className="dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                              onClick={() => handleSaveConnection(connection.id)}
+                            >
+                              Save Changes
+                            </Button>
                           </div>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
+                      </div>
+                    </div>
                   );
                 })}
-              </Accordion>
+              </div>
             ) : !showNewConnectionForm && (
               <div className="text-center p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg">
                 <p className="text-neutral-500 dark:text-neutral-400 mb-4">No database connections configured</p>

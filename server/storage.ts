@@ -6,7 +6,6 @@ import {
   Update, InsertUpdate,
   UpdateDetail, InsertUpdateDetail 
 } from "@shared/sqlite-schema";
-import { DatabaseStorage } from "./database-storage";
 
 // Import memorystore for session store type
 import createMemoryStore from 'memorystore';
@@ -64,8 +63,5 @@ export interface IStorage {
   getLastUpdateTime(): Promise<string | null>;
 }
 
-// Import our MemStorage implementation
-import { MemStorage } from './mem-storage';
-
-// Use the DatabaseStorage implementation (SQLite) instead of in-memory storage
-export const storage = new DatabaseStorage();
+// Import our storage implementation
+import { storage } from './database-storage';

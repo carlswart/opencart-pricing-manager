@@ -3,7 +3,6 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcrypt";
-import { storage } from "./storage";
 import { User } from "@shared/sqlite-schema";
 
 declare global {
@@ -20,12 +19,12 @@ declare global {
   }
 }
 
-// Use the sessionStore from our storage implementation
-import { storage as dbStorage } from "./storage";
+// Import the storage instance that has the sessionStore
+import { storage } from "./database-storage";
 
 export function setupAuth(app: Express) {
   // Get the session store from our storage implementation
-  const sessionStore = dbStorage.sessionStore;
+  const sessionStore = storage.sessionStore;
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "supersecret",

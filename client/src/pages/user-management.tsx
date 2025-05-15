@@ -7,9 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Edit, Trash, ShieldAlert, User as UserIcon } from "lucide-react";
-import { InsertUser, User } from "@shared/schema";
+import { InsertUser, User } from "@shared/sqlite-schema";
+
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+
 import {
   Dialog,
   DialogContent,
@@ -26,6 +28,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+// Format date string to a readable format
+function formatDate(dateString: string): string {
+  if (!dateString) return '';
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return dateString;
+  }
+}
 
 export default function UserManagement() {
   const { toast } = useToast();
@@ -194,7 +207,7 @@ export default function UserManagement() {
                         {user.role}
                       </span>
                     </TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatDate(user.createdAt)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button

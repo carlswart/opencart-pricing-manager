@@ -318,9 +318,9 @@ export function DatabaseSettingsModal({
         </DialogHeader>
         
         <div className="mb-6">
-          {/* Only show connections list if we're not specifically adding a new connection */}
-          {(!selectedStoreId || connections?.find(c => c.storeId === selectedStoreId)) && (
-            <>
+          {/* Only show connections list if user isn't specifically adding a connection for a store that doesn't have one */}
+          {(!selectedStoreId || (selectedStoreId && connections?.find(c => c.storeId === selectedStoreId))) && (
+            <div>
               <div className="flex justify-between items-center mb-4 pb-2 border-b dark:border-neutral-800">
                 <h3 className="text-base font-medium text-neutral-800 dark:text-white">Connected Stores</h3>
                 <Button 
@@ -454,7 +454,7 @@ export function DatabaseSettingsModal({
               </div>
             )}
               </div>
-            </>
+            </div>
           )}
           
           {/* New connection form */}

@@ -162,12 +162,12 @@ export default function DatabaseSettings() {
                             Delete
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
-                            className="flex-1"
+                            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
                             onClick={() => handleConfigureStore(store.id)}
                           >
-                            Configure
+                            {connection ? "Manage Connection" : "Connect Database"}
                           </Button>
                         </div>
                       </div>

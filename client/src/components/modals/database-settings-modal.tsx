@@ -318,16 +318,16 @@ export function DatabaseSettingsModal({
         </DialogHeader>
         
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Connected Stores</h3>
+          <div className="flex justify-between items-center mb-4 pb-2 border-b dark:border-neutral-800">
+            <h3 className="text-base font-medium text-neutral-800 dark:text-white">Connected Stores</h3>
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="sm" 
-              className="flex items-center text-primary text-sm hover:text-secondary dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-neutral-800"
+              className="flex items-center text-sm bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700"
               onClick={() => setShowNewConnectionForm(true)}
             >
               <Plus className="h-4 w-4 mr-1" />
-              <span>Add New Connection</span>
+              <span>Add Connection</span>
             </Button>
           </div>
           
@@ -466,13 +466,13 @@ export function DatabaseSettingsModal({
                   <div className="flex justify-between items-center">
                     <Label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Select Store</Label>
                     <Button 
-                      variant="ghost" 
+                      variant="outline" 
                       size="sm" 
-                      className="text-xs text-primary dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-neutral-800 flex items-center"
+                      className="text-xs bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700 flex items-center"
                       onClick={handleAddNewStore}
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add New Store
+                      Add Store
                     </Button>
                   </div>
                   <select 

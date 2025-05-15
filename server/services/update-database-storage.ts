@@ -2,7 +2,7 @@
  * This file contains adapters to update database storage methods to use snake_case field names
  */
 
-import { storage as appStorage } from '../database-storage';
+import { storage } from '../database-storage';
 import { 
   User, 
   InsertUser, 
@@ -32,7 +32,7 @@ export async function createUpdateDetail(detail: {
   error_message: string | null;
 }) {
   // Properly format the data for the existing database-storage module
-  return appStorage.createUpdateDetail({
+  return storage.createUpdateDetail({
     updateId: detail.update_id,
     storeId: detail.store_id,
     sku: detail.sku,
@@ -57,7 +57,7 @@ export async function createUpdate(update: {
   details: any;
 }) {
   // Convert to camelCase for existing function
-  return appStorage.createUpdate({
+  return storage.createUpdate({
     userId: update.user_id,
     filename: update.filename,
     productsCount: update.products_count,
@@ -70,33 +70,33 @@ export async function createUpdate(update: {
  * Get update by ID wrapper function
  */
 export async function getUpdateById(id: number) {
-  return appStorage.getUpdateById(id);
+  return storage.getUpdateById(id);
 }
 
 /**
  * Complete update wrapper function
  */
 export async function completeUpdate(id: number, status: 'completed' | 'partial' | 'failed', details?: any) {
-  return appStorage.completeUpdate(id, status, details);
+  return storage.completeUpdate(id, status, details);
 }
 
 /**
  * Get store by ID wrapper function
  */
 export async function getStoreById(id: number) {
-  return appStorage.getStoreById(id);
+  return storage.getStoreById(id);
 }
 
 /**
  * Get DB connection by store ID wrapper function
  */
 export async function getDbConnectionByStoreId(id: number) {
-  return appStorage.getDbConnectionByStoreId(id);
+  return storage.getDbConnectionByStoreId(id);
 }
 
 /**
  * Get update details wrapper function
  */
 export async function getUpdateDetails(id: number) {
-  return appStorage.getUpdateDetails(id);
+  return storage.getUpdateDetails(id);
 }

@@ -12,7 +12,16 @@ import {
 } from "@shared/sqlite-schema";
 import { DatabaseStorage } from "./database-storage";
 
+// Import memorystore for session store type
+import createMemoryStore from 'memorystore';
+import session from 'express-session';
+
+// Define session store type for consistency
+export type SessionStore = ReturnType<typeof createMemoryStore>;
+
 export interface IStorage {
+  // Session store
+  sessionStore: SessionStore;
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;

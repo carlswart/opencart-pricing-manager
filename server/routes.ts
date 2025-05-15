@@ -12,7 +12,7 @@ import {
   insertDbConnectionSchema,
   insertUserSchema,
   InsertUser
-} from "@shared/schema";
+} from "@shared/sqlite-schema";
 import { hash } from "./auth-utils";
 
 export async function registerRoutes(app: Express): Promise<Server> {

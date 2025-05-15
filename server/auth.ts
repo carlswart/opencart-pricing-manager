@@ -20,14 +20,12 @@ declare global {
   }
 }
 
-// Set up in-memory session store
-import createMemoryStore from "memorystore";
-const MemoryStore = createMemoryStore(session);
+// Import memorystore from storage
+import { storage } from "./storage";
 
 export function setupAuth(app: Express) {
-  const sessionStore = new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  });
+  // Get the session store from our storage implementation
+  const sessionStore = storage.sessionStore;
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "supersecret",

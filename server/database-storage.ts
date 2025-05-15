@@ -12,10 +12,12 @@ import { eq, desc, and, count } from 'drizzle-orm';
 import session from 'express-session';
 import createMemoryStore from 'memorystore';
 
+// Import the SessionStore type defined in storage.ts
+import { SessionStore } from './storage';
 const MemoryStore = createMemoryStore(session);
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: SessionStore;
 
   constructor() {
     this.sessionStore = new MemoryStore({

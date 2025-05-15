@@ -31,17 +31,17 @@ export async function createUpdateDetail(detail: {
   success: boolean;
   error_message: string | null;
 }) {
-  // Properly format the data for the existing database-storage module
+  // Convert snake_case to camelCase for database-storage module
   return storage.createUpdateDetail({
     updateId: detail.update_id,
     storeId: detail.store_id,
     sku: detail.sku,
-    productId: detail.product_id || 0, // Convert null to 0 for compatibility
+    productId: detail.product_id || 0,
     oldPrice: detail.old_regular_price,
     newPrice: detail.new_regular_price,
     oldQuantity: detail.old_quantity,
     newQuantity: detail.new_quantity,
-    success: detail.success,
+    status: detail.success ? 'success' : 'failed',
     errorMessage: detail.error_message
   });
 }
@@ -56,11 +56,11 @@ export async function createUpdate(update: {
   status: string;
   details: any;
 }) {
-  // Convert to camelCase for existing function
+  // Use snake_case field names directly
   return storage.createUpdate({
-    userId: update.user_id,
+    user_id: update.user_id,
     filename: update.filename,
-    productsCount: update.products_count,
+    products_count: update.products_count,
     status: update.status,
     details: update.details
   });

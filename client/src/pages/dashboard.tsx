@@ -77,6 +77,7 @@ export default function Dashboard() {
           icon={<Clock />}
           iconBgColor="bg-blue-500"
           iconColor="text-blue-500"
+          tooltip="Time saved is calculated as 1 minute per product per store. Each successful price/quantity update saves manual entry time across all stores."
           footer={
             <div className="text-xs text-success flex items-center">
               <ArrowUp className="h-3 w-3 mr-1" />

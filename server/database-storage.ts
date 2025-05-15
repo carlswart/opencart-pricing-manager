@@ -218,11 +218,24 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard stats methods
   async getTimeSaved(): Promise<number> {
-    // Calculate time saved based on product update count
-    // Each product update saves approximately 1 minute of manual time
+    // Calculate time saved based on product updates across stores
+    // Each product update saves 1 minute per store (1 min/product/store)
     try {
-      // Count successful updates (status 'success')
-      const result = await db
+      // First, count stores to calculate multiplier
+      const storesResult = await db
+        .select({ count: count() })
+        .from(stores)
+        .execute();
+      
+      const storesCount = storesResult.length > 0 ? storesResult[0].count : 0;
+      
+      // If no stores, no time saved
+      if (storesCount === 0) {
+        return 0;
+      }
+      
+      // Count successful updates
+      const updatesResult = await db
         .select({ count: count() })
         .from(updateDetails)
         .where(
@@ -230,7 +243,10 @@ export class DatabaseStorage implements IStorage {
         )
         .execute();
       
-      const minutesSaved = result.length > 0 ? result[0].count : 0;
+      const successfulUpdates = updatesResult.length > 0 ? updatesResult[0].count : 0;
+      
+      // Calculate time saved: 1 minute per product per store
+      const minutesSaved = successfulUpdates * storesCount;
       return minutesSaved;
     } catch (error) {
       console.error("Error calculating time saved:", error);

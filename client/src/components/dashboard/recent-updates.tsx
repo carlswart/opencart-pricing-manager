@@ -17,7 +17,7 @@ export interface UpdateRecord {
   id: number;
   date: string;
   filename: string;
-  productsCount: number;
+  products_count: number;
   status: "completed" | "partial" | "failed";
   user: string;
 }
@@ -108,7 +108,7 @@ export function RecentUpdates({
                       {update.filename}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-sm text-neutral-600">
-                      {update.productsCount}
+                      {update.products_count}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {getStatusBadge(update.status)}

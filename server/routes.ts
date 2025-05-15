@@ -38,19 +38,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats
   app.get("/api/dashboard/stats", authenticate, async (req, res) => {
     try {
-      const totalProducts = await storage.getTotalProducts();
+      const timeSaved = await storage.getTimeSaved();
       const recentUpdates = await storage.getRecentUpdatesCount();
       const connectedStores = await storage.getConnectedStoresCount();
       const totalStores = await storage.getTotalStoresCount();
       const lastUpdate = await storage.getLastUpdateTime();
-      const productsChange = "+3.2%"; // For demonstration, would calculate this in a real app
+
+      // Calculate time saved metrics
+      const minutes = timeSaved;
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 8); // Assuming 8-hour workdays
+      
+      // Format time saved for display
+      let formattedTimeSaved = `${minutes} min`;
+      if (hours > 0) {
+        formattedTimeSaved = `${hours} hr ${minutes % 60} min`;
+      }
+      if (days > 0) {
+        formattedTimeSaved = `${days} days ${hours % 8} hr`;
+      }
+      
+      // Calculate percent increase from previous period (demo value)
+      const timeChangePercent = "+15.3%"; // For demonstration
       
       res.json({
-        totalProducts,
+        timeSaved: formattedTimeSaved,
+        timeMinutes: minutes,
         recentUpdates,
         connectedStores: `${connectedStores}/${totalStores}`,
         lastUpdateTime: lastUpdate || "Never",
-        productsChange,
+        timeChangePercent,
       });
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);

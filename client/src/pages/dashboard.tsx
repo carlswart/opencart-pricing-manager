@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Box, RefreshCw, Store, ArrowUp, CheckCircle } from "lucide-react";
+import { Clock, RefreshCw, Store, ArrowUp, CheckCircle } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentUpdates, UpdateRecord } from "@/components/dashboard/recent-updates";
@@ -16,11 +16,12 @@ export default function Dashboard() {
   
   // Define types for dashboard stats
   interface DashboardStats {
-    totalProducts: string | number;
+    timeSaved: string;
+    timeMinutes: number;
     recentUpdates: number;
     connectedStores: string;
     lastUpdateTime: string;
-    productsChange: string;
+    timeChangePercent: string;
   }
   
   // Define type for recent updates
@@ -71,15 +72,15 @@ export default function Dashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatsCard
-          title="Total Products"
-          value={statsLoading ? "Loading..." : (stats?.totalProducts ?? 0)}
-          icon={<Box />}
-          iconBgColor="bg-primary"
-          iconColor="text-primary"
+          title="Time Saved"
+          value={statsLoading ? "Loading..." : (stats?.timeSaved ?? "0 min")}
+          icon={<Clock />}
+          iconBgColor="bg-blue-500"
+          iconColor="text-blue-500"
           footer={
             <div className="text-xs text-success flex items-center">
               <ArrowUp className="h-3 w-3 mr-1" />
-              <span>{statsLoading ? "Loading..." : (stats?.productsChange ?? "0%")}</span>
+              <span>{statsLoading ? "Loading..." : (stats?.timeChangePercent ?? "0%")}</span>
             </div>
           }
         />

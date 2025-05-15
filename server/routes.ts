@@ -467,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateDetails = await storage.getUpdateDetails(updateId);
       
       // Extract unique store IDs from the update details
-      const updatedStoreIds = [...new Set(updateDetails.map(detail => detail.storeId))];
+      const updatedStoreIds = [...new Set(updateDetails.map(detail => detail.store_id))];
       
       // If no stores were found in details, return an empty list
       if (updatedStoreIds.length === 0) {

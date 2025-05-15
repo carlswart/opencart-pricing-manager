@@ -90,7 +90,7 @@ export default function UpdateHistory() {
       record.id.toString(),
       record.date,
       record.filename,
-      record.productsCount.toString(),
+      record.products_count.toString(),
       record.status,
       record.user
     ]);
@@ -260,7 +260,7 @@ export default function UpdateHistory() {
                     <TableRow key={update.id}>
                       <TableCell>{update.date}</TableCell>
                       <TableCell className="font-medium">{update.filename}</TableCell>
-                      <TableCell>{update.productsCount}</TableCell>
+                      <TableCell>{update.products_count}</TableCell>
                       <TableCell>{getStatusBadge(update.status)}</TableCell>
                       <TableCell>{update.user}</TableCell>
                       <TableCell className="text-right">

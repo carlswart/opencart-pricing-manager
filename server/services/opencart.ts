@@ -295,15 +295,15 @@ export async function updateProduct(
     
     // Prepare result object
     const result: ProductUpdateResult = {
-      productId,
-      oldRegularPrice: null,
-      newRegularPrice: null,
-      oldDepotPrice: null,
-      newDepotPrice: null,
-      oldWarehousePrice: null,
-      newWarehousePrice: null,
-      oldQuantity: null,
-      newQuantity: null,
+      product_id: productId,
+      old_regular_price: null,
+      new_regular_price: null,
+      old_depot_price: null,
+      new_depot_price: null,
+      old_warehouse_price: null,
+      new_warehouse_price: null,
+      old_quantity: null,
+      new_quantity: null,
     };
     
     // In a real implementation, this would update the OpenCart database
@@ -311,38 +311,38 @@ export async function updateProduct(
     
     // Update regular price
     if (params.regularPrice !== undefined) {
-      result.oldRegularPrice = currentValues.regularPrice;
-      result.newRegularPrice = params.regularPrice;
+      result.old_regular_price = currentValues.regularPrice;
+      result.new_regular_price = params.regularPrice;
       
       // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating regular price for product ${productId} from ${result.oldRegularPrice} to ${result.newRegularPrice}`);
+      console.log(`Updating regular price for product ${productId} from ${result.old_regular_price} to ${result.new_regular_price}`);
     }
     
     // Update depot price
     if (params.depotPrice !== undefined) {
-      result.oldDepotPrice = currentValues.depotPrice;
-      result.newDepotPrice = params.depotPrice;
+      result.old_depot_price = currentValues.depotPrice;
+      result.new_depot_price = params.depotPrice;
       
       // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating depot price for product ${productId} from ${result.oldDepotPrice} to ${result.newDepotPrice}`);
+      console.log(`Updating depot price for product ${productId} from ${result.old_depot_price} to ${result.new_depot_price}`);
     }
     
     // Update warehouse price
     if (params.warehousePrice !== undefined) {
-      result.oldWarehousePrice = currentValues.warehousePrice;
-      result.newWarehousePrice = params.warehousePrice;
+      result.old_warehouse_price = currentValues.warehousePrice;
+      result.new_warehouse_price = params.warehousePrice;
       
       // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating warehouse price for product ${productId} from ${result.oldWarehousePrice} to ${result.newWarehousePrice}`);
+      console.log(`Updating warehouse price for product ${productId} from ${result.old_warehouse_price} to ${result.new_warehouse_price}`);
     }
     
     // Update quantity
     if (params.quantity !== undefined) {
-      result.oldQuantity = currentValues.quantity;
-      result.newQuantity = params.quantity;
+      result.old_quantity = currentValues.quantity;
+      result.new_quantity = params.quantity;
       
       // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating quantity for product ${productId} from ${result.oldQuantity} to ${result.newQuantity}`);
+      console.log(`Updating quantity for product ${productId} from ${result.old_quantity} to ${result.new_quantity}`);
     }
     
     // Simulate update delay

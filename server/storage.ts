@@ -9,7 +9,7 @@ import {
   InsertUpdate, 
   UpdateDetail, 
   InsertUpdateDetail 
-} from "@shared/schema";
+} from "@shared/sqlite-schema";
 import { DatabaseStorage } from "./database-storage";
 
 export interface IStorage {

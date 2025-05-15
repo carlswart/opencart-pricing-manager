@@ -4,9 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { User } from "@shared/schema";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import { User } from "@shared/sqlite-schema";
 
 declare global {
   namespace Express {
@@ -17,17 +15,18 @@ declare global {
       password: string;
       name: string;
       role: string;
-      createdAt: Date;
+      createdAt: string;
     }
   }
 }
 
-const PostgresSessionStore = connectPg(session);
+// Set up in-memory session store
+import createMemoryStore from "memorystore";
+const MemoryStore = createMemoryStore(session);
 
 export function setupAuth(app: Express) {
-  const sessionStore = new PostgresSessionStore({ 
-    pool,
-    createTableIfMissing: true 
+  const sessionStore = new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
   });
 
   const sessionSettings: session.SessionOptions = {

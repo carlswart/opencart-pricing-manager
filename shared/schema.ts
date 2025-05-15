@@ -33,43 +33,43 @@ export const insertStoreSchema = createInsertSchema(stores).omit({
 // Database connections table
 export const dbConnections = pgTable("db_connections", {
   id: serial("id").primaryKey(),
-  storeId: integer("store_id").references(() => stores.id).notNull(),
+  store_id: integer("store_id").references(() => stores.id).notNull(),
   host: text("host").notNull(),
   port: text("port").notNull(),
   database: text("database").notNull(),
   username: text("username").notNull(),
   password: text("password").notNull(),
   prefix: text("prefix").notNull().default("oc_"),
-  isActive: boolean("is_active").notNull().default(true),
-  lastConnected: timestamp("last_connected"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  is_active: boolean("is_active").notNull().default(true),
+  last_connected: timestamp("last_connected"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const insertDbConnectionSchema = createInsertSchema(dbConnections).omit({
   id: true,
-  lastConnected: true,
-  createdAt: true,
-  updatedAt: true,
+  last_connected: true,
+  created_at: true,
+  updated_at: true,
 });
 
 // Updates history table
 export const updates = pgTable("updates", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
   filename: text("filename").notNull(),
-  productsCount: integer("products_count").notNull(),
+  products_count: integer("products_count").notNull(),
   status: text("status").notNull(), // completed, partial, failed
   date: timestamp("date").notNull().defaultNow(), // For sorting and display
   details: jsonb("details"),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completed_at: timestamp("completed_at"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertUpdateSchema = createInsertSchema(updates).omit({
   id: true,
-  createdAt: true,
-  completedAt: true,
+  created_at: true,
+  completed_at: true,
 });
 
 // Update details table for products updated in each batch

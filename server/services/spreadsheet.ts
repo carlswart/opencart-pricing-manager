@@ -608,19 +608,32 @@ async function processUpdates(
           let changesMade = false;
           
           // Update the product data
+          // Create params object with only the fields needed by updateProduct
+          const updateParams: any = {};
+          
+          if (updatePrices) {
+            updateParams.regularPrice = product.regularPrice;
+            updateParams.depotPrice = product.depotPrice;
+            updateParams.warehousePrice = product.warehousePrice;
+          }
+          
+          if (updateQuantity) {
+            updateParams.quantity = product.quantity;
+          }
+          
           const result = await OpenCartService.updateProduct(
             connection, 
-            productId, 
-            product,
-            {
-              updatePrices,
-              updateQuantity,
-              updateSpecialPrices,
-              currentValues
-            }
+            product.sku, 
+            updateParams
           );
           
-          if (result.changes > 0) {
+          // Check if any changes were made by comparing before/after values
+          if (
+            result.new_regular_price !== result.old_regular_price ||
+            result.new_depot_price !== result.old_depot_price ||
+            result.new_warehouse_price !== result.old_warehouse_price ||
+            result.new_quantity !== result.old_quantity
+          ) {
             changesMade = true;
           }
           
@@ -650,15 +663,15 @@ async function processUpdates(
               update_id: updateId,
               store_id: storeId,
               sku: product.sku,
-              product_id: result.productId,
-              old_regular_price: result.oldRegularPrice,
-              new_regular_price: result.oldRegularPrice, // No change
-              old_depot_price: result.oldDepotPrice,
-              new_depot_price: result.oldDepotPrice, // No change
-              old_warehouse_price: result.oldWarehousePrice,
-              new_warehouse_price: result.oldWarehousePrice, // No change
-              old_quantity: result.oldQuantity,
-              new_quantity: result.oldQuantity, // No change
+              product_id: result.product_id,
+              old_regular_price: result.old_regular_price,
+              new_regular_price: result.old_regular_price, // No change
+              old_depot_price: result.old_depot_price,
+              new_depot_price: result.old_depot_price, // No change
+              old_warehouse_price: result.old_warehouse_price,
+              new_warehouse_price: result.old_warehouse_price, // No change
+              old_quantity: result.old_quantity,
+              new_quantity: result.old_quantity, // No change
               success: true,
               error_message: 'No changes needed based on selected update options'
             });

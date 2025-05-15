@@ -14,7 +14,7 @@ declare global {
       password: string;
       name: string;
       role: string;
-      createdAt: string;
+      created_at: string;
     }
   }
 }

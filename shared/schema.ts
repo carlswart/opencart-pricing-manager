@@ -75,26 +75,26 @@ export const insertUpdateSchema = createInsertSchema(updates).omit({
 // Update details table for products updated in each batch
 export const updateDetails = pgTable("update_details", {
   id: serial("id").primaryKey(),
-  updateId: integer("update_id").references(() => updates.id).notNull(),
-  storeId: integer("store_id").references(() => stores.id).notNull(),
+  update_id: integer("update_id").references(() => updates.id).notNull(),
+  store_id: integer("store_id").references(() => stores.id).notNull(),
   sku: text("sku").notNull(),
-  productId: integer("product_id"),
-  oldRegularPrice: integer("old_regular_price"),
-  newRegularPrice: integer("new_regular_price"),
-  oldDepotPrice: integer("old_depot_price"),
-  newDepotPrice: integer("new_depot_price"),
-  oldWarehousePrice: integer("old_warehouse_price"),
-  newWarehousePrice: integer("new_warehouse_price"),
-  oldQuantity: integer("old_quantity"),
-  newQuantity: integer("new_quantity"),
+  product_id: integer("product_id"),
+  old_regular_price: integer("old_regular_price"),
+  new_regular_price: integer("new_regular_price"),
+  old_depot_price: integer("old_depot_price"),
+  new_depot_price: integer("new_depot_price"),
+  old_warehouse_price: integer("old_warehouse_price"),
+  new_warehouse_price: integer("new_warehouse_price"),
+  old_quantity: integer("old_quantity"),
+  new_quantity: integer("new_quantity"),
   success: boolean("success").notNull().default(true),
-  errorMessage: text("error_message"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  error_message: text("error_message"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertUpdateDetailSchema = createInsertSchema(updateDetails).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Type definitions

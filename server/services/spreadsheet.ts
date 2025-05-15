@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import multer from "multer";
-import { storage as appStorage } from "../database-storage";
 import { User, DbConnection } from "@shared/sqlite-schema";
+// Use our update adapter instead of direct database storage
+import * as storage from "./update-database-storage";
 import { calculateDepotPrice, calculateWarehousePrice, isValidDepotPrice, isValidWarehousePrice } from "./pricing";
 import * as XLSX from 'xlsx';
 
@@ -98,7 +99,7 @@ export const handleProcess = [
       
       // Create update record
       const user = req.user as User;
-      const update = await appStorage.createUpdate({
+      const update = await storage.createUpdate({
         user_id: user.id,
         filename: req.file.originalname,
         products_count: products.length,

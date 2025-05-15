@@ -31,9 +31,34 @@ export default function DatabaseSettings() {
     setDbSettingsModalOpen(true);
   };
   
-  const handleAddStore = () => {
-    setSelectedStore(null);
-    setDbSettingsModalOpen(true);
+  const handleAddStore = async () => {
+    const storeName = window.prompt("Enter store name:");
+    if (!storeName) return;
+    
+    const storeUrl = window.prompt("Enter store URL (e.g., https://store.example.com):");
+    if (!storeUrl) return;
+    
+    try {
+      const result = await apiRequest(
+        "POST",
+        "/api/stores",
+        { name: storeName, url: storeUrl }
+      );
+      
+      // Invalidate the stores query to fetch updated data
+      queryClient.invalidateQueries({ queryKey: ['/api/stores'] });
+      
+      toast({
+        title: "Store created",
+        description: "New store has been added successfully",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Creation failed",
+        description: error instanceof Error ? error.message : "Failed to create store",
+      });
+    }
   };
   
   const handleDeleteStore = async (storeId: number) => {

@@ -489,7 +489,7 @@ export function DatabaseSettingsModal({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={onAddStore || handleAddNewStore}
+                        onClick={onAddStore || (() => {})}
                         className="text-xs dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700"
                       >
                         <Plus className="h-3 w-3 mr-1" />

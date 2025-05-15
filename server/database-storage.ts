@@ -8,7 +8,7 @@ import {
   UpdateDetail, InsertUpdateDetail,
   users, stores, dbConnections, updates, updateDetails
 } from '@shared/sqlite-schema';
-import { eq, desc, and, count } from 'drizzle-orm';
+import { eq, desc, and, count, isNull, or, ne } from 'drizzle-orm';
 import session from 'express-session';
 import createMemoryStore from 'memorystore';
 
@@ -217,6 +217,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard stats methods
+  async getTimeSaved(): Promise<number> {
+    // Calculate time saved based on product update count
+    // Each product update saves approximately 1 minute of manual time
+    try {
+      // Count successful updates (status 'success')
+      const result = await db
+        .select({ count: count() })
+        .from(updateDetails)
+        .where(
+          eq(updateDetails.status, 'success')
+        )
+        .execute();
+      
+      const minutesSaved = result.length > 0 ? result[0].count : 0;
+      return minutesSaved;
+    } catch (error) {
+      console.error("Error calculating time saved:", error);
+      return 0;
+    }
+  }
+  
   async getTotalProducts(): Promise<number> {
     // Count distinct product IDs across all update details
     try {

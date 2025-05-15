@@ -56,6 +56,7 @@ export interface IStorage {
   deleteUpdateDetail(id: number): Promise<boolean>;
   
   // Dashboard stats methods
+  getTimeSaved(): Promise<number>;
   getTotalProducts(): Promise<number>;
   getRecentUpdatesCount(): Promise<number>;
   getConnectedStoresCount(): Promise<number>;

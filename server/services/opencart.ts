@@ -1,4 +1,4 @@
-import { DbConnection } from "@shared/schema";
+import { DbConnection } from "@shared/sqlite-schema";
 import fs from 'fs';
 import path from 'path';
 import * as DbConnector from './db-connector';

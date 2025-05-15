@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import multer from "multer";
-import { storage as appStorage } from "../storage";
-import { User, DbConnection } from "@shared/schema";
+import { storage as appStorage } from "../database-storage";
+import { User, DbConnection } from "@shared/sqlite-schema";
 import { calculateDepotPrice, calculateWarehousePrice, isValidDepotPrice, isValidWarehousePrice } from "./pricing";
 import * as XLSX from 'xlsx';
 

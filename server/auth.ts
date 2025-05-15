@@ -20,12 +20,12 @@ declare global {
   }
 }
 
-// Import memorystore from storage
-import { storage } from "./storage";
+// Use the sessionStore from our storage implementation
+import { storage as dbStorage } from "./storage";
 
 export function setupAuth(app: Express) {
   // Get the session store from our storage implementation
-  const sessionStore = storage.sessionStore;
+  const sessionStore = dbStorage.sessionStore;
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "supersecret",

@@ -68,6 +68,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  sessionStore: SessionStore;
   private users: Map<number, User>;
   private stores: Map<number, Store>;
   private dbConnections: Map<number, DbConnection>;
@@ -81,6 +82,12 @@ export class MemStorage implements IStorage {
   private updateDetailIdCounter: number;
   
   constructor() {
+    // Initialize session store
+    const MemoryStore = createMemoryStore(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
+    
     this.users = new Map();
     this.stores = new Map();
     this.dbConnections = new Map();

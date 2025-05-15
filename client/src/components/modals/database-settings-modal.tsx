@@ -318,26 +318,29 @@ export function DatabaseSettingsModal({
         </DialogHeader>
         
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-4 pb-2 border-b dark:border-neutral-800">
-            <h3 className="text-base font-medium text-neutral-800 dark:text-white">Connected Stores</h3>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center text-sm bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700"
-              onClick={() => setShowNewConnectionForm(true)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              <span>Add Connection</span>
-            </Button>
-          </div>
-          
-          {/* Existing connections */}
-          <div className="space-y-4">
-            {editedConnections.length > 0 ? (
+          {/* Only show connections list if we're not specifically adding a new connection */}
+          {(!selectedStoreId || connections?.find(c => c.storeId === selectedStoreId)) && (
+            <>
+              <div className="flex justify-between items-center mb-4 pb-2 border-b dark:border-neutral-800">
+                <h3 className="text-base font-medium text-neutral-800 dark:text-white">Connected Stores</h3>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center text-sm bg-white hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700"
+                  onClick={() => setShowNewConnectionForm(true)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  <span>Add Connection</span>
+                </Button>
+              </div>
+              
+              {/* Existing connections */}
               <div className="space-y-4">
-                {editedConnections.map((connection) => {
-                  const store = stores.find(s => s.id === connection.storeId);
-                  return (
+                {editedConnections.length > 0 ? (
+                  <div className="space-y-4">
+                    {editedConnections.map((connection) => {
+                      const store = stores.find(s => s.id === connection.storeId);
+                      return (
                     <div key={connection.id} className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
                       <div className="p-4 bg-neutral-50 dark:bg-neutral-800 flex justify-between items-center">
                         <div className="flex items-center">
@@ -450,7 +453,9 @@ export function DatabaseSettingsModal({
                 </Button>
               </div>
             )}
-          </div>
+              </div>
+            </>
+          )}
           
           {/* New connection form */}
           {showNewConnectionForm && (

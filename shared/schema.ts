@@ -9,12 +9,12 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   role: text("role").notNull().default("user"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Stores table
@@ -22,12 +22,12 @@ export const stores = pgTable("stores", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   url: text("url").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertStoreSchema = createInsertSchema(stores).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Database connections table

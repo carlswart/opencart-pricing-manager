@@ -41,8 +41,7 @@ export async function createUpdateDetail(detail: {
     newPrice: detail.new_regular_price,
     oldQuantity: detail.old_quantity,
     newQuantity: detail.new_quantity,
-    status: detail.success ? 'success' : 'failed',
-    errorMessage: detail.error_message
+    status: detail.success ? 'success' : 'failed'
   });
 }
 
@@ -56,11 +55,11 @@ export async function createUpdate(update: {
   status: string;
   details: any;
 }) {
-  // Use snake_case field names directly
+  // Convert snake_case to camelCase for database-storage module
   return storage.createUpdate({
-    user_id: update.user_id,
+    userId: update.user_id,
     filename: update.filename,
-    products_count: update.products_count,
+    productsCount: update.products_count,
     status: update.status,
     details: update.details
   });

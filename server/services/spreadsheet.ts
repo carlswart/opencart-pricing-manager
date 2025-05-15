@@ -371,13 +371,13 @@ async function validateProducts(products: ProductRow[], storeIds: number[]): Pro
     const storeConnections = new Map<number, { store: { id: number, name: string }, connection: DbConnection }>();
     
     for (const storeId of storeIds) {
-      const store = await appStorage.getStoreById(storeId);
+      const store = await storage.getStoreById(storeId);
       if (!store) {
         issues.push(`Store ID ${storeId} not found`);
         continue;
       }
       
-      const connection = await appStorage.getDbConnectionByStoreId(storeId);
+      const connection = await storage.getDbConnectionByStoreId(storeId);
       if (!connection) {
         issues.push(`No database connection found for store "${store.name}"`);
         continue;
@@ -452,12 +452,12 @@ async function processUpdates(
     // Load store connections
     console.log(`Loading connections for ${storeIds.length} stores...`);
     for (const storeId of storeIds) {
-      const store = await appStorage.getStoreById(storeId);
+      const store = await storage.getStoreById(storeId);
       if (!store) {
         console.error(`Store ID ${storeId} not found, skipping`);
         // Create an update detail to record this error
         for (const product of products) {
-          await appStorage.createUpdateDetail({
+          await storage.createUpdateDetail({
             update_id: updateId,
             store_id: storeId,
             sku: product.sku,
@@ -481,12 +481,12 @@ async function processUpdates(
       console.log(`Processing store: ${store.name} (ID: ${store.id})`);
       
       // Get database connection for this store
-      const connection = await appStorage.getDbConnectionByStoreId(storeId);
+      const connection = await storage.getDbConnectionByStoreId(storeId);
       if (!connection) {
         console.error(`No database connection found for store "${store.name}", skipping`);
         // Create an update detail to record this error
         for (const product of products) {
-          await appStorage.createUpdateDetail({
+          await storage.createUpdateDetail({
             update_id: updateId,
             store_id: storeId,
             sku: product.sku,
@@ -515,7 +515,7 @@ async function processUpdates(
           
           // Create update details for all products to record this error
           for (const product of products) {
-            await appStorage.createUpdateDetail({
+            await storage.createUpdateDetail({
               update_id: updateId,
               store_id: storeId,
               sku: product.sku,
@@ -540,7 +540,7 @@ async function processUpdates(
         
         // Create update details for all products to record this error
         for (const product of products) {
-          await appStorage.createUpdateDetail({
+          await storage.createUpdateDetail({
             update_id: updateId,
             store_id: storeId,
             sku: product.sku,
@@ -576,7 +576,7 @@ async function processUpdates(
           if (!productId) {
             console.log(`Product with SKU "${product.sku}" not found in store "${store.name}", skipping`);
             
-            await appStorage.createUpdateDetail({
+            await storage.createUpdateDetail({
               update_id: updateId,
               store_id: storeId,
               sku: product.sku,
@@ -626,19 +626,19 @@ async function processUpdates(
           
           // Record the updates
           if (changesMade) {
-            await appStorage.createUpdateDetail({
+            await storage.createUpdateDetail({
               update_id: updateId,
               store_id: storeId,
               sku: product.sku,
-              product_id: result.productId,
-              old_regular_price: result.oldRegularPrice,
-              new_regular_price: result.newRegularPrice,
-              old_depot_price: result.oldDepotPrice,
-              new_depot_price: result.newDepotPrice,
-              old_warehouse_price: result.oldWarehousePrice,
-              new_warehouse_price: result.newWarehousePrice,
-              old_quantity: result.oldQuantity,
-              new_quantity: result.newQuantity,
+              product_id: result.product_id,
+              old_regular_price: result.old_regular_price,
+              new_regular_price: result.new_regular_price,
+              old_depot_price: result.old_depot_price,
+              new_depot_price: result.new_depot_price,
+              old_warehouse_price: result.old_warehouse_price,
+              new_warehouse_price: result.new_warehouse_price,
+              old_quantity: result.old_quantity,
+              new_quantity: result.new_quantity,
               success: true,
               error_message: null
             });
@@ -646,7 +646,7 @@ async function processUpdates(
             storeSuccessCount++;
           } else {
             // No changes needed (values already match)
-            await appStorage.createUpdateDetail({
+            await storage.createUpdateDetail({
               update_id: updateId,
               store_id: storeId,
               sku: product.sku,
@@ -670,7 +670,7 @@ async function processUpdates(
         } catch (error) {
           console.error(`Error updating product "${product.sku}" in store "${store.name}":`, error);
           
-          await appStorage.createUpdateDetail({
+          await storage.createUpdateDetail({
             update_id: updateId,
             store_id: storeId,
             sku: product.sku,
@@ -701,10 +701,10 @@ async function processUpdates(
     
     if (failedCount === 0) {
       // All products succeeded
-      await appStorage.completeUpdate(updateId, 'completed');
+      await storage.completeUpdate(updateId, 'completed');
     } else if (successCount === 0) {
       // All products failed
-      await appStorage.completeUpdate(updateId, 'failed');
+      await storage.completeUpdate(updateId, 'failed');
     } else {
       // Mixed results
       const updateDetails = {
@@ -713,13 +713,13 @@ async function processUpdates(
         total_count: successCount + failedCount
       };
       
-      await appStorage.completeUpdate(updateId, 'partial', updateDetails);
+      await storage.completeUpdate(updateId, 'partial', updateDetails);
     }
     
   } catch (error) {
     console.error(`Error processing update #${updateId}:`, error);
     try {
-      await appStorage.completeUpdate(updateId, 'failed', {
+      await storage.completeUpdate(updateId, 'failed', {
         error: error instanceof Error ? error.message : "Unknown error"
       });
     } catch (e) {

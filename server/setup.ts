@@ -1,6 +1,6 @@
 import { db, initializeSchema } from './sqlite-db';
 import { hash } from './auth-utils';
-import { users, stores } from '@shared/sqlite-schema';
+import { users, stores, customerGroups } from '@shared/sqlite-schema';
 
 /**
  * Initialize the database with demo data if it doesn't exist
@@ -49,6 +49,19 @@ export async function initializeDemoData() {
     
     for (const store of sampleStores) {
       await db.insert(stores).values(store);
+    }
+    
+    // Create default customer groups with their respective discount rates
+    const defaultCustomerGroups = [
+      { name: 'depot', displayName: 'Depots', discountPercentage: 18 },
+      { name: 'namibiaSD', displayName: 'Namibia SD', discountPercentage: 26 }
+    ];
+    
+    for (const group of defaultCustomerGroups) {
+      await db.insert(customerGroups).values({
+        ...group,
+        createdAt: new Date().toISOString()
+      });
     }
     
     console.log("Database initialized successfully");

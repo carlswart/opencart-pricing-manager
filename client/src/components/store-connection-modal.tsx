@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,33 @@ export function StoreConnectionModal({
     password: '',
     prefix: 'oc_'
   });
+  
+  // Get existing connection data for this store
+  const { data: connections } = useQuery({
+    queryKey: ['/api/database/connections'],
+  });
+  
+  // Load existing connection data when modal opens
+  useEffect(() => {
+    if (open && store?.id && connections) {
+      // Find existing connection for this store
+      const existingConnection = connections.find(
+        c => (c.storeId === store.id) || (c.store_id === store.id)
+      );
+      
+      if (existingConnection) {
+        // Pre-fill form with existing connection data
+        setFormData({
+          host: existingConnection.host || 'localhost',
+          port: existingConnection.port || '3306',
+          database: existingConnection.database || '',
+          username: existingConnection.username || '',
+          password: existingConnection.password || '',
+          prefix: existingConnection.prefix || 'oc_'
+        });
+      }
+    }
+  }, [open, store, connections]);
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData(prev => ({

@@ -120,6 +120,8 @@ export const storeCustomerGroupMappings = pgTable("store_customer_group_mappings
   customerGroupId: integer("customer_group_id").notNull().references(() => customerGroups.id, { onDelete: "cascade" }),
   opencartCustomerGroupId: integer("opencart_customer_group_id").notNull(),
   opencartCustomerGroupName: text("opencart_customer_group_name").notNull(),
+  assignDiscount: boolean("assign_discount").notNull().default(false),
+  discountPercentage: numeric("discount_percentage", { precision: 5, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

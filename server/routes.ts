@@ -644,13 +644,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create new mappings
       const savedMappings = [];
-      for (const [customerGroupIdStr, mappingData] of Object.entries(mappings)) {
+      for (const customerGroupIdStr of Object.keys(mappings)) {
         const customerGroupId = parseInt(customerGroupIdStr);
-        const { assignDiscount, discountPercentage, name } = mappingData as { 
+        const mappingData = mappings[customerGroupIdStr] as { 
           assignDiscount: boolean; 
           discountPercentage: number;
           name?: string;
         };
+        
+        const { assignDiscount, discountPercentage, name } = mappingData;
         
         // Only create mappings for groups that have discounts assigned
         if (assignDiscount) {
@@ -658,7 +660,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             storeId: storeId,
             customerGroupId: customerGroupId,
             opencartCustomerGroupId: customerGroupId,
-            opencartCustomerGroupName: mappingData.name || "Unknown"
+            opencartCustomerGroupName: mappingData.name || "Unknown",
+            assignDiscount: assignDiscount,
+            discountPercentage: discountPercentage
           });
           
           savedMappings.push(newMapping);

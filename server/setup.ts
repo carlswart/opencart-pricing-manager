@@ -22,7 +22,8 @@ export async function initializeCustomerGroups() {
     // Create default customer groups with their respective discount rates
     const defaultCustomerGroups = [
       { name: 'depot', displayName: 'Depots', discountPercentage: 18 },
-      { name: 'namibiaSD', displayName: 'Namibia SD', discountPercentage: 26 }
+      { name: 'namibiaSD', displayName: 'Namibia SD', discountPercentage: 26 },
+      { name: 'regular', displayName: 'Regular Customers', discountPercentage: 0 }
     ];
     
     for (const group of defaultCustomerGroups) {

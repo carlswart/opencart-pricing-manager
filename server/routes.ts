@@ -597,6 +597,188 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Customer group management routes
+  app.get("/api/customer-groups", authenticate, async (req, res) => {
+    try {
+      const groups = await storage.getAllCustomerGroups();
+      res.json(groups);
+    } catch (error) {
+      console.error("Error getting customer groups:", error);
+      res.status(500).json({ message: "Failed to get customer groups" });
+    }
+  });
+
+  app.get("/api/customer-groups/:id", authenticate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const group = await storage.getCustomerGroupById(id);
+      
+      if (!group) {
+        return res.status(404).json({ message: "Customer group not found" });
+      }
+      
+      res.json(group);
+    } catch (error) {
+      console.error(`Error getting customer group ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to get customer group" });
+    }
+  });
+
+  app.post("/api/customer-groups", adminOnly, async (req, res) => {
+    try {
+      const newGroup = req.body;
+      
+      // Check if group with this name already exists
+      const existingGroup = await storage.getCustomerGroupByName(newGroup.name);
+      if (existingGroup) {
+        return res.status(409).json({ message: "A customer group with this name already exists" });
+      }
+      
+      const group = await storage.createCustomerGroup(newGroup);
+      res.status(201).json(group);
+    } catch (error) {
+      console.error("Error creating customer group:", error);
+      res.status(500).json({ message: "Failed to create customer group" });
+    }
+  });
+
+  app.put("/api/customer-groups/:id", adminOnly, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const groupData = req.body;
+      
+      // Check if the group exists
+      const existingGroup = await storage.getCustomerGroupById(id);
+      if (!existingGroup) {
+        return res.status(404).json({ message: "Customer group not found" });
+      }
+      
+      // If name is being updated, check for duplicates
+      if (groupData.name && groupData.name !== existingGroup.name) {
+        const duplicateGroup = await storage.getCustomerGroupByName(groupData.name);
+        if (duplicateGroup) {
+          return res.status(409).json({ message: "A customer group with this name already exists" });
+        }
+      }
+      
+      const updatedGroup = await storage.updateCustomerGroup(id, groupData);
+      res.json(updatedGroup);
+    } catch (error) {
+      console.error(`Error updating customer group ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to update customer group" });
+    }
+  });
+
+  app.delete("/api/customer-groups/:id", adminOnly, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if the group exists
+      const existingGroup = await storage.getCustomerGroupById(id);
+      if (!existingGroup) {
+        return res.status(404).json({ message: "Customer group not found" });
+      }
+      
+      await storage.deleteCustomerGroup(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error(`Error deleting customer group ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to delete customer group" });
+    }
+  });
+
+  // Store customer group mapping routes
+  app.get("/api/store-customer-group-mappings", authenticate, async (req, res) => {
+    try {
+      const mappings = await storage.getAllStoreCustomerGroupMappings();
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error getting store customer group mappings:", error);
+      res.status(500).json({ message: "Failed to get store customer group mappings" });
+    }
+  });
+
+  app.get("/api/store-customer-group-mappings/store/:storeId", authenticate, async (req, res) => {
+    try {
+      const storeId = parseInt(req.params.storeId);
+      const mappings = await storage.getStoreCustomerGroupMappingsByStoreId(storeId);
+      res.json(mappings);
+    } catch (error) {
+      console.error(`Error getting store customer group mappings for store ${req.params.storeId}:`, error);
+      res.status(500).json({ message: "Failed to get store customer group mappings" });
+    }
+  });
+
+  app.post("/api/store-customer-group-mappings", adminOnly, async (req, res) => {
+    try {
+      const newMapping = req.body;
+      
+      // Check if store exists
+      const store = await storage.getStoreById(newMapping.storeId);
+      if (!store) {
+        return res.status(404).json({ message: "Store not found" });
+      }
+      
+      // Check if customer group exists
+      const customerGroup = await storage.getCustomerGroupById(newMapping.customerGroupId);
+      if (!customerGroup) {
+        return res.status(404).json({ message: "Customer group not found" });
+      }
+      
+      // Check if mapping already exists
+      const existingMappings = await storage.getStoreCustomerGroupMappingsByStoreId(newMapping.storeId);
+      const duplicateMapping = existingMappings.find(m => m.customerGroupId === newMapping.customerGroupId);
+      
+      if (duplicateMapping) {
+        return res.status(409).json({ message: "This customer group is already mapped for this store" });
+      }
+      
+      const mapping = await storage.createStoreCustomerGroupMapping(newMapping);
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error("Error creating store customer group mapping:", error);
+      res.status(500).json({ message: "Failed to create store customer group mapping" });
+    }
+  });
+
+  app.put("/api/store-customer-group-mappings/:id", adminOnly, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mappingData = req.body;
+      
+      // Check if mapping exists
+      const existingMapping = await storage.getStoreCustomerGroupMappingById(id);
+      if (!existingMapping) {
+        return res.status(404).json({ message: "Store customer group mapping not found" });
+      }
+      
+      const updatedMapping = await storage.updateStoreCustomerGroupMapping(id, mappingData);
+      res.json(updatedMapping);
+    } catch (error) {
+      console.error(`Error updating store customer group mapping ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to update store customer group mapping" });
+    }
+  });
+
+  app.delete("/api/store-customer-group-mappings/:id", adminOnly, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if mapping exists
+      const existingMapping = await storage.getStoreCustomerGroupMappingById(id);
+      if (!existingMapping) {
+        return res.status(404).json({ message: "Store customer group mapping not found" });
+      }
+      
+      await storage.deleteStoreCustomerGroupMapping(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error(`Error deleting store customer group mapping ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to delete store customer group mapping" });
+    }
+  });
+  
   // Session settings endpoints
   app.get("/api/settings/session", adminOnly, async (req, res) => {
     try {

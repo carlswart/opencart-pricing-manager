@@ -2,6 +2,7 @@ import { DbConnection } from "@shared/sqlite-schema";
 import fs from 'fs';
 import path from 'path';
 import * as DbConnector from './db-connector';
+import { storage } from '../database-storage';
 import type { Pool } from 'mysql2/promise';
 
 // Interface for product update parameters

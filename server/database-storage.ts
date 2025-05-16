@@ -6,7 +6,8 @@ import {
   DbConnection, InsertDbConnection,
   Update, InsertUpdate,
   UpdateDetail, InsertUpdateDetail,
-  users, stores, dbConnections, updates, updateDetails
+  Setting, InsertSetting,
+  users, stores, dbConnections, updates, updateDetails, settings
 } from '@shared/sqlite-schema';
 import { eq, desc, and, count, isNull, or, ne } from 'drizzle-orm';
 import session from 'express-session';
@@ -216,6 +217,64 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  // Settings methods
+  async getSetting(key: string): Promise<string | null> {
+    try {
+      const result = await db
+        .select()
+        .from(settings)
+        .where(eq(settings.key, key))
+        .execute();
+      
+      return result.length > 0 ? result[0].value : null;
+    } catch (error) {
+      console.error(`Error getting setting ${key}:`, error);
+      return null;
+    }
+  }
+  
+  async setSetting(key: string, value: string, description?: string): Promise<boolean> {
+    try {
+      // Check if setting exists
+      const existingSetting = await db
+        .select()
+        .from(settings)
+        .where(eq(settings.key, key))
+        .execute();
+      
+      const now = new Date().toISOString();
+      
+      if (existingSetting.length > 0) {
+        // Update existing setting
+        await db
+          .update(settings)
+          .set({ 
+            value, 
+            description: description || existingSetting[0].description,
+            createdAt: now 
+          })
+          .where(eq(settings.key, key))
+          .execute();
+      } else {
+        // Create new setting
+        await db
+          .insert(settings)
+          .values({
+            key,
+            value,
+            description: description || '',
+            createdAt: now
+          })
+          .execute();
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Error setting ${key}:`, error);
+      return false;
+    }
+  }
+  
   // Dashboard stats methods
   async getTimeSaved(): Promise<number> {
     // Calculate time saved based on product updates across stores

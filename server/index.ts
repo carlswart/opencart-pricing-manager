@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDemoData } from "./setup";
 import { initializeSchema, closeDatabase } from "./sqlite-db";
+import { storage } from "./database-storage";
 
 const app = express();
 app.use(express.json());
@@ -43,6 +44,13 @@ app.use((req, res, next) => {
   try {
     await initializeDemoData();
     console.log("Database initialized successfully");
+    
+    // Update server version timestamp to detect server restarts
+    await storage.setSetting(
+      'server_version', 
+      Date.now().toString(), 
+      'Server version timestamp to detect restarts'
+    );
   } catch (error) {
     console.error("Error initializing database:", error);
   }

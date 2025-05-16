@@ -28,7 +28,8 @@ export async function initializeSchema() {
     'stores',
     'db_connections',
     'updates',
-    'update_details'
+    'update_details',
+    'settings'
   ];
 
   for (const table of tables) {
@@ -116,10 +117,43 @@ export async function initializeSchema() {
             )
           `;
           break;
+          
+        case 'settings':
+          createTableSQL = `
+            CREATE TABLE settings (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              key TEXT NOT NULL UNIQUE,
+              value TEXT NOT NULL,
+              description TEXT,
+              created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            )
+          `;
+          break;
       }
       
       if (createTableSQL) {
         sqlite.exec(createTableSQL);
+      }
+      
+      // Seed settings table with defaults
+      if (table === 'settings') {
+        // Add default session timeout (15 minutes = 900000 milliseconds)
+        const sessionTimeout = sqlite.prepare(`SELECT * FROM settings WHERE key = 'session_timeout'`).get();
+        if (!sessionTimeout) {
+          sqlite.prepare(`
+            INSERT INTO settings (key, value, description) 
+            VALUES (?, ?, ?)
+          `).run('session_timeout', '900000', 'Session timeout in milliseconds (default: 15 minutes)');
+        }
+        
+        // Add server version to detect restarts
+        const serverVersion = sqlite.prepare(`SELECT * FROM settings WHERE key = 'server_version'`).get();
+        if (!serverVersion) {
+          sqlite.prepare(`
+            INSERT INTO settings (key, value, description) 
+            VALUES (?, ?, ?)
+          `).run('server_version', Date.now().toString(), 'Server version timestamp to detect restarts');
+        }
       }
     }
   }

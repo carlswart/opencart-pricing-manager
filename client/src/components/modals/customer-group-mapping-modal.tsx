@@ -61,12 +61,12 @@ export function CustomerGroupMappingModal({
             
             // Look for Depot groups (18% discount)
             if (ocGroup.name.toLowerCase().includes('depot')) {
-              const depotGroup = groups.find(g => g.discount_rate === 18);
+              const depotGroup = groups.find((g: CustomerGroup) => parseFloat(g.discountPercentage) === 18);
               if (depotGroup) suggestedGroupId = depotGroup.id;
             }
             // Look for Namibia groups (26% discount)
             else if (ocGroup.name.toLowerCase().includes('namibia')) {
-              const namibiaGroup = groups.find(g => g.discount_rate === 26);
+              const namibiaGroup = groups.find((g: CustomerGroup) => parseFloat(g.discountPercentage) === 26);
               if (namibiaGroup) suggestedGroupId = namibiaGroup.id;
             }
             
@@ -182,7 +182,7 @@ export function CustomerGroupMappingModal({
                       <SelectItem value="none">None (No special pricing)</SelectItem>
                       {appCustomerGroups.map((appGroup) => (
                         <SelectItem key={appGroup.id} value={appGroup.id.toString()}>
-                          {appGroup.name} ({appGroup.discount_rate}% discount)
+                          {appGroup.name} ({appGroup.discountPercentage}% discount)
                         </SelectItem>
                       ))}
                     </SelectContent>

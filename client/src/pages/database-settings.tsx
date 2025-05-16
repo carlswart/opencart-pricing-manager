@@ -17,7 +17,15 @@ export default function DatabaseSettings() {
   const [connectionModalOpen, setConnectionModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [showCustomerGroupModal, setShowCustomerGroupModal] = useState(false);
-  const [retrievedCustomerGroups, setRetrievedCustomerGroups] = useState<any[]>([]);
+  // Define the OpenCart customer group interface
+  interface OpenCartCustomerGroup {
+    customer_group_id: number;
+    name: string;
+    description?: string;
+    sort_order?: number;
+  }
+  
+  const [retrievedCustomerGroups, setRetrievedCustomerGroups] = useState<OpenCartCustomerGroup[]>([]);
   
   // Fetch stores
   const { data: stores, isLoading: storesLoading } = useQuery<Store[]>({
@@ -29,9 +37,16 @@ export default function DatabaseSettings() {
     queryKey: ['/api/database/connections'],
   });
   
-  const handleConfigureStore = (storeId: number) => {
-    setSelectedStore(storeId);
-    setDbSettingsModalOpen(true);
+  const handleConfigureStore = (store: Store) => {
+    setSelectedStore(store);
+    setConnectionModalOpen(true);
+  };
+  
+  const handleCustomerGroupsReceived = (customerGroups?: OpenCartCustomerGroup[]) => {
+    if (customerGroups && customerGroups.length > 0) {
+      setRetrievedCustomerGroups(customerGroups);
+      setShowCustomerGroupModal(true);
+    }
   };
   
   const handleAddStore = async () => {
@@ -66,7 +81,7 @@ export default function DatabaseSettings() {
   
   const handleDeleteStore = async (storeId: number) => {
     // Check if the store has a database connection
-    const hasConnection = connections?.some(conn => conn.storeId === storeId);
+    const hasConnection = connections?.some(conn => conn.store_id === storeId);
     
     // Confirm deletion with appropriate warning
     let confirmMessage = "Are you sure you want to delete this store?";
@@ -82,7 +97,7 @@ export default function DatabaseSettings() {
     try {
       // First, delete any associated database connections
       if (hasConnection) {
-        const connection = connections?.find(conn => conn.storeId === storeId);
+        const connection = connections?.find(conn => conn.store_id === storeId);
         if (connection) {
           await apiRequest(
             "DELETE",
@@ -145,7 +160,7 @@ export default function DatabaseSettings() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stores?.map((store) => {
-                  const connection = connections?.find(c => c.storeId === store.id);
+                  const connection = connections?.find(c => c.store_id === store.id);
                   return (
                     <div key={store.id} className="border border-border rounded-lg overflow-hidden">
                       <div className="bg-muted/50 p-4 flex items-center justify-between">
@@ -193,7 +208,7 @@ export default function DatabaseSettings() {
                             variant="default"
                             size="sm"
                             className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                            onClick={() => handleConfigureStore(store.id)}
+                            onClick={() => handleConfigureStore(store)}
                           >
                             {connection ? "Manage Connection" : "Connect Database"}
                           </Button>
@@ -208,16 +223,32 @@ export default function DatabaseSettings() {
         </Card>
       </div>
       
-      {stores && connections && (
-        <DatabaseSettingsModal
-          open={dbSettingsModalOpen}
-          onOpenChange={setDbSettingsModalOpen}
-          stores={stores}
-          connections={connections}
-          selectedStoreId={selectedStore}
-          onAddStore={handleAddStore}
+      {/* Store connection modal */}
+      {selectedStore && (
+        <StoreConnectionModal
+          open={connectionModalOpen}
+          onOpenChange={setConnectionModalOpen}
+          store={selectedStore}
+          onSuccess={handleCustomerGroupsReceived}
         />
       )}
+      
+      {/* Customer group mapping modal */}
+      {selectedStore && showCustomerGroupModal && (
+        <CustomerGroupMappingModal
+          open={showCustomerGroupModal}
+          onOpenChange={setShowCustomerGroupModal}
+          store={selectedStore}
+          customerGroups={retrievedCustomerGroups}
+          onSuccess={() => {
+            toast({
+              title: "Customer groups mapped",
+              description: `Successfully mapped customer groups for ${selectedStore.name}`
+            });
+          }}
+        />
+      )}
+      
     </div>
   );
 }

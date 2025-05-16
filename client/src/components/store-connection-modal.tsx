@@ -83,7 +83,7 @@ export function StoreConnectionModal({
         );
         
         await createResponse.json();
-        queryClient.invalidateQueries(['/api/database/connections']);
+        queryClient.invalidateQueries({ queryKey: ['/api/database/connections'] });
         
         let securityMessage = "";
         if (testData.isSecure) {

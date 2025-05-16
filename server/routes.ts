@@ -17,21 +17,78 @@ import { hash } from "./auth-utils";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
-  setupAuth(app);
+  await setupAuth(app);
   
-  // Authentication middleware
-  const authenticate = (req: Request, res: Response, next: Function) => {
-    if (req.isAuthenticated()) {
-      return next();
+  // Authentication middleware with server restart detection
+  const authenticate = async (req: Request, res: Response, next: Function) => {
+    // Check if user is authenticated
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
-    res.status(401).json({ message: "Unauthorized" });
+    
+    // Server restart detection - check if server version matches the one when user logged in
+    if (req.session.serverVersion) {
+      try {
+        const currentServerVersion = await storage.getSetting('server_version');
+        if (currentServerVersion && req.session.serverVersion !== currentServerVersion) {
+          // Server has restarted since user's session was created
+          req.logout(() => {
+            return res.status(401).json({ 
+              message: "Session expired due to server restart",
+              code: "SERVER_RESTART"
+            });
+          });
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking server version:", error);
+      }
+    } else {
+      // First authenticated request - store current server version in session
+      try {
+        const serverVersion = await storage.getSetting('server_version');
+        if (serverVersion) {
+          req.session.serverVersion = serverVersion;
+        }
+      } catch (error) {
+        console.error("Error setting server version in session:", error);
+      }
+    }
+    
+    return next();
   };
   
   // Admin-only middleware
-  const adminOnly = (req: Request, res: Response, next: Function) => {
-    if (req.isAuthenticated() && req.user?.role === 'admin') {
+  const adminOnly = async (req: Request, res: Response, next: Function) => {
+    // Check authentication first
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    // Check for server restart
+    if (req.session.serverVersion) {
+      try {
+        const currentServerVersion = await storage.getSetting('server_version');
+        if (currentServerVersion && req.session.serverVersion !== currentServerVersion) {
+          // Server has restarted since user's session was created
+          req.logout(() => {
+            return res.status(401).json({ 
+              message: "Session expired due to server restart",
+              code: "SERVER_RESTART"
+            });
+          });
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking server version:", error);
+      }
+    }
+    
+    // Check admin role
+    if (req.user?.role === 'admin') {
       return next();
     }
+    
     res.status(403).json({ message: "Admin privileges required" });
   };
   

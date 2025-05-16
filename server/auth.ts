@@ -22,17 +22,28 @@ declare global {
 // Import the storage instance that has the sessionStore
 import { storage } from "./database-storage";
 
-export function setupAuth(app: Express) {
+export async function setupAuth(app: Express) {
   // Get the session store from our storage implementation
   const sessionStore = storage.sessionStore;
 
+  // Get session timeout from settings (default 15 minutes)
+  let sessionTimeout = 15 * 60 * 1000; // 15 minutes in milliseconds
+  try {
+    const timeoutSetting = await storage.getSetting('session_timeout');
+    if (timeoutSetting) {
+      sessionTimeout = parseInt(timeoutSetting);
+    }
+  } catch (error) {
+    console.error("Error getting session timeout setting:", error);
+  }
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "supersecret",
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: sessionTimeout,
       secure: process.env.NODE_ENV === "production"
     }
   };

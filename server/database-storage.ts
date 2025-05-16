@@ -6,8 +6,11 @@ import {
   DbConnection, InsertDbConnection,
   Update, InsertUpdate,
   UpdateDetail, InsertUpdateDetail,
+  CustomerGroup, InsertCustomerGroup,
+  StoreCustomerGroupMapping, InsertStoreCustomerGroupMapping,
   Setting, InsertSetting,
-  users, stores, dbConnections, updates, updateDetails, settings
+  users, stores, dbConnections, updates, updateDetails, settings,
+  customerGroups, storeCustomerGroupMappings
 } from '@shared/sqlite-schema';
 import { eq, desc, and, count, isNull, or, ne } from 'drizzle-orm';
 import session from 'express-session';

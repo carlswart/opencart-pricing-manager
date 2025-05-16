@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, varchar, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, varchar, unique, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -102,11 +102,13 @@ export const customerGroups = pgTable("customer_groups", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   displayName: text("display_name").notNull(),
-  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
+  discountPercentage: numeric("discount_percentage", { precision: 5, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertCustomerGroupSchema = createInsertSchema(customerGroups).omit({
+export const insertCustomerGroupSchema = createInsertSchema(customerGroups, {
+  discountPercentage: z.number().min(0).max(100),
+}).omit({
   id: true,
   createdAt: true,
 });

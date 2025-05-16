@@ -4,7 +4,9 @@ import {
   Store, InsertStore, 
   DbConnection, InsertDbConnection,
   Update, InsertUpdate,
-  UpdateDetail, InsertUpdateDetail 
+  UpdateDetail, InsertUpdateDetail,
+  CustomerGroup, InsertCustomerGroup,
+  StoreCustomerGroupMapping, InsertStoreCustomerGroupMapping
 } from "@shared/sqlite-schema";
 
 // Import memorystore for session store type
@@ -58,6 +60,22 @@ export interface IStorage {
   // Settings methods
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string, description?: string): Promise<boolean>;
+  
+  // Customer group methods
+  getAllCustomerGroups(): Promise<CustomerGroup[]>;
+  getCustomerGroupById(id: number): Promise<CustomerGroup | undefined>;
+  getCustomerGroupByName(name: string): Promise<CustomerGroup | undefined>;
+  createCustomerGroup(group: InsertCustomerGroup): Promise<CustomerGroup>;
+  updateCustomerGroup(id: number, group: Partial<InsertCustomerGroup>): Promise<CustomerGroup | undefined>;
+  deleteCustomerGroup(id: number): Promise<boolean>;
+  
+  // Store customer group mapping methods
+  getAllStoreCustomerGroupMappings(): Promise<StoreCustomerGroupMapping[]>;
+  getStoreCustomerGroupMappingsByStoreId(storeId: number): Promise<StoreCustomerGroupMapping[]>;
+  getStoreCustomerGroupMappingById(id: number): Promise<StoreCustomerGroupMapping | undefined>;
+  createStoreCustomerGroupMapping(mapping: InsertStoreCustomerGroupMapping): Promise<StoreCustomerGroupMapping>;
+  updateStoreCustomerGroupMapping(id: number, mapping: Partial<InsertStoreCustomerGroupMapping>): Promise<StoreCustomerGroupMapping | undefined>;
+  deleteStoreCustomerGroupMapping(id: number): Promise<boolean>;
   
   // Dashboard stats methods
   getTimeSaved(): Promise<number>;

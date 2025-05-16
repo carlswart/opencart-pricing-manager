@@ -597,5 +597,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // Session settings endpoints
+  app.get("/api/settings/session", adminOnly, async (req, res) => {
+    try {
+      const timeoutValue = await storage.getSetting('session_timeout');
+      const timeoutMinutes = timeoutValue ? Math.floor(parseInt(timeoutValue) / (60 * 1000)) : 15;
+      
+      res.json({
+        timeoutMinutes: timeoutMinutes
+      });
+    } catch (error) {
+      console.error("Error getting session settings:", error);
+      res.status(500).json({ message: "Failed to get session settings" });
+    }
+  });
+  
+  app.post("/api/settings/session", adminOnly, async (req, res) => {
+    try {
+      const { timeoutMinutes } = req.body;
+      
+      // Validate minutes is a number between 1 and 1440 (24 hours)
+      const minutes = parseInt(timeoutMinutes);
+      if (isNaN(minutes) || minutes < 1 || minutes > 1440) {
+        return res.status(400).json({ 
+          message: "Invalid timeout value. Must be between 1 and 1440 minutes (24 hours)." 
+        });
+      }
+      
+      // Convert minutes to milliseconds for storage
+      const milliseconds = minutes * 60 * 1000;
+      
+      // Save the setting
+      await storage.setSetting(
+        'session_timeout', 
+        milliseconds.toString(), 
+        'Session timeout in milliseconds'
+      );
+      
+      res.json({ 
+        message: "Session timeout updated",
+        timeoutMinutes: minutes
+      });
+    } catch (error) {
+      console.error("Error updating session settings:", error);
+      res.status(500).json({ message: "Failed to update session settings" });
+    }
+  });
+
   return httpServer;
 }

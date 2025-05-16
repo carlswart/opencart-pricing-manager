@@ -113,6 +113,8 @@ export const storeCustomerGroupMappings = sqliteTable('store_customer_group_mapp
   customerGroupId: integer('customer_group_id').notNull().references(() => customerGroups.id, { onDelete: 'cascade' }),
   opencartCustomerGroupId: integer('opencart_customer_group_id').notNull(),
   opencartCustomerGroupName: text('opencart_customer_group_name').notNull(),
+  assignDiscount: integer('assign_discount').notNull().default(0),
+  discountPercentage: real('discount_percentage').notNull().default(0),
   createdAt: text('created_at').notNull().default(''),
 });
 

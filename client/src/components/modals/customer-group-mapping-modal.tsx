@@ -44,46 +44,86 @@ export function CustomerGroupMappingModal({
   const [mappings, setMappings] = useState<{[key: number]: number | null}>({});
   const [appCustomerGroups, setAppCustomerGroups] = useState<CustomerGroup[]>([]);
   
-  // Fetch application customer groups
+  // Fetch application customer groups and existing mappings
   useEffect(() => {
-    const fetchCustomerGroups = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/customer-groups');
-        if (response.ok) {
-          const groups = await response.json();
-          setAppCustomerGroups(groups);
-          
-          // Initialize mappings with suggested/auto-detected values
-          const initialMappings: {[key: number]: number | null} = {};
-          customerGroups.forEach(ocGroup => {
-            // Auto-detect mappings based on name similarity
-            let suggestedGroupId = null;
-            
-            // Look for Depot groups (18% discount)
-            if (ocGroup.name.toLowerCase().includes('depot')) {
-              const depotGroup = groups.find((g: CustomerGroup) => parseFloat(g.discountPercentage) === 18);
-              if (depotGroup) suggestedGroupId = depotGroup.id;
-            }
-            // Look for Namibia groups (26% discount)
-            else if (ocGroup.name.toLowerCase().includes('namibia')) {
-              const namibiaGroup = groups.find((g: CustomerGroup) => parseFloat(g.discountPercentage) === 26);
-              if (namibiaGroup) suggestedGroupId = namibiaGroup.id;
-            }
-            
-            initialMappings[ocGroup.customer_group_id] = suggestedGroupId;
-          });
-          
-          setMappings(initialMappings);
+        // First reset the state to avoid showing old mappings
+        setMappings({});
+        
+        // 1. Fetch application customer groups
+        const groupsResponse = await fetch('/api/customer-groups');
+        if (!groupsResponse.ok) {
+          throw new Error('Failed to fetch customer groups');
         }
+        
+        const groups = await groupsResponse.json();
+        setAppCustomerGroups(groups);
+        
+        // 2. Fetch existing mappings for this store
+        if (store?.id) {
+          const mappingsResponse = await fetch(`/api/customer-group-mappings/store/${store.id}`);
+          if (mappingsResponse.ok) {
+            const existingMappings = await mappingsResponse.json();
+            console.log('Existing mappings:', existingMappings);
+            
+            // Convert array of mappings to our format {opencartGroupId: appGroupId}
+            const mappingsObj: {[key: number]: number | null} = {};
+            
+            // First set all OpenCart groups to null (None)
+            customerGroups.forEach(ocGroup => {
+              mappingsObj[ocGroup.customer_group_id] = null;
+            });
+            
+            // Then apply any existing mappings
+            existingMappings.forEach((mapping: any) => {
+              if (mapping.opencartCustomerGroupId && mapping.customerGroupId) {
+                mappingsObj[mapping.opencartCustomerGroupId] = mapping.customerGroupId;
+              }
+            });
+            
+            setMappings(mappingsObj);
+            console.log('Initialized mappings:', mappingsObj);
+            return;
+          }
+        }
+        
+        // If no existing mappings, initialize with auto-detection
+        const initialMappings: {[key: number]: number | null} = {};
+        customerGroups.forEach(ocGroup => {
+          // Auto-detect mappings based on name similarity
+          let suggestedGroupId = null;
+          
+          // Look for Depot groups (18% discount)
+          if (ocGroup.name.toLowerCase().includes('depot')) {
+            const depotGroup = groups.find((g: CustomerGroup) => parseFloat(g.discountPercentage) === 18);
+            if (depotGroup) suggestedGroupId = depotGroup.id;
+          }
+          // Look for Namibia groups (26% discount)
+          else if (ocGroup.name.toLowerCase().includes('namibia')) {
+            const namibiaGroup = groups.find((g: CustomerGroup) => parseFloat(g.discountPercentage) === 26);
+            if (namibiaGroup) suggestedGroupId = namibiaGroup.id;
+          }
+          
+          initialMappings[ocGroup.customer_group_id] = suggestedGroupId;
+        });
+        
+        setMappings(initialMappings);
+        console.log('Auto-detected mappings:', initialMappings);
       } catch (error) {
-        console.error("Failed to fetch customer groups:", error);
+        console.error("Failed to fetch data:", error);
+        toast({
+          variant: "destructive",
+          title: "Error fetching data",
+          description: error instanceof Error ? error.message : "An unknown error occurred"
+        });
       }
     };
     
-    if (open) {
-      fetchCustomerGroups();
+    if (open && customerGroups.length > 0) {
+      fetchData();
     }
-  }, [open]);
+  }, [open, store?.id, customerGroups]);
   
   const handleMappingChange = (openCartGroupId: number, appGroupId: string) => {
     setMappings(prev => ({

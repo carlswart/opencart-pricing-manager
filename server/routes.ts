@@ -777,13 +777,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           continue; // Skip invalid mappings
         }
         
+        // Make sure all fields have the proper data types for SQLite
         const newMapping = await storage.createStoreCustomerGroupMapping({
-          storeId: storeId,
-          customerGroupId: mapping.customerGroupId,
-          opencartCustomerGroupId: mapping.opencartCustomerGroupId, 
-          opencartCustomerGroupName: mapping.opencartCustomerGroupName || "Unknown Group",
-          assignDiscount: true,
-          discountPercentage: 0
+          storeId: Number(storeId),
+          customerGroupId: Number(mapping.customerGroupId),
+          opencartCustomerGroupId: Number(mapping.opencartCustomerGroupId), 
+          opencartCustomerGroupName: String(mapping.opencartCustomerGroupName || "Unknown Group"),
+          assignDiscount: 1,  // Use 1 instead of true for SQLite
+          discountPercentage: 0  // Make sure this is a number
         });
         
         savedMappings.push(newMapping);

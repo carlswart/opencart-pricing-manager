@@ -41,9 +41,18 @@ export default function Settings() {
   const [sessionTimeout, setSessionTimeout] = useState(15); // Default 15 minutes
   const [loadingSessionTimeout, setLoadingSessionTimeout] = useState(false);
   
+  // Define types for customer groups
+  type CustomerGroup = {
+    id: number;
+    name: string;
+    displayName: string;
+    discountPercentage: number;
+    createdAt: string;
+  };
+  
   // Customer group state
-  const [customerGroups, setCustomerGroups] = useState([]);
-  const [selectedCustomerGroup, setSelectedCustomerGroup] = useState(null);
+  const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
+  const [selectedCustomerGroup, setSelectedCustomerGroup] = useState<CustomerGroup | null>(null);
   const [newCustomerGroup, setNewCustomerGroup] = useState({
     name: "",
     displayName: "",
@@ -52,9 +61,27 @@ export default function Settings() {
   const [loadingCustomerGroups, setLoadingCustomerGroups] = useState(false);
   const [savingCustomerGroup, setSavingCustomerGroup] = useState(false);
   
+  // Define types for stores and mappings
+  type Store = {
+    id: number;
+    name: string;
+    url: string;
+    active: boolean;
+    createdAt: string;
+  };
+  
+  type StoreMapping = {
+    id: number;
+    storeId: number;
+    customerGroupId: number;
+    opencartCustomerGroupId: number;
+    opencartCustomerGroupName: string;
+    createdAt: string;
+  };
+  
   // Store customer group mapping state
-  const [stores, setStores] = useState([]);
-  const [storeMappings, setStoreMappings] = useState({});
+  const [stores, setStores] = useState<Store[]>([]);
+  const [storeMappings, setStoreMappings] = useState<Record<number, StoreMapping[]>>({});
   const [loadingStoreMappings, setLoadingStoreMappings] = useState(false);
   const [savingStoreMapping, setSavingStoreMapping] = useState(false);
   
@@ -76,6 +103,58 @@ export default function Settings() {
     
     fetchSessionTimeout();
   }, []);
+  
+  // Fetch customer groups
+  useEffect(() => {
+    const fetchCustomerGroups = async () => {
+      setLoadingCustomerGroups(true);
+      try {
+        const response = await fetch('/api/customer-groups');
+        if (response.ok) {
+          const data = await response.json();
+          setCustomerGroups(data);
+        } else {
+          toast({
+            title: "Error fetching customer groups",
+            description: "Failed to load customer groups. Please try again.",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching customer groups:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while loading customer groups.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoadingCustomerGroups(false);
+      }
+    };
+    
+    if (user?.role === 'admin') {
+      fetchCustomerGroups();
+    }
+  }, [user, toast]);
+  
+  // Fetch stores
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const response = await fetch('/api/stores');
+        if (response.ok) {
+          const data = await response.json();
+          setStores(data);
+        }
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+      }
+    };
+    
+    if (user?.role === 'admin') {
+      fetchStores();
+    }
+  }, [user]);
 
   const handleSaveGeneral = () => {
     setSaving(true);
@@ -169,6 +248,141 @@ export default function Settings() {
   };
   
   // Handle color theme change
+  // Create/update customer group
+  const handleSaveCustomerGroup = async () => {
+    setSavingCustomerGroup(true);
+    try {
+      let response;
+      let group = selectedCustomerGroup ? { ...selectedCustomerGroup, ...newCustomerGroup } : newCustomerGroup;
+      
+      // Validate input
+      if (!group.name) {
+        toast({
+          title: "Validation Error",
+          description: "Internal name is required",
+          variant: "destructive"
+        });
+        setSavingCustomerGroup(false);
+        return;
+      }
+      
+      if (!group.displayName) {
+        toast({
+          title: "Validation Error",
+          description: "Display name is required",
+          variant: "destructive"
+        });
+        setSavingCustomerGroup(false);
+        return;
+      }
+      
+      if (isNaN(group.discountPercentage) || group.discountPercentage < 0 || group.discountPercentage > 100) {
+        toast({
+          title: "Validation Error",
+          description: "Discount percentage must be between 0 and 100",
+          variant: "destructive"
+        });
+        setSavingCustomerGroup(false);
+        return;
+      }
+      
+      if (selectedCustomerGroup) {
+        // Update existing group
+        response = await fetch(`/api/customer-groups/${selectedCustomerGroup.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(group)
+        });
+      } else {
+        // Create new group
+        response = await fetch('/api/customer-groups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(group)
+        });
+      }
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update the list of customer groups
+        setCustomerGroups(groups => {
+          if (selectedCustomerGroup) {
+            return groups.map(g => g.id === data.id ? data : g);
+          } else {
+            return [...groups, data];
+          }
+        });
+        
+        // Reset form
+        setSelectedCustomerGroup(null);
+        setNewCustomerGroup({
+          name: "",
+          displayName: "",
+          discountPercentage: 0
+        });
+        
+        toast({
+          title: "Success",
+          description: selectedCustomerGroup ? "Customer group updated successfully" : "Customer group created successfully",
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.message || "Failed to save customer group",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error saving customer group:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving the customer group",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingCustomerGroup(false);
+    }
+  };
+  
+  // Delete customer group
+  const handleDeleteCustomerGroup = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this customer group? This may affect pricing calculations.")) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/customer-groups/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        // Update the list of customer groups
+        setCustomerGroups(groups => groups.filter(g => g.id !== id));
+        
+        toast({
+          title: "Success",
+          description: "Customer group deleted successfully"
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.message || "Failed to delete customer group",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting customer group:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting the customer group",
+        variant: "destructive"
+      });
+    }
+  };
+  
   const handleColorThemeChange = (value: string) => {
     const newColorTheme = value as "default" | "green";
     setColorTheme(newColorTheme);

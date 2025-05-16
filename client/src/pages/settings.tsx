@@ -41,6 +41,23 @@ export default function Settings() {
   const [sessionTimeout, setSessionTimeout] = useState(15); // Default 15 minutes
   const [loadingSessionTimeout, setLoadingSessionTimeout] = useState(false);
   
+  // Customer group state
+  const [customerGroups, setCustomerGroups] = useState([]);
+  const [selectedCustomerGroup, setSelectedCustomerGroup] = useState(null);
+  const [newCustomerGroup, setNewCustomerGroup] = useState({
+    name: "",
+    displayName: "",
+    discountPercentage: 0
+  });
+  const [loadingCustomerGroups, setLoadingCustomerGroups] = useState(false);
+  const [savingCustomerGroup, setSavingCustomerGroup] = useState(false);
+  
+  // Store customer group mapping state
+  const [stores, setStores] = useState([]);
+  const [storeMappings, setStoreMappings] = useState({});
+  const [loadingStoreMappings, setLoadingStoreMappings] = useState(false);
+  const [savingStoreMapping, setSavingStoreMapping] = useState(false);
+  
   // Fetch session timeout setting on component mount
   useEffect(() => {
     const fetchSessionTimeout = async () => {
@@ -175,11 +192,12 @@ export default function Settings() {
       <PageHeader title="Settings" subtitle="Manage application preferences and account settings" />
       
       <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 mb-8">
+        <TabsList className="grid grid-cols-5 mb-8">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="customer-groups">Customer Groups</TabsTrigger>
         </TabsList>
         
         <TabsContent value="general">
@@ -505,6 +523,166 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="customer-groups">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Customer Group Management Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{selectedCustomerGroup ? "Edit Customer Group" : "Add Customer Group"}</CardTitle>
+                <CardDescription>
+                  {selectedCustomerGroup 
+                    ? "Modify this customer group's settings" 
+                    : "Create a new customer group with a discount rate"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Internal Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., depot, namibiaSD"
+                      value={newCustomerGroup.name}
+                      onChange={(e) => setNewCustomerGroup({
+                        ...newCustomerGroup,
+                        name: e.target.value
+                      })}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Unique internal name used in the system (no spaces, lowercase)
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input
+                      id="displayName"
+                      placeholder="e.g., Depots, Namibia SD"
+                      value={newCustomerGroup.displayName}
+                      onChange={(e) => setNewCustomerGroup({
+                        ...newCustomerGroup,
+                        displayName: e.target.value
+                      })}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Human-readable name shown in the interface
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="discountPercentage">Discount Percentage</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="discountPercentage"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={newCustomerGroup.discountPercentage}
+                        onChange={(e) => setNewCustomerGroup({
+                          ...newCustomerGroup,
+                          discountPercentage: parseFloat(e.target.value)
+                        })}
+                      />
+                      <span>%</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Percentage discount applied to regular prices (0-100)
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between space-x-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSelectedCustomerGroup(null);
+                        setNewCustomerGroup({
+                          name: "",
+                          displayName: "",
+                          discountPercentage: 0
+                        });
+                      }}
+                    >
+                      Clear
+                    </Button>
+                    <Button 
+                      onClick={handleSaveCustomerGroup}
+                      disabled={savingCustomerGroup}
+                    >
+                      {savingCustomerGroup ? "Saving..." : (selectedCustomerGroup ? "Update" : "Create")}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Customer Groups List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Customer Groups</CardTitle>
+                <CardDescription>
+                  Manage discount groups for different customer categories
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingCustomerGroups ? (
+                  <div className="text-center py-4">
+                    <CircleDotDashed className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Loading customer groups...</p>
+                  </div>
+                ) : customerGroups.length === 0 ? (
+                  <div className="text-center py-6 border rounded-md bg-muted/10">
+                    <p className="text-muted-foreground mb-2">No customer groups found</p>
+                    <p className="text-sm text-muted-foreground">
+                      Create your first customer group to start configuring discounts
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {customerGroups.map((group) => (
+                      <div key={group.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-accent/10 transition-colors">
+                        <div>
+                          <h3 className="font-medium">{group.displayName}</h3>
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-muted px-1 py-0.5 rounded">{group.name}</code>
+                            <span className="text-sm font-medium text-green-600">
+                              {group.discountPercentage}% discount
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCustomerGroup(group);
+                              setNewCustomerGroup({
+                                name: group.name,
+                                displayName: group.displayName,
+                                discountPercentage: group.discountPercentage
+                              });
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                            onClick={() => handleDeleteCustomerGroup(group.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

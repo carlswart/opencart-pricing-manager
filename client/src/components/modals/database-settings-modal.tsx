@@ -16,6 +16,7 @@ import { Store as StoreIcon, Plus, CircleCheck, Trash, Database, Pencil, Users }
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomerGroupMappingModal } from "./customer-group-mapping-modal";
 // OpenCart customer group interface
 interface OpenCartCustomerGroup {
   customer_group_id: number;
@@ -48,15 +49,8 @@ export function DatabaseSettingsModal({
   const [showNewConnectionForm, setShowNewConnectionForm] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("connection");
   
-  // Customer group mapping state
+  // Customer group mapping state 
   const [retrievedCustomerGroups, setRetrievedCustomerGroups] = useState<OpenCartCustomerGroup[]>([]);
-  const [customerGroupMappings, setCustomerGroupMappings] = useState<{
-    [opencartGroupId: number]: {
-      assignDiscount: boolean;
-      discountPercentage: number;
-      name: string;
-    }
-  }>({});
   const [showCustomerGroupMappingModal, setShowCustomerGroupMappingModal] = useState(false);
   const [selectedStoreForMapping, setSelectedStoreForMapping] = useState<{id: number; name: string} | null>(null);
   

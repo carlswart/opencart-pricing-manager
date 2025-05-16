@@ -10,206 +10,237 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CustomerGroup } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-import { Users, Check, AlertCircle } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 
-// OpenCart customer group interface
-export interface OpenCartCustomerGroup {
+// OpenCart customer group interface from database
+interface OpenCartCustomerGroup {
   customer_group_id: number;
   name: string;
   description?: string;
   sort_order?: number;
 }
 
+interface CustomerGroupMapping {
+  id: number;
+  assignDiscount: boolean;
+  discountPercentage: number;
+}
+
 interface CustomerGroupMappingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  storeId: number;
-  storeName: string;
+  storeInfo: { id: number; name: string } | null;
   customerGroups: OpenCartCustomerGroup[];
-  onSave: (mappings: Record<number, { assignDiscount: boolean; discountPercentage: number }>) => void;
-  onCancel: () => void;
+  onSave: (mappings: Record<number, { assignDiscount: boolean; discountPercentage: number }>) => Promise<void>;
 }
 
 export function CustomerGroupMappingModal({
   open,
   onOpenChange,
-  storeId,
-  storeName,
+  storeInfo,
   customerGroups,
   onSave,
-  onCancel
 }: CustomerGroupMappingModalProps) {
   const { toast } = useToast();
-  const [mappings, setMappings] = useState<Record<number, {
-    assignDiscount: boolean;
-    discountPercentage: number;
-    name: string;
-  }>>({});
+  const [mappings, setMappings] = useState<Record<number, CustomerGroupMapping>>({});
+  const [saving, setSaving] = useState(false);
 
-  // Initialize mappings with default values, auto-detecting special groups
+  // Initialize mappings whenever customer groups change
   useEffect(() => {
-    if (open && customerGroups.length > 0) {
-      const initialMappings: Record<number, {
-        assignDiscount: boolean;
-        discountPercentage: number;
-        name: string;
-      }> = {};
+    const initialMappings: Record<number, CustomerGroupMapping> = {};
+    
+    customerGroups.forEach((group) => {
+      // Auto-detect discounts based on group names
+      let discountPercentage = 0;
+      let assignDiscount = false;
       
-      customerGroups.forEach(group => {
-        const lowerName = group.name.toLowerCase();
-        
-        // Auto-detect common customer groups and suggest discount percentages
-        let assignDiscount = false;
-        let discountPercentage = 0;
-        
-        if (lowerName.includes('depot')) {
-          assignDiscount = true;
-          discountPercentage = 18;
-        } else if (lowerName.includes('namibia') || lowerName.includes('sd')) {
-          assignDiscount = true;
-          discountPercentage = 26;
-        }
-        
-        initialMappings[group.customer_group_id] = {
-          assignDiscount,
-          discountPercentage,
-          name: group.name
-        };
-      });
+      const lowerName = group.name.toLowerCase();
       
-      setMappings(initialMappings);
+      // Auto-assign discounts based on name patterns
+      if (lowerName.includes('depot')) {
+        discountPercentage = 18;
+        assignDiscount = true;
+      } else if (lowerName.includes('namibia')) {
+        discountPercentage = 26;
+        assignDiscount = true;
+      }
+      
+      initialMappings[group.customer_group_id] = {
+        id: group.customer_group_id,
+        assignDiscount,
+        discountPercentage
+      };
+    });
+    
+    setMappings(initialMappings);
+    
+    // Try to fetch existing mappings from the API
+    if (storeInfo) {
+      apiRequest("GET", `/api/customer-groups/store-mappings/${storeInfo.id}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && Array.isArray(data)) {
+            const existingMappings: Record<number, CustomerGroupMapping> = { ...initialMappings };
+            
+            data.forEach((mapping: any) => {
+              if (existingMappings[mapping.customer_group_id]) {
+                existingMappings[mapping.customer_group_id] = {
+                  id: mapping.customer_group_id,
+                  assignDiscount: mapping.assign_discount,
+                  discountPercentage: mapping.discount_percentage
+                };
+              }
+            });
+            
+            setMappings(existingMappings);
+          }
+        })
+        .catch(error => {
+          // If there are no mappings yet, the API might return a 404, which is fine
+          console.log("No existing mappings found, using defaults");
+        });
     }
-  }, [open, customerGroups]);
+  }, [customerGroups, storeInfo]);
 
-  const handleToggleDiscount = (groupId: number) => {
+  const handleAssignChange = (groupId: number, checked: boolean) => {
     setMappings(prev => ({
       ...prev,
       [groupId]: {
         ...prev[groupId],
-        assignDiscount: !prev[groupId].assignDiscount
+        assignDiscount: checked
       }
     }));
   };
 
   const handleDiscountChange = (groupId: number, value: string) => {
-    const discountPercentage = parseFloat(value);
-    if (isNaN(discountPercentage)) return;
+    const discountValue = parseFloat(value);
+    
+    if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
+      return;
+    }
     
     setMappings(prev => ({
       ...prev,
       [groupId]: {
         ...prev[groupId],
-        discountPercentage
+        discountPercentage: discountValue
       }
     }));
   };
 
-  const handleSave = () => {
-    onSave(mappings);
+  const handleSave = async () => {
+    if (!storeInfo) return;
+    
+    setSaving(true);
+    
+    try {
+      // Format mappings for the API
+      const mappingsForApi: Record<number, { assignDiscount: boolean; discountPercentage: number }> = {};
+      
+      Object.keys(mappings).forEach(key => {
+        const groupId = parseInt(key);
+        mappingsForApi[groupId] = {
+          assignDiscount: mappings[groupId].assignDiscount,
+          discountPercentage: mappings[groupId].discountPercentage
+        };
+      });
+      
+      await onSave(mappingsForApi);
+      
+      toast({
+        title: "Mappings saved",
+        description: `Customer group mappings for ${storeInfo.name} have been saved.`
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to save mappings",
+        description: error instanceof Error ? error.message : "An unknown error occurred"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl dark:bg-neutral-900 dark:border-neutral-700">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="flex items-center gap-2 dark:text-white">
-            <Users className="h-5 w-5 text-primary" />
-            Customer Group Mapping
-          </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground dark:text-neutral-400">
-            Map OpenCart customer groups from {storeName} to discount percentages
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Customer Group Mappings</DialogTitle>
+          <DialogDescription>
+            {storeInfo ? (
+              <>Map customer groups from <span className="font-semibold">{storeInfo.name}</span> to special price discounts</>
+            ) : (
+              "Configure customer group discount mappings"
+            )}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="my-2 p-3 bg-blue-50 border border-blue-100 rounded-md dark:bg-blue-900/20 dark:border-blue-800/50">
-          <p className="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>
-              When special pricing is calculated, each customer group with a discount assigned
-              will receive the specified percentage off the regular price. The system has auto-detected
-              some potential special pricing groups based on their names.
-            </span>
-          </p>
+        <div className="space-y-6 py-4">
+          <div className="text-sm text-muted-foreground mb-4">
+            <p>Customer groups from the OpenCart store are listed below. For each group, you can assign a discount percentage that will be applied when calculating special prices.</p>
+            <p className="mt-2">Common defaults: Depots (18%), Namibia SD (26%)</p>
+          </div>
+          
+          <div className="border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-muted">
+                  <th className="px-4 py-2 text-left font-medium">Group Name</th>
+                  <th className="px-4 py-2 text-center font-medium">Apply Discount</th>
+                  <th className="px-4 py-2 text-center font-medium">Discount Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {customerGroups.map((group) => (
+                  <tr key={group.customer_group_id} className="border-t">
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{group.name}</div>
+                      {group.description && (
+                        <div className="text-sm text-muted-foreground">{group.description}</div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Switch
+                        checked={mappings[group.customer_group_id]?.assignDiscount || false}
+                        onCheckedChange={(checked) => handleAssignChange(group.customer_group_id, checked)}
+                      />
+                    </td>
+                    <td className="px-4 py-3 w-48">
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          disabled={!mappings[group.customer_group_id]?.assignDiscount}
+                          value={mappings[group.customer_group_id]?.discountPercentage || 0}
+                          onChange={(e) => handleDiscountChange(group.customer_group_id, e.target.value)}
+                          className="w-24"
+                        />
+                        <span>%</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
         
-        <Table>
-          <TableCaption>Customer groups found in {storeName}'s OpenCart database</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[250px]">OpenCart Group</TableHead>
-              <TableHead className="w-[150px] text-center">Apply Discount</TableHead>
-              <TableHead>Discount Percentage</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {customerGroups.map((group) => (
-              <TableRow key={group.customer_group_id}>
-                <TableCell className="font-medium">
-                  {group.name}
-                  {group.description && (
-                    <p className="text-xs text-muted-foreground truncate max-w-[240px]">{group.description}</p>
-                  )}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Switch
-                    checked={mappings[group.customer_group_id]?.assignDiscount || false}
-                    onCheckedChange={() => handleToggleDiscount(group.customer_group_id)}
-                  />
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.5"
-                      disabled={!mappings[group.customer_group_id]?.assignDiscount}
-                      value={mappings[group.customer_group_id]?.discountPercentage || 0}
-                      onChange={(e) => handleDiscountChange(group.customer_group_id, e.target.value)}
-                      className="w-20"
-                    />
-                    <span className="text-sm text-muted-foreground">%</span>
-                    
-                    {mappings[group.customer_group_id]?.assignDiscount && 
-                     mappings[group.customer_group_id]?.discountPercentage > 0 && (
-                      <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        Active
-                      </Badge>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        
-        <DialogFooter className="flex justify-between mt-4">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700"
-          >
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleSave}
-            className="bg-primary text-white hover:bg-primary/90 dark:bg-primary"
-          >
-            Save Mappings
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save Mappings"}
           </Button>
         </DialogFooter>
       </DialogContent>

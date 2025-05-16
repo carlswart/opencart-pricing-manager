@@ -46,7 +46,6 @@ export function DatabaseSettingsModal({
   const { toast } = useToast();
   const [editedConnections, setEditedConnections] = useState<DbConnection[]>([]);
   const [newConnection, setNewConnection] = useState<Partial<DbConnection> & { store_id: number } | null>(null);
-  const [selectedStoreForNewConnection, setSelectedStoreForNewConnection] = useState<number | null>(null);
   const [showNewConnectionForm, setShowNewConnectionForm] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("connection");
   

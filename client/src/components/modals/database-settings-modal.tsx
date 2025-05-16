@@ -10,11 +10,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Store, DbConnection } from "@shared/schema";
+import { Store, DbConnection, CustomerGroup } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Store as StoreIcon, Plus, CircleCheck, Trash, Database, Pencil } from "lucide-react";
+import { Store as StoreIcon, Plus, CircleCheck, Trash, Database, Pencil, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// OpenCart customer group interface
+interface OpenCartCustomerGroup {
+  customer_group_id: number;
+  name: string;
+  description?: string;
+  sort_order?: number;
+}
 
 interface DatabaseSettingsModalProps {
   open: boolean;

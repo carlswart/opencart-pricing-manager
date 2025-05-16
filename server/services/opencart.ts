@@ -31,10 +31,19 @@ interface ProductUpdateResult {
  * @param connection Database connection details
  * @returns Object containing success status and security information
  */
+export interface OpenCartCustomerGroup {
+  customer_group_id: number;
+  name: string;
+  description?: string;
+  sort_order?: number;
+  date_added?: string;
+}
+
 export async function testConnection(connection: DbConnection): Promise<{
   success: boolean;
   isSecure?: boolean;
   securityDetails?: any;
+  customerGroups?: OpenCartCustomerGroup[];
   error?: string;
 }> {
   let pool: Pool | null = null;
@@ -50,13 +59,31 @@ export async function testConnection(connection: DbConnection): Promise<{
       // Connection successful, check if it's secure
       const securityInfo = await DbConnector.checkConnectionSecurity(pool);
       
+      // Fetch customer groups from the OpenCart database
+      let customerGroups: OpenCartCustomerGroup[] = [];
+      try {
+        const prefix = connection.prefix || 'oc_';
+        customerGroups = await DbConnector.executeQuery(
+          pool, 
+          `SELECT customer_group_id, name, description, sort_order 
+          FROM ${prefix}customer_group_description 
+          WHERE language_id = 1`
+        ) as OpenCartCustomerGroup[];
+        
+        console.log(`Retrieved ${customerGroups.length} customer groups from store ${connection.storeId}`);
+      } catch (error) {
+        console.error(`Error fetching customer groups from store ${connection.storeId}:`, error);
+        // We don't fail the entire connection test if retrieving customer groups fails
+      }
+      
       return {
         success: true,
         isSecure: securityInfo.isSecure,
         securityDetails: {
           cipher: securityInfo.cipher,
           version: securityInfo.version
-        }
+        },
+        customerGroups
       };
     } else {
       return {

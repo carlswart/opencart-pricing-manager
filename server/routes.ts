@@ -335,7 +335,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true, 
           message: "Connection successful",
           isSecure: result.isSecure,
-          securityDetails: result.securityDetails
+          securityDetails: result.securityDetails,
+          customerGroups: result.customerGroups || []
         });
       } else {
         res.status(400).json({ 

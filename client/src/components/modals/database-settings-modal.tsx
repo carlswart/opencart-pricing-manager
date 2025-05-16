@@ -16,14 +16,7 @@ import { Store as StoreIcon, Plus, CircleCheck, Trash, Database, Pencil, Users }
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// OpenCart customer group interface
-interface OpenCartCustomerGroup {
-  customer_group_id: number;
-  name: string;
-  description?: string;
-  sort_order?: number;
-}
+import { CustomerGroupMappingModal, OpenCartCustomerGroup } from "./customer-group-mapping-modal";
 
 interface DatabaseSettingsModalProps {
   open: boolean;
@@ -56,6 +49,8 @@ export function DatabaseSettingsModal({
       name: string;
     }
   }>({});
+  const [showCustomerGroupMappingModal, setShowCustomerGroupMappingModal] = useState(false);
+  const [selectedStoreForMapping, setSelectedStoreForMapping] = useState<{id: number; name: string} | null>(null);
   
   // Reset form data when modal opens
   useEffect(() => {
@@ -185,8 +180,9 @@ export function DatabaseSettingsModal({
 
   const handleTestConnection = async (connectionId: number) => {
     const connection = editedConnections.find((conn) => conn.id === connectionId);
+    const store = stores.find(s => s.id === connection?.store_id);
     
-    if (!connection) return;
+    if (!connection || !store) return;
     
     try {
       const response = await apiRequest(
@@ -208,6 +204,16 @@ export function DatabaseSettingsModal({
         title: "Connection successful",
         description: `Successfully connected to the database${securityMessage}`,
       });
+      
+      // If customer groups were detected, save them and show the mapping modal
+      if (data.customerGroups && Array.isArray(data.customerGroups) && data.customerGroups.length > 0) {
+        setRetrievedCustomerGroups(data.customerGroups);
+        setSelectedStoreForMapping({
+          id: store.id,
+          name: store.name
+        });
+        setShowCustomerGroupMappingModal(true);
+      }
     } catch (error) {
       toast({
         variant: "destructive",

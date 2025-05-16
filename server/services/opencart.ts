@@ -70,9 +70,9 @@ export async function testConnection(connection: DbConnection): Promise<{
           WHERE language_id = 1`
         ) as OpenCartCustomerGroup[];
         
-        console.log(`Retrieved ${customerGroups.length} customer groups from store ${connection.store_id}`);
+        console.log(`Retrieved ${customerGroups.length} customer groups from store ${connection.storeId}`);
       } catch (error) {
-        console.error(`Error fetching customer groups from store ${connection.store_id}:`, error);
+        console.error(`Error fetching customer groups from store ${connection.storeId}:`, error);
         // We don't fail the entire connection test if retrieving customer groups fails
       }
       
@@ -92,7 +92,7 @@ export async function testConnection(connection: DbConnection): Promise<{
       };
     }
   } catch (error) {
-    console.error(`Connection test failed for store ${connection.store_id}:`, error);
+    console.error(`Connection test failed for store ${connection.storeId}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error"

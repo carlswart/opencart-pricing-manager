@@ -121,20 +121,48 @@ export async function findProductBySku(connection: DbConnection, sku: string): P
 }
 
 /**
- * Get customer group IDs for Depot and Warehouse
+ * Get customer group IDs from the mapping table
  * @param connection Database connection details
- * @returns Object with depot and warehouse group IDs
+ * @returns Object with customer group IDs mapped to their internal names
  */
-export async function getCustomerGroupIds(connection: DbConnection): Promise<{ depotGroupId: number, warehouseGroupId: number }> {
+export async function getCustomerGroupIds(connection: DbConnection): Promise<{ [key: string]: number }> {
   try {
-    // In a real implementation, this would query the OpenCart database
-    // to find the customer group IDs for Depot and Warehouse groups.
+    // Get mappings for this store
+    const mappings = await storage.getStoreCustomerGroupMappingsByStoreId(connection.storeId);
     
-    // For now, return fixed IDs
-    return {
-      depotGroupId: 2, // Assume Depot is customer group ID 2
-      warehouseGroupId: 3, // Assume Warehouse is customer group ID 3
-    };
+    if (mappings.length === 0) {
+      console.warn(`No customer group mappings found for store ${connection.storeId}, using default IDs`);
+      // Fallback to defaults if no mappings are found
+      return {
+        depot: 2, // Default Depot is customer group ID 2
+        namibiaSD: 3, // Default Namibia SD (formerly Warehouse) is customer group ID 3
+      };
+    }
+    
+    // Build a map of customer group names to their OpenCart group IDs
+    const result: { [key: string]: number } = {};
+    
+    for (const mapping of mappings) {
+      // Get the customer group information
+      const customerGroup = await storage.getCustomerGroupById(mapping.customerGroupId);
+      if (customerGroup) {
+        // Use the internal name (e.g., 'depot', 'namibiaSD') as the key
+        result[customerGroup.name] = mapping.opencartCustomerGroupId;
+      }
+    }
+    
+    // Ensure we have the required mappings
+    if (!result.depot) {
+      console.warn(`Depot customer group mapping not found for store ${connection.storeId}, using default ID 2`);
+      result.depot = 2;
+    }
+    
+    if (!result.namibiaSD) {
+      console.warn(`Namibia SD customer group mapping not found for store ${connection.storeId}, using default ID 3`);
+      result.namibiaSD = 3;
+    }
+    
+    return result;
   } catch (error) {
     console.error(`Error getting customer group IDs for store ${connection.storeId}:`, error);
     throw new Error(`Failed to get customer group IDs: ${error instanceof Error ? error.message : "Unknown error"}`);

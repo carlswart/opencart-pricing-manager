@@ -1,23 +1,35 @@
 /**
- * Calculates the Depot price with 18% discount, rounded to the nearest whole number
+ * Calculates the discounted price based on discount percentage, rounded to the nearest whole number
  * @param regularPrice The regular price
- * @returns The calculated depot price
+ * @param discountPercentage The discount percentage (e.g., 18 for 18%)
+ * @returns The calculated discounted price
  */
-export function calculateDepotPrice(regularPrice: number): number {
-  const discountMultiplier = 0.82; // 100% - 18%
-  const depotPrice = regularPrice * discountMultiplier;
-  return Math.round(depotPrice);
+export function calculateDiscountedPrice(regularPrice: number, discountPercentage: number): number {
+  const discountMultiplier = (100 - discountPercentage) / 100;
+  const discountedPrice = regularPrice * discountMultiplier;
+  return Math.round(discountedPrice);
 }
 
 /**
- * Calculates the Warehouse price with 26% discount, rounded to the nearest whole number
+ * Calculates the Depot price with configurable discount, rounded to the nearest whole number
+ * Defaults to 18% if no discount percentage is provided
  * @param regularPrice The regular price
+ * @param discountPercentage Optional discount percentage (defaults to 18%)
+ * @returns The calculated depot price
+ */
+export function calculateDepotPrice(regularPrice: number, discountPercentage: number = 18): number {
+  return calculateDiscountedPrice(regularPrice, discountPercentage);
+}
+
+/**
+ * Calculates the Namibia SD (previously Warehouse) price with configurable discount, rounded to the nearest whole number
+ * Defaults to 26% if no discount percentage is provided
+ * @param regularPrice The regular price
+ * @param discountPercentage Optional discount percentage (defaults to 26%)
  * @returns The calculated warehouse price
  */
-export function calculateWarehousePrice(regularPrice: number): number {
-  const discountMultiplier = 0.74; // 100% - 26%
-  const warehousePrice = regularPrice * discountMultiplier;
-  return Math.round(warehousePrice);
+export function calculateWarehousePrice(regularPrice: number, discountPercentage: number = 26): number {
+  return calculateDiscountedPrice(regularPrice, discountPercentage);
 }
 
 /**

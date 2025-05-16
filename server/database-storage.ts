@@ -397,6 +397,144 @@ export class DatabaseStorage implements IStorage {
       return null;
     }
   }
+
+  // Customer group methods
+  async getAllCustomerGroups(): Promise<CustomerGroup[]> {
+    try {
+      return await db.select().from(customerGroups).orderBy(customerGroups.name);
+    } catch (error) {
+      console.error('Error getting all customer groups:', error);
+      return [];
+    }
+  }
+
+  async getCustomerGroupById(id: number): Promise<CustomerGroup | undefined> {
+    try {
+      const [group] = await db.select().from(customerGroups).where(eq(customerGroups.id, id));
+      return group;
+    } catch (error) {
+      console.error(`Error getting customer group ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getCustomerGroupByName(name: string): Promise<CustomerGroup | undefined> {
+    try {
+      const [group] = await db.select().from(customerGroups).where(eq(customerGroups.name, name));
+      return group;
+    } catch (error) {
+      console.error(`Error getting customer group by name ${name}:`, error);
+      return undefined;
+    }
+  }
+
+  async createCustomerGroup(group: InsertCustomerGroup): Promise<CustomerGroup> {
+    try {
+      const now = new Date().toISOString();
+      const [newGroup] = await db.insert(customerGroups).values({
+        ...group,
+        createdAt: now
+      }).returning();
+      return newGroup;
+    } catch (error) {
+      console.error('Error creating customer group:', error);
+      throw new Error(`Failed to create customer group: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }
+
+  async updateCustomerGroup(id: number, groupData: Partial<InsertCustomerGroup>): Promise<CustomerGroup | undefined> {
+    try {
+      const [updatedGroup] = await db.update(customerGroups)
+        .set(groupData)
+        .where(eq(customerGroups.id, id))
+        .returning();
+      return updatedGroup;
+    } catch (error) {
+      console.error(`Error updating customer group ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async deleteCustomerGroup(id: number): Promise<boolean> {
+    try {
+      await db.delete(customerGroups).where(eq(customerGroups.id, id));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting customer group ${id}:`, error);
+      return false;
+    }
+  }
+
+  // Store customer group mapping methods
+  async getAllStoreCustomerGroupMappings(): Promise<StoreCustomerGroupMapping[]> {
+    try {
+      return await db.select().from(storeCustomerGroupMappings);
+    } catch (error) {
+      console.error('Error getting all store customer group mappings:', error);
+      return [];
+    }
+  }
+
+  async getStoreCustomerGroupMappingsByStoreId(storeId: number): Promise<StoreCustomerGroupMapping[]> {
+    try {
+      return await db.select()
+        .from(storeCustomerGroupMappings)
+        .where(eq(storeCustomerGroupMappings.storeId, storeId))
+        .orderBy(storeCustomerGroupMappings.customerGroupId);
+    } catch (error) {
+      console.error(`Error getting store customer group mappings for store ${storeId}:`, error);
+      return [];
+    }
+  }
+
+  async getStoreCustomerGroupMappingById(id: number): Promise<StoreCustomerGroupMapping | undefined> {
+    try {
+      const [mapping] = await db.select()
+        .from(storeCustomerGroupMappings)
+        .where(eq(storeCustomerGroupMappings.id, id));
+      return mapping;
+    } catch (error) {
+      console.error(`Error getting store customer group mapping ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async createStoreCustomerGroupMapping(mapping: InsertStoreCustomerGroupMapping): Promise<StoreCustomerGroupMapping> {
+    try {
+      const now = new Date().toISOString();
+      const [newMapping] = await db.insert(storeCustomerGroupMappings).values({
+        ...mapping,
+        createdAt: now
+      }).returning();
+      return newMapping;
+    } catch (error) {
+      console.error('Error creating store customer group mapping:', error);
+      throw new Error(`Failed to create store customer group mapping: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }
+
+  async updateStoreCustomerGroupMapping(id: number, mappingData: Partial<InsertStoreCustomerGroupMapping>): Promise<StoreCustomerGroupMapping | undefined> {
+    try {
+      const [updatedMapping] = await db.update(storeCustomerGroupMappings)
+        .set(mappingData)
+        .where(eq(storeCustomerGroupMappings.id, id))
+        .returning();
+      return updatedMapping;
+    } catch (error) {
+      console.error(`Error updating store customer group mapping ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async deleteStoreCustomerGroupMapping(id: number): Promise<boolean> {
+    try {
+      await db.delete(storeCustomerGroupMappings).where(eq(storeCustomerGroupMappings.id, id));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting store customer group mapping ${id}:`, error);
+      return false;
+    }
+  }
 }
 
 // Export an instance of the database storage

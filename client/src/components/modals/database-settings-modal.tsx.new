@@ -59,22 +59,13 @@ export function DatabaseSettingsModal({
   useEffect(() => {
     if (open) {
       // Make a deep copy of connections to avoid modifying the original
-      setEditedConnections(JSON.parse(JSON.stringify(connections || [])));
-      
-      // If a specific store is selected for configuration
-      if (selectedStoreId) {
-        const connection = connections.find(c => c.store_id === selectedStoreId);
-        if (connection) {
-          setNewConnection({
-            ...connection,
-            store_id: connection.store_id
-          });
-          setSelectedStoreForNewConnection(connection.store_id);
-          setShowNewConnectionForm(true);
-        }
-      }
+      setEditedConnections(JSON.parse(JSON.stringify(connections)));
+      setNewConnection(null);
+      setSelectedStoreForNewConnection(null);
+      setShowNewConnectionForm(false);
+      setActiveTab("connection");
     }
-  }, [open, connections, selectedStoreId]);
+  }, [open, connections]);
   
   const handleConnectionFieldChange = (connectionId: number, field: keyof DbConnection, value: string) => {
     setEditedConnections(prev => 

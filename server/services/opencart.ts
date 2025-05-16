@@ -70,7 +70,7 @@ export async function testConnection(connection: DbConnection): Promise<{
           WHERE language_id = 1`
         ) as OpenCartCustomerGroup[];
         
-        console.log(`Retrieved ${customerGroups.length} customer groups from store ${connection.storeId}`);
+        console.log(`Retrieved ${customerGroups.length} customer groups from store ${connection.store_id}`);
       } catch (error) {
         console.error(`Error fetching customer groups from store ${connection.storeId}:`, error);
         // We don't fail the entire connection test if retrieving customer groups fails

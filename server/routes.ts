@@ -597,10 +597,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customer group routes
+  app.get("/api/customer-groups", authenticate, async (req, res) => {
+    try {
+      const customerGroups = await storage.getAllCustomerGroups();
+      res.json(customerGroups);
+    } catch (error) {
+      console.error("Error fetching customer groups:", error);
+      res.status(500).json({ message: "Failed to fetch customer groups" });
+    }
+  });
+  
+  // Get customer group mappings for a specific store
+  app.get("/api/customer-groups/store-mappings/:storeId", authenticate, async (req, res) => {
+    try {
+      const storeId = parseInt(req.params.storeId);
+      const mappings = await storage.getStoreCustomerGroupMappingsByStoreId(storeId);
+      
+      if (!mappings || mappings.length === 0) {
+        // No mappings found, but return 200 with empty array instead of 404
+        return res.json([]);
+      }
+      
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error fetching customer group mappings:", error);
+      res.status(500).json({ message: "Failed to fetch customer group mappings" });
+    }
+  });
+  
+  // Save customer group mappings for a specific store
+  app.post("/api/customer-groups/store-mappings/:storeId", authenticate, adminOnly, async (req, res) => {
+    try {
+      const storeId = parseInt(req.params.storeId);
+      const { mappings } = req.body;
+      
+      if (!mappings || typeof mappings !== 'object') {
+        return res.status(400).json({ message: "Invalid mappings data" });
+      }
+      
+      // Delete existing mappings for this store
+      const existingMappings = await storage.getStoreCustomerGroupMappingsByStoreId(storeId);
+      for (const mapping of existingMappings) {
+        await storage.deleteStoreCustomerGroupMapping(mapping.id);
+      }
+      
+      // Create new mappings
+      const savedMappings = [];
+      for (const [customerGroupIdStr, mappingData] of Object.entries(mappings)) {
+        const customerGroupId = parseInt(customerGroupIdStr);
+        const { assignDiscount, discountPercentage } = mappingData as { 
+          assignDiscount: boolean; 
+          discountPercentage: number 
+        };
+        
+        // Only create mappings for groups that have discounts assigned
+        if (assignDiscount) {
+          const newMapping = await storage.createStoreCustomerGroupMapping({
+            store_id: storeId,
+            customer_group_id: customerGroupId,
+            assign_discount: assignDiscount,
+            discount_percentage: discountPercentage
+          });
+          
+          savedMappings.push(newMapping);
+        }
+      }
+      
+      res.status(201).json(savedMappings);
+    } catch (error) {
+      console.error("Error saving customer group mappings:", error);
+      res.status(500).json({ message: "Failed to save customer group mappings" });
+    }
+  });
+  
   const httpServer = createServer(app);
   
-  // Customer group management routes
-  app.get("/api/customer-groups", authenticate, async (req, res) => {
+  // Other api routes
+  app.get("/api/customer-groups-management", authenticate, async (req, res) => {
     try {
       const groups = await storage.getAllCustomerGroups();
       res.json(groups);

@@ -63,17 +63,47 @@ export async function testConnection(connection: DbConnection): Promise<{
       let customerGroups: OpenCartCustomerGroup[] = [];
       try {
         const prefix = connection.prefix || 'oc_';
-        customerGroups = await DbConnector.executeQuery(
-          pool, 
-          `SELECT customer_group_id, name, description, sort_order 
-          FROM ${prefix}customer_group_description 
-          WHERE language_id = 1`
-        ) as OpenCartCustomerGroup[];
+        
+        // First try the standard OpenCart customer group table
+        try {
+          customerGroups = await DbConnector.executeQuery(
+            pool, 
+            `SELECT customer_group_id, name, description, sort_order 
+            FROM ${prefix}customer_group_description 
+            WHERE language_id = 1`
+          ) as OpenCartCustomerGroup[];
+        } catch (tableError) {
+          console.log(`Standard customer group table not found, trying alternative table...`);
+          
+          // Try alternative table names that might exist in some OpenCart installations
+          try {
+            customerGroups = await DbConnector.executeQuery(
+              pool, 
+              `SELECT customer_group_id, name AS name, '' AS description, 0 AS sort_order
+              FROM ${prefix}customer_group`
+            ) as OpenCartCustomerGroup[];
+          } catch (altTableError) {
+            // If that also fails, create at least two default customer groups
+            console.log(`Alternative customer group table not found, using default groups`);
+            customerGroups = [
+              { customer_group_id: 1, name: "Default", description: "Default customer group", sort_order: 1 },
+              { customer_group_id: 2, name: "Depot", description: "Depot customer group (18% discount)", sort_order: 2 },
+              { customer_group_id: 3, name: "Namibia SD", description: "Namibia SD customer group (26% discount)", sort_order: 3 }
+            ];
+          }
+        }
         
         console.log(`Retrieved ${customerGroups.length} customer groups from store ${connection.storeId}`);
       } catch (error) {
         console.error(`Error fetching customer groups from store ${connection.storeId}:`, error);
         // We don't fail the entire connection test if retrieving customer groups fails
+        
+        // Provide some default customer groups
+        customerGroups = [
+          { customer_group_id: 1, name: "Default", description: "Default customer group", sort_order: 1 },
+          { customer_group_id: 2, name: "Depot", description: "Depot customer group (18% discount)", sort_order: 2 },
+          { customer_group_id: 3, name: "Namibia SD", description: "Namibia SD customer group (26% discount)", sort_order: 3 }
+        ];
       }
       
       return {

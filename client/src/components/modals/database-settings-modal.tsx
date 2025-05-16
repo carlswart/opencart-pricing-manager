@@ -424,7 +424,7 @@ export function DatabaseSettingsModal({
                               setSelectedStoreForNewConnection(storeId);
                               setNewConnection({
                                 ...newConnection,
-                                storeId: storeId
+                                store_id: storeId
                               } as any);
                             }}
                           >
@@ -432,7 +432,7 @@ export function DatabaseSettingsModal({
                             {stores
                               .filter(store => {
                                 // Filter out stores that already have connections unless it's the currently selected store
-                                const hasConnection = connections.some(c => c.storeId === store.id);
+                                const hasConnection = connections.some(c => c.store_id === store.id);
                                 return !hasConnection || (selectedStoreId && store.id === selectedStoreId);
                               })
                               .map(store => (

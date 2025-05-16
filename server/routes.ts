@@ -625,6 +625,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get customer group" });
     }
   });
+  
+  // Customer group mappings
+  app.get("/api/customer-groups/mappings", authenticate, async (req, res) => {
+    try {
+      const mappings = await storage.getAllStoreCustomerGroupMappings();
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error getting customer group mappings:", error);
+      res.status(500).json({ message: "Failed to get customer group mappings" });
+    }
+  });
+  
+  app.get("/api/customer-groups/mappings/store/:storeId", authenticate, async (req, res) => {
+    try {
+      const storeId = parseInt(req.params.storeId);
+      const mappings = await storage.getStoreCustomerGroupMappingsByStoreId(storeId);
+      res.json(mappings);
+    } catch (error) {
+      console.error(`Error getting customer group mappings for store ${req.params.storeId}:`, error);
+      res.status(500).json({ message: "Failed to get customer group mappings" });
+    }
+  });
+  
+  app.post("/api/customer-groups/mappings", adminOnly, async (req, res) => {
+    try {
+      const mapping = req.body;
+      const result = await storage.createStoreCustomerGroupMapping(mapping);
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error creating customer group mapping:", error);
+      res.status(500).json({ message: "Failed to create customer group mapping" });
+    }
+  });
 
   app.post("/api/customer-groups", adminOnly, async (req, res) => {
     try {
@@ -641,6 +674,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating customer group:", error);
       res.status(500).json({ message: "Failed to create customer group" });
+    }
+  });
+  
+  // Get or create a customer group with specific discount percentage
+  app.post("/api/customer-groups/get-or-create", adminOnly, async (req, res) => {
+    try {
+      const { discountPercentage, name, displayName } = req.body;
+      
+      // First try to find a group with this exact discount percentage
+      const customerGroups = await storage.getAllCustomerGroups();
+      const existingGroup = customerGroups.find(g => 
+        Math.abs(g.discountPercentage - discountPercentage) < 0.01
+      );
+      
+      if (existingGroup) {
+        return res.json(existingGroup);
+      }
+      
+      // If not found, create a new group
+      const newGroup = await storage.createCustomerGroup({
+        name: name || `discount_${discountPercentage}`,
+        displayName: displayName || `${discountPercentage}% Discount`,
+        discountPercentage
+      });
+      
+      res.status(201).json(newGroup);
+    } catch (error) {
+      console.error("Error getting or creating customer group:", error);
+      res.status(500).json({ message: "Failed to get or create customer group" });
     }
   });
 

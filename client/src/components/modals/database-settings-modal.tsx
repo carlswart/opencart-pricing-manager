@@ -47,6 +47,15 @@ export function DatabaseSettingsModal({
   const [newConnection, setNewConnection] = useState<Partial<DbConnection> & { storeId: number } | null>(null);
   const [selectedStoreForNewConnection, setSelectedStoreForNewConnection] = useState<number | null>(null);
   const [showNewConnectionForm, setShowNewConnectionForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("connection");
+  const [retrievedCustomerGroups, setRetrievedCustomerGroups] = useState<OpenCartCustomerGroup[]>([]);
+  const [customerGroupMappings, setCustomerGroupMappings] = useState<{
+    [opencartGroupId: number]: {
+      assignDiscount: boolean;
+      discountPercentage: number;
+      name: string;
+    }
+  }>({});
   
   // Reset form data when modal opens
   useEffect(() => {
@@ -259,6 +268,43 @@ export function DatabaseSettingsModal({
         title: "Connection successful",
         description: `Successfully connected to the database${securityMessage}`,
       });
+      
+      // Check if customer groups were returned
+      if (data.customerGroups && data.customerGroups.length > 0) {
+        // Store the retrieved customer groups
+        setRetrievedCustomerGroups(data.customerGroups);
+        
+        // Initialize mappings with default values
+        const initialMappings: any = {};
+        data.customerGroups.forEach((group: OpenCartCustomerGroup) => {
+          initialMappings[group.customer_group_id] = {
+            assignDiscount: false,
+            discountPercentage: 0,
+            name: group.name
+          };
+          
+          // Auto-detect common customer groups and suggest discount percentages
+          if (group.name.toLowerCase().includes('depot')) {
+            initialMappings[group.customer_group_id].assignDiscount = true;
+            initialMappings[group.customer_group_id].discountPercentage = 18;
+          } else if (group.name.toLowerCase().includes('namibia') || 
+                    group.name.toLowerCase().includes('sd')) {
+            initialMappings[group.customer_group_id].assignDiscount = true;
+            initialMappings[group.customer_group_id].discountPercentage = 26;
+          }
+        });
+        
+        setCustomerGroupMappings(initialMappings);
+        
+        // Switch to customer groups tab
+        setActiveTab("customerGroups");
+        
+        // Show notification about found customer groups
+        toast({
+          title: "Customer Groups Retrieved",
+          description: `Found ${data.customerGroups.length} customer groups in this store. Please review and assign discount percentages.`,
+        });
+      }
     } catch (error) {
       toast({
         variant: "destructive",

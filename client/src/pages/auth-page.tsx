@@ -31,7 +31,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const { toast } = useToast();
   const [location, navigate] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation, registerMutation, serverRestarted } = useAuth();
 
   // Use an effect for redirection to avoid React hook rendering issues
   useEffect(() => {
@@ -39,7 +39,16 @@ export default function AuthPage() {
     if (user) {
       navigate("/");
     }
-  }, [user, navigate]);
+    
+    // Show notification if server has restarted
+    if (serverRestarted) {
+      toast({
+        title: "Session expired",
+        description: "The server has restarted. Please log in again to continue.",
+        variant: "destructive",
+      });
+    }
+  }, [user, navigate, serverRestarted, toast]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({

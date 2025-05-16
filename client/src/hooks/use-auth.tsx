@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import {
   useQuery,
   useMutation,
@@ -24,6 +24,24 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const [serverRestarted, setServerRestarted] = useState(false);
+  
+  // Function to handle server restart errors
+  const handleServerRestart = () => {
+    // Clear user data
+    queryClient.setQueryData(["/api/user"], null);
+    
+    // Set the server restarted flag
+    setServerRestarted(true);
+    
+    // Show a toast notification
+    toast({
+      title: "Session expired",
+      description: "The server has restarted. Please log in again.",
+      variant: "destructive",
+    });
+  };
+  
   const {
     data: user,
     error,
@@ -32,6 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
+  
+  // Handle errors including server restart detection
+  useEffect(() => {
+    if (error && (error as any).name === "ServerRestartError") {
+      handleServerRestart();
+    }
+  }, [error]);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
@@ -40,6 +65,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
+      
+      // Reset server restarted flag on successful login
+      if (serverRestarted) {
+        setServerRestarted(false);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -92,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        serverRestarted,
       }}
     >
       {children}

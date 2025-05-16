@@ -21,8 +21,8 @@ async function throwIfResNotOk(res: Response) {
       } else {
         errorText = await res.text() || res.statusText;
       }
-    } catch (e) {
-      if (e.name === "ServerRestartError") {
+    } catch (e: any) {
+      if (e && e.name === "ServerRestartError") {
         throw e;
       }
       // If JSON parsing fails, fall back to reading as text

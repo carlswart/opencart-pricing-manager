@@ -64,11 +64,11 @@ export async function testConnection(connection: DbConnection): Promise<{
       try {
         const prefix = connection.prefix || 'oc_';
         
-        // First try the standard OpenCart customer group table
+        // First try without sort_order (as your OpenCart installation might not have it)
         try {
           customerGroups = await DbConnector.executeQuery(
             pool, 
-            `SELECT customer_group_id, name, description, sort_order 
+            `SELECT customer_group_id, name, description, 0 AS sort_order
             FROM ${prefix}customer_group_description 
             WHERE language_id = 1`
           ) as OpenCartCustomerGroup[];

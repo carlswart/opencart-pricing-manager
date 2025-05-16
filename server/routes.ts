@@ -319,7 +319,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/database/connections", adminOnly, async (req, res) => {
     try {
       const connections = await storage.getAllDbConnections();
-      res.json(connections);
+      
+      // Transform snake_case to camelCase for frontend compatibility
+      const transformedConnections = connections.map(conn => ({
+        id: conn.id,
+        storeId: conn.store_id,
+        host: conn.host,
+        port: conn.port,
+        database: conn.database,
+        username: conn.username,
+        password: conn.password,
+        prefix: conn.prefix,
+        is_active: conn.is_active,
+        last_connected: conn.last_connected,
+        created_at: conn.created_at,
+        updated_at: conn.updated_at
+      }));
+      
+      res.json(transformedConnections);
     } catch (error) {
       console.error("Error fetching database connections:", error);
       res.status(500).json({ message: "Failed to fetch database connections" });

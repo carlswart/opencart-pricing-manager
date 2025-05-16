@@ -65,7 +65,7 @@ export function StoreConnectionModal({
         "/api/database/test-connection",
         {
           ...formData,
-          store_id: store.id
+          storeId: store.id
         }
       );
       
@@ -78,7 +78,7 @@ export function StoreConnectionModal({
           "/api/database/connections",
           {
             ...formData,
-            store_id: store.id
+            storeId: store.id
           }
         );
         

@@ -64,13 +64,24 @@ export function DatabaseSettingsModal({
       if (selectedStoreId) {
         const connection = connections.find(c => c.store_id === selectedStoreId);
         if (connection) {
+          // Edit existing connection
           setNewConnection({
             ...connection,
             store_id: connection.store_id
           });
-          setSelectedStoreForNewConnection(connection.store_id);
-          setShowNewConnectionForm(true);
+        } else {
+          // Create new connection with defaults for the selected store
+          setNewConnection({
+            store_id: selectedStoreId,
+            host: 'localhost',
+            port: '3306',
+            database: '',
+            username: '',
+            password: '',
+            prefix: 'oc_'
+          } as any);
         }
+        setShowNewConnectionForm(true);
       }
     }
   }, [open, connections, selectedStoreId]);
@@ -412,110 +423,88 @@ export function DatabaseSettingsModal({
                       </div>
                       
                       <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="store-select">Store</Label>
-                          <select
-                            id="store-select"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            value={selectedStoreForNewConnection || ""}
-                            onChange={(e) => {
-                              const storeId = parseInt(e.target.value);
-                              setSelectedStoreForNewConnection(storeId);
-                              setNewConnection({
-                                ...newConnection,
-                                store_id: storeId
-                              } as any);
-                            }}
-                          >
-                            <option value="" disabled>Select a store</option>
-                            {stores
-                              .filter(store => {
-                                // Filter out stores that already have connections unless it's the currently selected store
-                                const hasConnection = connections.some(c => c.store_id === store.id);
-                                return !hasConnection || (selectedStoreId && store.id === selectedStoreId);
-                              })
-                              .map(store => (
-                                <option key={store.id} value={store.id}>{store.name}</option>
-                              ))}
-                          </select>
+                        {selectedStoreId && (
+                          <div className="space-y-2">
+                            <Label htmlFor="selected-store">Store</Label>
+                            <div className="flex items-center h-10 px-3 rounded-md border bg-muted">
+                              <StoreIcon className="w-4 h-4 mr-2 text-muted-foreground" />
+                              {stores.find(s => s.id === selectedStoreId)?.name || 'Selected Store'}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="new-host">Host</Label>
+                            <Input
+                              id="new-host"
+                              value={newConnection?.host || ''}
+                              onChange={(e) => handleNewConnectionFieldChange('host', e.target.value)}
+                              placeholder="localhost"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-port">Port</Label>
+                            <Input
+                              id="new-port"
+                              value={newConnection?.port || ''}
+                              onChange={(e) => handleNewConnectionFieldChange('port', e.target.value)}
+                              placeholder="3306"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-database">Database</Label>
+                            <Input
+                              id="new-database"
+                              value={newConnection?.database || ''}
+                              onChange={(e) => handleNewConnectionFieldChange('database', e.target.value)}
+                              placeholder="opencart"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-username">Username</Label>
+                            <Input
+                              id="new-username"
+                              value={newConnection?.username || ''}
+                              onChange={(e) => handleNewConnectionFieldChange('username', e.target.value)}
+                              placeholder="root"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-password">Password</Label>
+                            <Input
+                              id="new-password"
+                              type="password"
+                              value={newConnection?.password || ''}
+                              onChange={(e) => handleNewConnectionFieldChange('password', e.target.value)}
+                              placeholder="********"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-prefix">Table Prefix</Label>
+                            <Input
+                              id="new-prefix"
+                              value={newConnection?.prefix || ''}
+                              onChange={(e) => handleNewConnectionFieldChange('prefix', e.target.value)}
+                              placeholder="oc_"
+                            />
+                          </div>
                         </div>
                         
-                        {selectedStoreForNewConnection && (
-                          <>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="new-host">Host</Label>
-                                <Input
-                                  id="new-host"
-                                  value={newConnection?.host || ''}
-                                  onChange={(e) => handleNewConnectionFieldChange('host', e.target.value)}
-                                  placeholder="localhost"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-port">Port</Label>
-                                <Input
-                                  id="new-port"
-                                  value={newConnection?.port || ''}
-                                  onChange={(e) => handleNewConnectionFieldChange('port', e.target.value)}
-                                  placeholder="3306"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-database">Database</Label>
-                                <Input
-                                  id="new-database"
-                                  value={newConnection?.database || ''}
-                                  onChange={(e) => handleNewConnectionFieldChange('database', e.target.value)}
-                                  placeholder="opencart"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-username">Username</Label>
-                                <Input
-                                  id="new-username"
-                                  value={newConnection?.username || ''}
-                                  onChange={(e) => handleNewConnectionFieldChange('username', e.target.value)}
-                                  placeholder="root"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-password">Password</Label>
-                                <Input
-                                  id="new-password"
-                                  type="password"
-                                  value={newConnection?.password || ''}
-                                  onChange={(e) => handleNewConnectionFieldChange('password', e.target.value)}
-                                  placeholder="********"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-prefix">Table Prefix</Label>
-                                <Input
-                                  id="new-prefix"
-                                  value={newConnection?.prefix || ''}
-                                  onChange={(e) => handleNewConnectionFieldChange('prefix', e.target.value)}
-                                  placeholder="oc_"
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="flex justify-end space-x-2 pt-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setShowNewConnectionForm(false);
-                                  setNewConnection(null);
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                              <Button onClick={handleCreateConnection}>
-                                Create Connection
-                              </Button>
-                            </div>
-                          </>
-                        )}
+                        <div className="flex justify-end space-x-2 pt-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setShowNewConnectionForm(false);
+                              setNewConnection(null);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button onClick={handleCreateConnection}>
+                            Create Connection
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}

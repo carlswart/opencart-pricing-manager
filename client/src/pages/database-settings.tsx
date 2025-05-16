@@ -4,7 +4,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus, StoreIcon, Trash } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { DatabaseSettingsModal } from "@/components/modals/database-settings-modal";
+import { StoreConnectionModal } from "@/components/store-connection-modal";
+import { CustomerGroupMappingModal } from "@/components/modals/customer-group-mapping-modal";
 import { Store, DbConnection } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -13,8 +14,10 @@ import { queryClient } from "@/lib/queryClient";
 
 export default function DatabaseSettings() {
   const { toast } = useToast();
-  const [dbSettingsModalOpen, setDbSettingsModalOpen] = useState(false);
-  const [selectedStore, setSelectedStore] = useState<number | null>(null);
+  const [connectionModalOpen, setConnectionModalOpen] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [showCustomerGroupModal, setShowCustomerGroupModal] = useState(false);
+  const [retrievedCustomerGroups, setRetrievedCustomerGroups] = useState<any[]>([]);
   
   // Fetch stores
   const { data: stores, isLoading: storesLoading } = useQuery<Store[]>({

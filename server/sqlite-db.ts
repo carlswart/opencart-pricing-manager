@@ -42,6 +42,30 @@ export async function initializeSchema() {
       let createTableSQL = '';
       
       switch (table) {
+        case 'customer_groups':
+          createTableSQL = `
+            CREATE TABLE customer_groups (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL UNIQUE,
+              display_name TEXT NOT NULL,
+              discount_percentage REAL NOT NULL,
+              created_at TEXT NOT NULL
+            )
+          `;
+          break;
+        case 'store_customer_group_mappings':
+          createTableSQL = `
+            CREATE TABLE store_customer_group_mappings (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              store_id INTEGER NOT NULL,
+              customer_group_id INTEGER NOT NULL,
+              opencart_customer_group_id INTEGER NOT NULL,
+              created_at TEXT NOT NULL,
+              FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
+              FOREIGN KEY (customer_group_id) REFERENCES customer_groups(id) ON DELETE CASCADE
+            )
+          `;
+          break;
         case 'users':
           createTableSQL = `
             CREATE TABLE users (

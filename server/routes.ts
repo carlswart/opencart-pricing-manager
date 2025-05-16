@@ -321,20 +321,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const connections = await storage.getAllDbConnections();
       
       // Transform snake_case to camelCase for frontend compatibility
-      const transformedConnections = connections.map(conn => ({
-        id: conn.id,
-        storeId: conn.store_id, // Critical field that was missing
-        host: conn.host,
-        port: conn.port,
-        database: conn.database,
-        username: conn.username,
-        password: conn.password,
-        prefix: conn.prefix || "oc_",
-        isActive: conn.is_active,
-        lastConnected: conn.last_connected,
-        createdAt: conn.created_at,
-        updatedAt: conn.updated_at
-      }));
+      // Fix the transformation to preserve storeId
+      const transformedConnections = connections.map(conn => {
+        // First check if this is already using the new format
+        if (conn.storeId !== undefined) {
+          return conn; // Already in the correct format
+        }
+        
+        // Convert from snake_case to camelCase
+        return {
+          id: conn.id,
+          storeId: conn.store_id, // Critical field that was missing
+          host: conn.host,
+          port: conn.port,
+          database: conn.database,
+          username: conn.username,
+          password: conn.password,
+          prefix: conn.prefix || "oc_",
+          isActive: conn.is_active,
+          lastConnected: conn.last_connected,
+          createdAt: conn.created_at,
+          updatedAt: conn.updated_at
+        };
+      });
       
       // Log the transformed connections for debugging
       console.log("Original connections:", JSON.stringify(connections));

@@ -116,7 +116,7 @@ export class DatabaseStorage implements IStorage {
     const [connection] = await db
       .select()
       .from(dbConnections)
-      .where(eq(dbConnections.storeId, storeId));
+      .where(eq(dbConnections.store_id, storeId));
     return connection;
   }
 

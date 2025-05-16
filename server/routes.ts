@@ -337,6 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       // Log the transformed connections for debugging
+      console.log("Original connections:", JSON.stringify(connections));
       console.log("Transformed connections:", JSON.stringify(transformedConnections));
       
       res.json(transformedConnections);
@@ -378,7 +379,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertDbConnectionSchema.parse(req.body);
       const connection = await storage.createDbConnection(validatedData);
-      res.status(201).json(connection);
+      
+      // Transform to consistent camelCase format for frontend
+      const transformedConnection = {
+        id: connection.id,
+        storeId: connection.store_id,
+        host: connection.host,
+        port: connection.port,
+        database: connection.database,
+        username: connection.username,
+        password: connection.password,
+        prefix: connection.prefix || "oc_",
+        isActive: connection.is_active,
+        lastConnected: connection.last_connected,
+        createdAt: connection.created_at,
+        updatedAt: connection.updated_at
+      };
+      
+      res.status(201).json(transformedConnection);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);

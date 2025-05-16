@@ -100,30 +100,58 @@ export function StoreConnectionModal({
       const testData = await testResponse.json();
       
       if (testData.success) {
-        // Create the connection if test was successful
-        const createResponse = await apiRequest(
-          "POST",
-          "/api/database/connections",
-          {
-            ...formData,
-            storeId: store.id
-          }
+        // Check if a connection already exists for this store
+        const existingConnection = connections?.find(
+          c => (c.storeId === store.id) || (c.store_id === store.id)
         );
         
-        await createResponse.json();
-        queryClient.invalidateQueries({ queryKey: ['/api/database/connections'] });
+        let responseData;
         
-        let securityMessage = "";
-        if (testData.isSecure) {
-          securityMessage = `\nSecure connection using ${testData.securityDetails.cipher}`;
+        if (existingConnection) {
+          // Update existing connection
+          console.log("Updating existing connection:", existingConnection.id);
+          const updateResponse = await apiRequest(
+            "PUT",
+            `/api/database/connections/${existingConnection.id}`,
+            {
+              ...formData,
+              storeId: store.id
+            }
+          );
+          responseData = await updateResponse.json();
+          
+          toast({
+            title: "Connection updated",
+            description: `Successfully updated connection to ${store.name} database`,
+          });
         } else {
-          securityMessage = "\nWarning: Connection is not encrypted";
+          // Create new connection
+          console.log("Creating new connection for store:", store.id);
+          const createResponse = await apiRequest(
+            "POST",
+            "/api/database/connections",
+            {
+              ...formData,
+              storeId: store.id
+            }
+          );
+          responseData = await createResponse.json();
+          
+          let securityMessage = "";
+          if (testData.isSecure) {
+            securityMessage = `\nSecure connection using ${testData.securityDetails.cipher}`;
+          } else {
+            securityMessage = "\nWarning: Connection is not encrypted";
+          }
+          
+          toast({
+            title: "Connection successful",
+            description: `Successfully connected to ${store.name} database${securityMessage}`,
+          });
         }
         
-        toast({
-          title: "Connection successful",
-          description: `Successfully connected to ${store.name} database${securityMessage}`,
-        });
+        // Refresh connections data
+        queryClient.invalidateQueries({ queryKey: ['/api/database/connections'] });
         
         if (onSuccess && testData.customerGroups?.length > 0) {
           onSuccess(testData.customerGroups);

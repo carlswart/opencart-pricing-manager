@@ -50,6 +50,42 @@ export default function DatabaseSettings() {
     }
   };
   
+  const handleTestConnection = async (connection: DbConnection, store: Store) => {
+    try {
+      const testResponse = await apiRequest(
+        "POST",
+        "/api/database/test-connection",
+        {
+          host: connection.host,
+          port: connection.port,
+          database: connection.database,
+          username: connection.username,
+          password: connection.password,
+          prefix: connection.prefix,
+          storeId: store.id
+        }
+      );
+      
+      const testData = await testResponse.json();
+      
+      if (testData.success && testData.customerGroups?.length > 0) {
+        handleCustomerGroupsReceived(testData.customerGroups);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Connection test failed",
+          description: testData.error || "Could not retrieve customer groups from database"
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Connection test failed",
+        description: error instanceof Error ? error.message : "Could not connect to database"
+      });
+    }
+  };
+  
   const handleAddStore = async () => {
     const storeName = window.prompt("Enter store name:");
     if (!storeName) return;

@@ -200,10 +200,21 @@ export default function DatabaseSettings() {
                           <div className="text-sm text-foreground">{connection?.prefix || "Not set"}</div>
                         </div>
                         
-                        {/* Display customer group mappings if connected */}
+                        {/* Simple button to manage customer group mappings */}
                         {connection && (
                           <div className="mt-4 pt-4 border-t border-border">
-                            <CustomerGroupMappingsList store={store} />
+                            <div className="text-sm font-medium mb-2">Customer Group Mappings</div>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => {
+                                setSelectedStore(store);
+                                handleTestConnection(connection, store);
+                              }}
+                              className="w-full"
+                            >
+                              Manage Customer Groups
+                            </Button>
                           </div>
                         )}
                         <div className="flex gap-2">

@@ -29,7 +29,9 @@ export async function initializeSchema() {
     'db_connections',
     'updates',
     'update_details',
-    'settings'
+    'settings',
+    'customer_groups',
+    'store_customer_group_mappings'
   ];
 
   for (const table of tables) {

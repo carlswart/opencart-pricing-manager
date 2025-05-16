@@ -1,10 +1,44 @@
 import { db, initializeSchema } from './sqlite-db';
 import { hash } from './auth-utils';
 import { users, stores, customerGroups } from '@shared/sqlite-schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Initialize the database with demo data if it doesn't exist
  */
+/**
+ * Initialize customer groups with default discount rates
+ */
+export async function initializeCustomerGroups() {
+  try {
+    // Check if customer groups already exist
+    const existingGroups = await db.select().from(customerGroups);
+    
+    if (existingGroups.length > 0) {
+      console.log("Customer groups already exist, skipping initialization");
+      return;
+    }
+    
+    // Create default customer groups with their respective discount rates
+    const defaultCustomerGroups = [
+      { name: 'depot', displayName: 'Depots', discountPercentage: 18 },
+      { name: 'namibiaSD', displayName: 'Namibia SD', discountPercentage: 26 }
+    ];
+    
+    for (const group of defaultCustomerGroups) {
+      await db.insert(customerGroups).values({
+        ...group,
+        createdAt: new Date().toISOString()
+      });
+    }
+    
+    console.log("Customer groups initialized successfully");
+  } catch (error) {
+    console.error("Error initializing customer groups:", error);
+    // Don't throw the error to allow the application to continue
+  }
+}
+
 export async function initializeDemoData() {
   try {
     // Initialize schema first
@@ -51,18 +85,7 @@ export async function initializeDemoData() {
       await db.insert(stores).values(store);
     }
     
-    // Create default customer groups with their respective discount rates
-    const defaultCustomerGroups = [
-      { name: 'depot', displayName: 'Depots', discountPercentage: 18 },
-      { name: 'namibiaSD', displayName: 'Namibia SD', discountPercentage: 26 }
-    ];
-    
-    for (const group of defaultCustomerGroups) {
-      await db.insert(customerGroups).values({
-        ...group,
-        createdAt: new Date().toISOString()
-      });
-    }
+    // Customer groups will be initialized separately
     
     console.log("Database initialized successfully");
   } catch (error) {

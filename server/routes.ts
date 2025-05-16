@@ -745,6 +745,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get customer group mappings" });
     }
   });
+  
+  // Save new customer group mappings (array format)
+  app.post("/api/customer-group-mappings", authenticate, async (req, res) => {
+    try {
+      // For array format of mappings from the new UI
+      const mappings = req.body;
+      
+      if (!Array.isArray(mappings) || mappings.length === 0) {
+        return res.status(400).json({ message: "Invalid mappings format, expected array" });
+      }
+      
+      // All mappings should be for the same store
+      const storeId = mappings[0].storeId;
+      if (!storeId) {
+        return res.status(400).json({ message: "Store ID is required" });
+      }
+      
+      console.log(`Processing ${mappings.length} customer group mappings for store ${storeId}`);
+      
+      // First delete existing mappings for this store
+      const existingMappings = await storage.getStoreCustomerGroupMappingsByStoreId(storeId);
+      for (const mapping of existingMappings) {
+        await storage.deleteStoreCustomerGroupMapping(mapping.id);
+      }
+      
+      // Create the new mappings
+      const savedMappings = [];
+      for (const mapping of mappings) {
+        if (!mapping.opencartCustomerGroupId || !mapping.customerGroupId) {
+          continue; // Skip invalid mappings
+        }
+        
+        const newMapping = await storage.createStoreCustomerGroupMapping({
+          storeId: storeId,
+          customerGroupId: mapping.customerGroupId,
+          opencartCustomerGroupId: mapping.opencartCustomerGroupId, 
+          opencartCustomerGroupName: mapping.opencartCustomerGroupName || "Unknown Group",
+          assignDiscount: true,
+          discountPercentage: 0
+        });
+        
+        savedMappings.push(newMapping);
+      }
+      
+      res.status(200).json(savedMappings);
+    } catch (error) {
+      console.error("Error saving customer group mappings:", error);
+      res.status(500).json({ message: "Failed to save customer group mappings" });
+    }
+  });
 
   app.get("/api/customer-groups-management", authenticate, async (req, res) => {
     try {

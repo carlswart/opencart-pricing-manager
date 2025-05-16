@@ -97,12 +97,17 @@ export function CustomerGroupMappingModal({
     
     setIsLoading(true);
     try {
-      const mappingsArray = Object.entries(mappings).map(([ocGroupId, appGroupId]) => ({
-        storeId: store.id,
-        opencartCustomerGroupId: parseInt(ocGroupId),
-        customerGroupId: appGroupId,
-        opencartCustomerGroupName: customerGroups.find(g => g.customer_group_id === parseInt(ocGroupId))?.name || ""
-      }));
+      // Filter out entries where appGroupId is null (None) before sending to the server
+      const mappingsArray = Object.entries(mappings)
+        .filter(([_, appGroupId]) => appGroupId !== null)
+        .map(([ocGroupId, appGroupId]) => ({
+          storeId: store.id,
+          opencartCustomerGroupId: parseInt(ocGroupId),
+          customerGroupId: appGroupId,
+          opencartCustomerGroupName: customerGroups.find(g => g.customer_group_id === parseInt(ocGroupId))?.name || ""
+        }));
+      
+      console.log("Saving mappings:", mappingsArray);
       
       const response = await apiRequest(
         "POST",

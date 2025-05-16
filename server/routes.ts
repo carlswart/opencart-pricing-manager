@@ -726,6 +726,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Other api routes
+  // Get customer group mappings for a specific store
+  app.get("/api/customer-group-mappings/store/:storeId", authenticate, async (req, res) => {
+    try {
+      const storeId = parseInt(req.params.storeId);
+      if (isNaN(storeId)) {
+        return res.status(400).json({ message: "Invalid store ID" });
+      }
+      
+      const mappings = await storage.getStoreCustomerGroupMappingsByStoreId(storeId);
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error getting customer group mappings:", error);
+      res.status(500).json({ message: "Failed to get customer group mappings" });
+    }
+  });
+
   app.get("/api/customer-groups-management", authenticate, async (req, res) => {
     try {
       const groups = await storage.getAllCustomerGroups();

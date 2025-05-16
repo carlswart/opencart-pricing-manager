@@ -6,6 +6,7 @@ import { Plus, StoreIcon, Trash } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { StoreConnectionModal } from "@/components/store-connection-modal";
 import { CustomerGroupMappingModal } from "@/components/modals/customer-group-mapping-modal";
+import { CustomerGroupMappingsList } from "@/components/customer-group-mappings-list";
 import { Store, DbConnection } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -198,6 +199,13 @@ export default function DatabaseSettings() {
                           <div className="text-sm text-muted-foreground">Prefix:</div>
                           <div className="text-sm text-foreground">{connection?.prefix || "Not set"}</div>
                         </div>
+                        
+                        {/* Display customer group mappings if connected */}
+                        {connection && (
+                          <div className="mt-4 pt-4 border-t border-border">
+                            <CustomerGroupMappingsList store={store} />
+                          </div>
+                        )}
                         <div className="flex gap-2">
                           <Button
                             variant="outline"

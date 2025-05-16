@@ -160,7 +160,8 @@ export default function DatabaseSettings() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stores?.map((store) => {
-                  const connection = connections?.find(c => c.storeId === store.id);
+                  // Handle both camelCase and snake_case field names for compatibility
+                  const connection = connections?.find(c => c.storeId === store.id || c.store_id === store.id);
                   return (
                     <div key={store.id} className="border border-border rounded-lg overflow-hidden">
                       <div className="bg-muted/50 p-4 flex items-center justify-between">

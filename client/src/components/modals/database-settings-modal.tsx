@@ -307,7 +307,7 @@ export function DatabaseSettingsModal({
                   {editedConnections.length > 0 ? (
                     <div className="space-y-4">
                       {editedConnections.map((connection) => {
-                        const store = stores.find(s => s.id === connection.store_id);
+                        const store = stores.find(s => s.id === (connection.storeId || connection.store_id));
                         
                         return (
                           <div key={connection.id} className="border rounded-lg p-4 space-y-4">

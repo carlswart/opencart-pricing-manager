@@ -20,6 +20,9 @@ sqlite.pragma('foreign_keys = ON');
 // Create Drizzle ORM instance with our schema
 export const db = drizzle(sqlite, { schema });
 
+// Export sqlite for direct access when needed
+export { sqlite };
+
 // Function to initialize the database schema
 export async function initializeSchema() {
   // Create tables if they don't exist
@@ -60,7 +63,10 @@ export async function initializeSchema() {
               store_id INTEGER NOT NULL,
               customer_group_id INTEGER NOT NULL,
               opencart_customer_group_id INTEGER NOT NULL,
-              created_at TEXT NOT NULL,
+              opencart_customer_group_name TEXT NOT NULL,
+              assign_discount INTEGER NOT NULL DEFAULT 1,
+              discount_percentage REAL NOT NULL DEFAULT 0,
+              created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
               FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE,
               FOREIGN KEY (customer_group_id) REFERENCES customer_groups(id) ON DELETE CASCADE
             )

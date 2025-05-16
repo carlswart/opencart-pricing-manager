@@ -51,12 +51,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
   
-  // Handle errors including server restart detection
+  // Handle errors including server restart detection and session timeout
   useEffect(() => {
-    if (error && (error as any).name === "ServerRestartError") {
-      handleServerRestart();
+    if (error) {
+      if ((error as any).name === "ServerRestartError") {
+        handleServerRestart();
+      } else if (error.message.includes("401")) {
+        // Session timeout or authentication error
+        if (user) {
+          // Only clear if we had a user before (indicating a session timeout)
+          queryClient.setQueryData(["/api/user"], null);
+          
+          toast({
+            title: "Session expired",
+            description: "Your session has timed out. Please log in again.",
+            variant: "destructive",
+          });
+        }
+      }
     }
-  }, [error]);
+  }, [error, user]);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {

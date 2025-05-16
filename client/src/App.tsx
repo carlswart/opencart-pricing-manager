@@ -5,6 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { Routes } from "./routes";
+import { SessionTimeoutDetector } from "@/components/session-timeout-detector";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <ThemeProvider>
           <TooltipProvider>
             <Routes />
+            <SessionTimeoutDetector />
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>

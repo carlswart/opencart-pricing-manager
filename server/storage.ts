@@ -55,6 +55,10 @@ export interface IStorage {
   createUpdateDetail(detail: InsertUpdateDetail): Promise<UpdateDetail>;
   deleteUpdateDetail(id: number): Promise<boolean>;
   
+  // Settings methods
+  getSetting(key: string): Promise<string | null>;
+  setSetting(key: string, value: string, description?: string): Promise<boolean>;
+  
   // Dashboard stats methods
   getTimeSaved(): Promise<number>;
   getTotalProducts(): Promise<number>;

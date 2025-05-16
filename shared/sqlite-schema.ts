@@ -105,5 +105,22 @@ export type InsertDbConnection = z.infer<typeof insertDbConnectionSchema>;
 export type Update = typeof updates.$inferSelect;
 export type InsertUpdate = z.infer<typeof insertUpdateSchema>;
 
+// Settings schema
+export const settings = sqliteTable('settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  createdAt: text('created_at').notNull().default(''),
+});
+
+export const insertSettingsSchema = createInsertSchema(settings).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type UpdateDetail = typeof updateDetails.$inferSelect;
 export type InsertUpdateDetail = z.infer<typeof insertUpdateDetailSchema>;
+
+export type Setting = typeof settings.$inferSelect;
+export type InsertSetting = z.infer<typeof insertSettingsSchema>;

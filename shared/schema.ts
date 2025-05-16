@@ -97,12 +97,47 @@ export const insertUpdateDetailSchema = createInsertSchema(updateDetails).omit({
   created_at: true,
 });
 
+// Customer group discount settings
+export const customerGroups = pgTable("customer_groups", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCustomerGroupSchema = createInsertSchema(customerGroups).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Store-specific customer group mappings
+export const storeCustomerGroupMappings = pgTable("store_customer_group_mappings", {
+  id: serial("id").primaryKey(),
+  storeId: integer("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  customerGroupId: integer("customer_group_id").notNull().references(() => customerGroups.id, { onDelete: "cascade" }),
+  opencartCustomerGroupId: integer("opencart_customer_group_id").notNull(),
+  opencartCustomerGroupName: text("opencart_customer_group_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertStoreCustomerGroupMappingSchema = createInsertSchema(storeCustomerGroupMappings).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type Store = typeof stores.$inferSelect;
 export type InsertStore = z.infer<typeof insertStoreSchema>;
+
+export type CustomerGroup = typeof customerGroups.$inferSelect;
+export type InsertCustomerGroup = z.infer<typeof insertCustomerGroupSchema>;
+
+export type StoreCustomerGroupMapping = typeof storeCustomerGroupMappings.$inferSelect;
+export type InsertStoreCustomerGroupMapping = z.infer<typeof insertStoreCustomerGroupMappingSchema>;
 
 export type DbConnection = typeof dbConnections.$inferSelect;
 export type InsertDbConnection = z.infer<typeof insertDbConnectionSchema>;

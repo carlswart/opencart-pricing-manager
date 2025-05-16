@@ -40,6 +40,9 @@ export function CustomerGroupMappingsList({ store }: CustomerGroupMappingsListPr
   // Fetch existing mappings for this store
   const { data: mappings, isLoading, isError } = useQuery<CustomerGroupMapping[]>({
     queryKey: [`/api/customer-group-mappings/store/${store.id}`],
+    // Using options to handle errors instead of onError
+    retry: 1,
+    refetchOnWindowFocus: false
   });
   
   // Fetch local customer groups
@@ -118,8 +121,22 @@ export function CustomerGroupMappingsList({ store }: CustomerGroupMappingsListPr
   }
   
   if (isError) {
-    return <div className="flex justify-center p-4 text-red-500">Error loading mappings</div>;
+    return (
+      <div className="flex justify-center flex-col items-center p-4">
+        <div className="text-red-500 mb-2">Error loading mappings</div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refreshCustomerGroups}
+        >
+          Configure Customer Groups
+        </Button>
+      </div>
+    );
   }
+  
+  // Initialize mappings as empty array if undefined
+  const groupMappings = mappings || [];
   
   return (
     <div className="space-y-4">

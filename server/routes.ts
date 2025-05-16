@@ -735,7 +735,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const mappings = await storage.getStoreCustomerGroupMappingsByStoreId(storeId);
-      res.json(mappings);
+      console.log(`Retrieved ${mappings.length} customer group mappings for store ${storeId}`);
+      
+      // Set proper content type and make sure we're sending JSON response
+      res.setHeader('Content-Type', 'application/json');
+      res.send(JSON.stringify(mappings));
     } catch (error) {
       console.error("Error getting customer group mappings:", error);
       res.status(500).json({ message: "Failed to get customer group mappings" });

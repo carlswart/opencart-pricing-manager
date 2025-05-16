@@ -72,7 +72,7 @@ export async function testConnection(connection: DbConnection): Promise<{
         
         console.log(`Retrieved ${customerGroups.length} customer groups from store ${connection.store_id}`);
       } catch (error) {
-        console.error(`Error fetching customer groups from store ${connection.storeId}:`, error);
+        console.error(`Error fetching customer groups from store ${connection.store_id}:`, error);
         // We don't fail the entire connection test if retrieving customer groups fails
       }
       
@@ -92,7 +92,7 @@ export async function testConnection(connection: DbConnection): Promise<{
       };
     }
   } catch (error) {
-    console.error(`Connection test failed for store ${connection.storeId}:`, error);
+    console.error(`Connection test failed for store ${connection.store_id}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error"

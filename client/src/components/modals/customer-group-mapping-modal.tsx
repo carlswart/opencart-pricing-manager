@@ -140,13 +140,17 @@ export function CustomerGroupMappingModal({
     
     try {
       // Format mappings for the API
-      const mappingsForApi: Record<number, { assignDiscount: boolean; discountPercentage: number }> = {};
+      const mappingsForApi: Record<number, { assignDiscount: boolean; discountPercentage: number; name: string }> = {};
       
       Object.keys(mappings).forEach(key => {
         const groupId = parseInt(key);
+        // Find the original customer group to get its name
+        const originalGroup = customerGroups.find(g => g.customer_group_id === groupId);
+        
         mappingsForApi[groupId] = {
           assignDiscount: mappings[groupId].assignDiscount,
-          discountPercentage: mappings[groupId].discountPercentage
+          discountPercentage: mappings[groupId].discountPercentage,
+          name: originalGroup?.name || 'Unknown Group'
         };
       });
       

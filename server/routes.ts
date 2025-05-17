@@ -444,6 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'processing',
         createdAt: new Date().toISOString(),
         completedAt: null,
+        filename: req.file?.originalname || "Uploaded file",
         totalItems: products.length * stores.length,  // Each product for each store is a separate update
         processedItems: 0,
         successCount: 0,

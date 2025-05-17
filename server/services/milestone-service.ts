@@ -115,10 +115,11 @@ export async function checkMilestones(totalMinutesSaved: number) {
       .from(milestones)
       .where(
         and(
-          lt(milestones.minutes, totalMinutesSaved),
           eq(milestones.achieved, false)
         )
-      );
+      )
+      // Filter after fetching to handle the numeric comparison properly
+      .then(results => results.filter(m => m.minutes < totalMinutesSaved));
       
     if (newlyAchievedMilestones.length > 0) {
       // Sort by minutes to get the highest achieved milestone
@@ -172,16 +173,16 @@ export async function getAchievedMilestones() {
 export async function getNextMilestone(totalMinutesSaved: number) {
   try {
     // Find the next milestone that hasn't been achieved
-    const [nextMilestone] = await db.select()
+    const unachievedMilestones = await db.select()
       .from(milestones)
       .where(
-        and(
-          eq(milestones.achieved, false),
-          lt(totalMinutesSaved, milestones.minutes)
-        )
+        eq(milestones.achieved, false)
       )
-      .orderBy(milestones.minutes)
-      .limit(1);
+      .orderBy(milestones.minutes);
+      
+    // Filter and sort to get the nearest unachieved milestone
+    const nextMilestones = unachievedMilestones.filter(m => m.minutes > totalMinutesSaved);
+    const [nextMilestone] = nextMilestones.length > 0 ? [nextMilestones[0]] : [];
     
     return nextMilestone || null;
   } catch (error) {

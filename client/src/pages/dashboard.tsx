@@ -5,6 +5,7 @@ import { Clock, RefreshCw, Store, ArrowUp, CheckCircle } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentUpdates, UpdateRecord } from "@/components/dashboard/recent-updates";
+import { MilestoneCard } from "@/components/dashboard/milestone-card";
 import { UploadModal } from "@/components/modals/upload-modal";
 import { DatabaseSettingsModal } from "@/components/modals/database-settings-modal";
 import { SpreadsheetPreviewModal } from "@/components/modals/spreadsheet-preview-modal";
@@ -248,12 +249,22 @@ export default function Dashboard() {
         />
       </div>
       
-      {/* Quick Actions */}
-      <QuickActions
-        onUploadClick={handleUploadClick}
-        onDatabaseClick={handleDatabaseClick}
-        onHistoryClick={handleHistoryClick}
-      />
+      {/* Two-column layout for milestones and quick actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* Milestone card - takes up 2/3 of the width on medium screens and larger */}
+        <div className="md:col-span-2">
+          <MilestoneCard />
+        </div>
+        
+        {/* Quick actions - takes up 1/3 of the width on medium screens and larger */}
+        <div className="md:col-span-1">
+          <QuickActions
+            onUploadClick={handleUploadClick}
+            onDatabaseClick={handleDatabaseClick}
+            onHistoryClick={handleHistoryClick}
+          />
+        </div>
+      </div>
       
       {/* Recent Updates */}
       <div className="mt-6">

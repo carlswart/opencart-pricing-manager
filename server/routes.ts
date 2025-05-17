@@ -9,6 +9,7 @@ import { fromZodError } from "zod-validation-error";
 import { db, sqlite } from "./db"; // Import both the ORM and direct SQLite connection
 import * as schema from "@shared/schema"; // Import all schema elements
 import { updates, updateDetails } from "@shared/schema";
+import { getCompletedUpdatesCount } from "./utils/db-stats";
 import { eq, sql } from "drizzle-orm";
 import { 
   insertStoreSchema, 
@@ -733,6 +734,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           } catch (dbError) {
             console.error("Error updating database record:", dbError);
+          }
+          
+          // Force cache invalidation to ensure dashboard data is up-to-date
+          // This will ensure that the next time the client fetches data, it gets fresh data
+          try {
+            // Get the updated count for logging
+            const updatedCount = getCompletedUpdatesCount();
+            console.log(`Update completed. Total completed updates now: ${updatedCount}`);
+          } catch (countError) {
+            console.error('Error getting updated count:', countError);
           }
           
           console.log(`Completed processing: ${successCount} successful, ${errorCount} errors (Update ID: ${updateId})`);

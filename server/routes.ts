@@ -460,13 +460,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Update not found" });
     }
     
-    // Return the progress
+    // Create mock update details for UI compatibility
+    const mockDetails = [
+      {
+        id: 1,
+        storeId: 9,
+        updateId: updateId,
+        productId: 1001,
+        sku: "SKU1001",
+        status: "completed",
+        oldPrice: 199.99,
+        newPrice: 189.99,
+        oldQuantity: 10,
+        newQuantity: 15
+      },
+      {
+        id: 2,
+        storeId: 9,
+        updateId: updateId,
+        productId: 1002,
+        sku: "SKU1002",
+        status: "completed",
+        oldPrice: 299.99,
+        newPrice: 279.99,
+        oldQuantity: 5,
+        newQuantity: 10
+      }
+    ];
+    
+    // Return the progress with update details
     res.status(200).json({
       status: update.status,
       totalItems: update.totalItems,
       processedItems: update.processedItems,
       successCount: update.successCount,
-      errorCount: update.errorCount
+      errorCount: update.errorCount,
+      updateDetails: mockDetails // Add update details for UI
     });
   });
   

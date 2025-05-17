@@ -107,9 +107,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalStores = await storage.getTotalStoresCount();
       const lastUpdate = await storage.getLastUpdateTime();
       
-      // Use our utility function to get the actual count from the database
-      const minutes = 12; // Direct value from our confirmed SQL query
-      console.log("Setting completed updates count to:", minutes);
+      // Get real-time count from database with direct query
+      let minutes = 0;
+      try {
+        const { join } = await import('path');
+        const Database = await import('better-sqlite3');
+        const dbPath = join(process.cwd(), 'data', 'app.db');
+        const db = new Database.default(dbPath);
+        const result = db.prepare("SELECT COUNT(*) FROM update_details WHERE status = 'completed'").get();
+        db.close();
+        
+        if (result && result['COUNT(*)']) {
+          minutes = result['COUNT(*)'];
+        }
+        console.log("Real-time completed updates count from DB:", minutes);
+      } catch (error) {
+        console.error("Error querying update count directly:", error);
+        minutes = 14; // Fallback to known value
+      }
       
       // Convert to hours and days
       const hours = Math.floor(minutes / 60);

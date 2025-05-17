@@ -3,7 +3,9 @@
  */
 
 import { storage } from '../database-storage';
-import { db, sqlite } from '../db';
+import { db } from '../db';
+import Database from 'better-sqlite3';
+import path from 'path';
 import { 
   User, 
   InsertUser, 
@@ -14,50 +16,69 @@ import {
   updateDetails 
 } from '@shared/schema';
 
+// Create direct connection to the database for raw SQL operations
+const dbPath = path.join(process.cwd(), 'data', 'app.db');
+const sqlite = new Database(dbPath);
+
 /**
  * Creates an update detail with correct snake_case field names
  */
 export async function createUpdateDetail(detail: any) {
   try {
-    // Bypass the storage interface and directly insert into the database
+    // Use raw SQL to directly insert the record, bypassing all ORMs to avoid any field mapping issues
     console.log("Creating update detail with values:", JSON.stringify(detail));
     
-    // Map directly to the database schema fields using the correct field names
-    // The updateDetails schema is expecting camelCase field names that match the db column names
-    const cleanDetail = {
-      update_id: detail.update_id,
-      store_id: detail.store_id,
-      sku: detail.sku,
-      product_id: detail.product_id || 0,
-      old_price: detail.old_regular_price || null,
-      new_price: detail.new_regular_price || null, 
-      old_quantity: detail.old_quantity || null,
-      new_quantity: detail.new_quantity || null,
-      status: detail.success ? 'success' : 'failed',
-      created_at: new Date().toISOString()
+    // Prepare the values for direct insertion with SQL
+    const status = detail.success ? 'success' : 'failed';
+    const product_id = detail.product_id || 0;
+    const old_price = detail.old_regular_price !== undefined ? detail.old_regular_price : null;
+    const new_price = detail.new_regular_price !== undefined ? detail.new_regular_price : null;
+    const old_quantity = detail.old_quantity !== undefined ? detail.old_quantity : null;
+    const new_quantity = detail.new_quantity !== undefined ? detail.new_quantity : null;
+    const created_at = new Date().toISOString();
+    
+    // Use direct SQL insertion
+    const stmt = sqlite.prepare(`
+      INSERT INTO update_details 
+      (update_id, store_id, product_id, sku, old_price, new_price, old_quantity, new_quantity, status, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    // Use the prepared statement to insert the data
+    const info = stmt.run(
+      detail.update_id,
+      detail.store_id,
+      product_id,
+      detail.sku,
+      old_price,
+      new_price,
+      old_quantity,
+      new_quantity,
+      status,
+      created_at
+    );
+    
+    // Get the inserted ID
+    const id = info.lastInsertRowid;
+    
+    // Fetch the inserted record
+    const selectStmt = sqlite.prepare("SELECT * FROM update_details WHERE id = ?");
+    const record = selectStmt.get(id);
+    
+    // Convert to camelCase for return
+    return {
+      id: record.id,
+      updateId: record.update_id,
+      storeId: record.store_id,
+      productId: record.product_id,
+      sku: record.sku,
+      oldPrice: record.old_price,
+      newPrice: record.new_price,
+      oldQuantity: record.old_quantity,
+      newQuantity: record.new_quantity,
+      status: record.status,
+      createdAt: record.created_at
     };
-    
-    console.log("Clean detail object:", JSON.stringify(cleanDetail));
-    
-    // Use a simpler approach with the Drizzle ORM
-    // Convert snake_case field names to match the schema
-    const dbValues = {
-      updateId: cleanDetail.update_id,
-      storeId: cleanDetail.store_id,
-      sku: cleanDetail.sku,
-      productId: cleanDetail.product_id || 0,
-      oldPrice: cleanDetail.old_price,
-      newPrice: cleanDetail.new_price,
-      oldQuantity: cleanDetail.old_quantity,
-      newQuantity: cleanDetail.new_quantity,
-      status: cleanDetail.status,
-      created_at: cleanDetail.created_at
-    };
-    
-    // Insert using Drizzle ORM with the properly named fields
-    const result = await db.insert(updateDetails).values(dbValues).returning();
-    
-    return result[0];
   } catch (error) {
     console.error("Error creating update detail:", error);
     throw error;

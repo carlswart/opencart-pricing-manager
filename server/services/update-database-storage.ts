@@ -3,7 +3,7 @@
  */
 
 import { storage } from '../database-storage';
-import { db } from '../db';
+import { db, sqlite } from '../db';
 import { 
   User, 
   InsertUser, 
@@ -39,36 +39,23 @@ export async function createUpdateDetail(detail: any) {
     
     console.log("Clean detail object:", JSON.stringify(cleanDetail));
     
-    // Use raw SQL to bypass the ORM schema validation
-    const query = `
-      INSERT INTO update_details (
-        update_id, store_id, product_id, sku, 
-        old_price, new_price, old_quantity, new_quantity, 
-        status, created_at
-      ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    // Use a simpler approach with the Drizzle ORM
+    // Convert snake_case field names to match the schema
+    const dbValues = {
+      updateId: cleanDetail.update_id,
+      storeId: cleanDetail.store_id,
+      sku: cleanDetail.sku,
+      productId: cleanDetail.product_id || 0,
+      oldPrice: cleanDetail.old_price,
+      newPrice: cleanDetail.new_price,
+      oldQuantity: cleanDetail.old_quantity,
+      newQuantity: cleanDetail.new_quantity,
+      status: cleanDetail.status,
+      created_at: cleanDetail.created_at
+    };
     
-    const stmt = db.run(
-      query, 
-      [
-        cleanDetail.update_id,
-        cleanDetail.store_id,
-        cleanDetail.product_id,
-        cleanDetail.sku,
-        cleanDetail.old_price,
-        cleanDetail.new_price,
-        cleanDetail.old_quantity,
-        cleanDetail.new_quantity,
-        cleanDetail.status,
-        cleanDetail.created_at
-      ]
-    );
-    
-    const lastId = stmt.lastInsertRowid;
-    
-    // Get the inserted record
-    const insertedRecord = db.get(`SELECT * FROM update_details WHERE id = ?`, [lastId]);
+    // Insert using Drizzle ORM with the properly named fields
+    const result = await db.insert(updateDetails).values(dbValues).returning();
     
     return result[0];
   } catch (error) {

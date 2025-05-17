@@ -410,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Spreadsheet processing routes
   app.post("/api/spreadsheet/preview", authenticate, SpreadsheetService.handlePreview);
-  // Direct implementation of spreadsheet processing to bypass database issues
+  // Implement actual database updates for spreadsheet processing
   app.post("/api/spreadsheet/process", authenticate, SpreadsheetService.handleProcess[0], async (req, res) => {
     try {
       const updateId = Date.now();
@@ -421,63 +421,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Parse options from request
       const options = req.body.options ? JSON.parse(req.body.options) : {};
-      const { stores = [] } = options;
+      const { stores = [], updateOptions = {} } = options;
+      
+      if (stores.length === 0) {
+        return res.status(400).json({ message: "No stores selected" });
+      }
       
       // Get actual spreadsheet data from the uploaded file
       const products = await SpreadsheetService.parseSpreadsheet(req.file.buffer, req.file.originalname);
       
-      // Log the actual products for debugging
+      // Log the products for debugging
       console.log(`Processing ${products.length} products from spreadsheet:`);
       const sampleProducts = products.slice(0, 3);
       sampleProducts.forEach(prod => {
         console.log(`  - SKU: ${prod.sku}, Price: ${prod.regularPrice}, Qty: ${prod.quantity || 'N/A'}`);
       });
       
-      // Create update details directly from spreadsheet data
-      const updateDetails = products.map((product, index) => {
-        // Generate realistic old prices (slightly different from new prices)
-        const oldPrice = Math.round((product.regularPrice * 1.05) * 100) / 100;
-        const oldQuantity = product.quantity ? Math.max(0, product.quantity - Math.floor(Math.random() * 5)) : 0;
-        
-        return {
-          id: index + 1,
-          storeId: stores[0] || 9, // Use first selected store
-          updateId: updateId,
-          productId: 1000 + index,
-          sku: product.sku,
-          status: "completed",
-          oldPrice: oldPrice,
-          newPrice: product.regularPrice,
-          oldQuantity: oldQuantity,
-          newQuantity: product.quantity || oldQuantity + 5
-        };
-      });
-      
-      // Save comprehensive update info to memory (no database required)
+      // Create update record and respond to client immediately
       const mockUpdate = {
         id: updateId,
-        status: 'completed',
+        status: 'processing',
         createdAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        totalItems: products.length,
-        processedItems: products.length,
-        successCount: products.length,
+        completedAt: null,
+        totalItems: products.length * stores.length,  // Each product for each store is a separate update
+        processedItems: 0,
+        successCount: 0,
         errorCount: 0,
-        updateDetails: updateDetails
+        updateDetails: []
       };
       
       // Store in global variable
       global.mockUpdates = global.mockUpdates || {};
       global.mockUpdates[updateId] = mockUpdate;
       
-      // Send success response immediately
+      // Respond to client immediately with the updateId
       res.status(200).json({
         updateId: updateId,
         success: true
       });
       
-      // Log success with details about the data
-      console.log(`Successfully processed upload: ${req.file.originalname} - ${products.length} products for ${stores.length} stores`);
+      // Process updates in background
+      (async () => {
+        try {
+          // Create array to store update details
+          const updateDetails = [];
+          let processedItems = 0;
+          let successCount = 0;
+          let errorCount = 0;
+          
+          // Loop through each selected store
+          for (const storeId of stores) {
+            // Get database connection for this store
+            const connection = await storage.getDbConnectionByStoreId(storeId);
+            if (!connection) {
+              console.error(`No database connection found for store ${storeId}`);
+              errorCount += products.length;
+              processedItems += products.length;
+              continue;
+            }
+            
+            // Get store name for logging
+            const store = await storage.getStoreById(storeId);
+            const storeName = store ? store.name : `Store ${storeId}`;
+            
+            console.log(`Updating prices for store: ${storeName} (ID: ${storeId})`);
+            
+            // Create backup before making changes (for potential restoration)
+            const skus = products.map(p => p.sku);
+            const backupName = await OpenCartService.createPriceBackup(connection, updateId, storeName, skus);
+            console.log(`Created backup: ${backupName || 'None'} for store ${storeName}`);
+            
+            // Process each product
+            for (const product of products) {
+              try {
+                // Find product in this store
+                const productId = await OpenCartService.findProductBySku(connection, product.sku);
+                
+                // Skip if product not found
+                if (!productId) {
+                  console.log(`Product with SKU ${product.sku} not found in store ${storeName}`);
+                  errorCount++;
+                  processedItems++;
+                  
+                  // Add to update details
+                  updateDetails.push({
+                    id: updateDetails.length + 1,
+                    storeId: storeId,
+                    updateId: updateId,
+                    productId: 0,
+                    sku: product.sku,
+                    status: "error",
+                    oldPrice: null,
+                    newPrice: product.regularPrice,
+                    oldQuantity: null,
+                    newQuantity: product.quantity || null
+                  });
+                  
+                  continue;
+                }
+                
+                // Prepare update parameters based on options
+                const updateParams: any = {};
+                if (updateOptions.updateRegularPrices) {
+                  updateParams.regularPrice = product.regularPrice;
+                }
+                if (updateOptions.updateDepotPrices && product.depotPrice) {
+                  updateParams.depotPrice = product.depotPrice;
+                }
+                if (updateOptions.updateWarehousePrices && product.warehousePrice) {
+                  updateParams.warehousePrice = product.warehousePrice;
+                }
+                if (updateOptions.updateQuantities && product.quantity !== undefined) {
+                  updateParams.quantity = product.quantity;
+                }
+                
+                // Skip if no updates needed
+                if (Object.keys(updateParams).length === 0) {
+                  console.log(`No updates needed for product ${product.sku} in store ${storeName}`);
+                  processedItems++;
+                  continue;
+                }
+                
+                // Update the product
+                const result = await OpenCartService.updateProduct(connection, product.sku, updateParams);
+                
+                // Add to update details
+                updateDetails.push({
+                  id: updateDetails.length + 1,
+                  storeId: storeId,
+                  updateId: updateId,
+                  productId: result.product_id,
+                  sku: product.sku,
+                  status: "completed",
+                  oldPrice: result.old_regular_price,
+                  newPrice: result.new_regular_price,
+                  oldQuantity: result.old_quantity,
+                  newQuantity: result.new_quantity
+                });
+                
+                successCount++;
+                processedItems++;
+                
+              } catch (productError) {
+                console.error(`Error updating product ${product.sku} in store ${storeName}:`, productError);
+                errorCount++;
+                processedItems++;
+                
+                // Add error to update details
+                updateDetails.push({
+                  id: updateDetails.length + 1,
+                  storeId: storeId,
+                  updateId: updateId,
+                  productId: 0,
+                  sku: product.sku,
+                  status: "error",
+                  oldPrice: null,
+                  newPrice: product.regularPrice,
+                  oldQuantity: null,
+                  newQuantity: product.quantity || null
+                });
+              }
+              
+              // Update progress
+              mockUpdate.processedItems = processedItems;
+              mockUpdate.successCount = successCount;
+              mockUpdate.errorCount = errorCount;
+              mockUpdate.updateDetails = updateDetails;
+              
+              // Add small delay to prevent overloading server
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+          }
+          
+          // Update final status
+          mockUpdate.status = errorCount > 0 ? 'partial' : 'completed';
+          mockUpdate.completedAt = new Date().toISOString();
+          
+          console.log(`Completed processing: ${successCount} successful, ${errorCount} errors`);
+          
+        } catch (processError) {
+          console.error('Error in background processing:', processError);
+          
+          mockUpdate.status = 'failed';
+          mockUpdate.completedAt = new Date().toISOString();
+          mockUpdate.errorCount = mockUpdate.totalItems - mockUpdate.successCount;
+        }
+      })();
+      
+      console.log(`Started processing upload: ${req.file.originalname} - ${products.length} products for ${stores.length} stores`);
+      
     } catch (error) {
       console.error('Error in spreadsheet processing:', error);
       res.status(500).json({ 

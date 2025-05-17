@@ -242,20 +242,76 @@ export async function getProductCurrentValues(
   warehousePrice: number;
   quantity: number;
 }> {
+  let pool = null;
+  
   try {
-    // In a real implementation, this would query the OpenCart database
-    // to get the current product pricing and quantity.
+    // Create a secure database connection
+    pool = await DbConnector.createSecureConnection(connection);
     
-    // For now, generate random values
+    // Use the configured table prefix
+    const prefix = connection.prefix || 'oc_';
+    
+    // Get customer group IDs for special pricing
+    const customerGroups = await getCustomerGroupIds(connection);
+    const depotGroupId = customerGroups.depot;
+    const namibiaGroupId = customerGroups.namibiaSD;
+    
+    // Get the regular price and quantity
+    const productQuery = `
+      SELECT price, quantity
+      FROM ${prefix}product
+      WHERE product_id = ?
+    `;
+    
+    const results = await DbConnector.executeQuery(pool, productQuery, [productId]);
+    
+    if (!Array.isArray(results) || results.length === 0) {
+      throw new Error(`Product with ID ${productId} not found`);
+    }
+    
+    // @ts-ignore - We know these properties exist
+    const regularPrice = results[0].price;
+    // @ts-ignore - We know these properties exist
+    const quantity = results[0].quantity;
+    
+    // Get depot price (customer group discount pricing)
+    const depotPriceQuery = `
+      SELECT price
+      FROM ${prefix}product_discount
+      WHERE product_id = ? AND customer_group_id = ?
+      LIMIT 1
+    `;
+    
+    const depotResults = await DbConnector.executeQuery(pool, depotPriceQuery, [productId, depotGroupId]);
+    // @ts-ignore - Handle if no special pricing exists
+    const depotPrice = Array.isArray(depotResults) && depotResults.length > 0 ? depotResults[0].price : regularPrice * 0.82; // 18% discount if no specific price
+    
+    // Get namibia (warehouse) price
+    const namibiaPriceQuery = `
+      SELECT price
+      FROM ${prefix}product_discount
+      WHERE product_id = ? AND customer_group_id = ?
+      LIMIT 1
+    `;
+    
+    const namibiaResults = await DbConnector.executeQuery(pool, namibiaPriceQuery, [productId, namibiaGroupId]);
+    // @ts-ignore - Handle if no special pricing exists
+    const namibiaPrice = Array.isArray(namibiaResults) && namibiaResults.length > 0 ? namibiaResults[0].price : regularPrice * 0.74; // 26% discount if no specific price
+    
     return {
-      regularPrice: Math.floor(Math.random() * 10000) / 100,
-      depotPrice: Math.floor(Math.random() * 8000) / 100,
-      warehousePrice: Math.floor(Math.random() * 7000) / 100,
-      quantity: Math.floor(Math.random() * 100),
+      regularPrice: parseFloat(regularPrice),
+      depotPrice: parseFloat(depotPrice),
+      warehousePrice: parseFloat(namibiaPrice),
+      quantity: parseInt(quantity),
     };
   } catch (error) {
     console.error(`Error getting current values for product ${productId} in store ${connection.storeId}:`, error);
     throw new Error(`Failed to get current product values: ${error instanceof Error ? error.message : "Unknown error"}`);
+  } finally {
+    // Ensure connection is closed even if there was an error
+    if (pool) {
+      await DbConnector.closeConnection(pool);
+    }
   }
 }
 
@@ -366,6 +422,8 @@ export async function updateProduct(
   sku: string,
   params: ProductUpdateParams
 ): Promise<ProductUpdateResult> {
+  let pool = null;
+  
   try {
     // Find the product by SKU
     const productId = await findProductBySku(connection, sku);
@@ -374,10 +432,18 @@ export async function updateProduct(
     }
     
     // Get customer group IDs
-    const { depotGroupId, warehouseGroupId } = await getCustomerGroupIds(connection);
+    const customerGroups = await getCustomerGroupIds(connection);
+    const depotGroupId = customerGroups.depot;
+    const namibiaGroupId = customerGroups.namibiaSD;
     
-    // Get current values
+    // Get current values before updating
     const currentValues = await getProductCurrentValues(connection, productId);
+    
+    // Create a secure database connection
+    pool = await DbConnector.createSecureConnection(connection);
+    
+    // Use the configured table prefix
+    const prefix = connection.prefix || 'oc_';
     
     // Prepare result object
     const result: ProductUpdateResult = {
@@ -392,51 +458,140 @@ export async function updateProduct(
       new_quantity: null,
     };
     
-    // In a real implementation, this would update the OpenCart database
-    // with the new pricing and quantity.
+    // Begin a transaction to ensure data consistency
+    const dbConnection = await DbConnector.beginTransaction(pool);
     
-    // Update regular price
-    if (params.regularPrice !== undefined) {
-      result.old_regular_price = currentValues.regularPrice;
-      result.new_regular_price = params.regularPrice;
+    try {
+      // Update regular price
+      if (params.regularPrice !== undefined) {
+        result.old_regular_price = currentValues.regularPrice;
+        result.new_regular_price = params.regularPrice;
+        
+        // Update the product price in OpenCart database
+        const updatePriceQuery = `
+          UPDATE ${prefix}product
+          SET price = ?, date_modified = NOW()
+          WHERE product_id = ?
+        `;
+        
+        await DbConnector.executeQuery(pool, updatePriceQuery, [params.regularPrice, productId]);
+        console.log(`Updated regular price for product ${productId} from ${result.old_regular_price} to ${result.new_regular_price}`);
+      }
       
-      // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating regular price for product ${productId} from ${result.old_regular_price} to ${result.new_regular_price}`);
-    }
-    
-    // Update depot price
-    if (params.depotPrice !== undefined) {
-      result.old_depot_price = currentValues.depotPrice;
-      result.new_depot_price = params.depotPrice;
+      // Update depot price (special customer group price)
+      if (params.depotPrice !== undefined) {
+        result.old_depot_price = currentValues.depotPrice;
+        result.new_depot_price = params.depotPrice;
+        
+        // Check if depot price discount exists
+        const checkDiscountQuery = `
+          SELECT price_id
+          FROM ${prefix}product_discount
+          WHERE product_id = ? AND customer_group_id = ?
+          LIMIT 1
+        `;
+        
+        const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, depotGroupId]);
+        
+        // If discount exists, update it, otherwise insert a new one
+        if (Array.isArray(discountExists) && discountExists.length > 0) {
+          // @ts-ignore - We know this property exists
+          const priceId = discountExists[0].price_id;
+          
+          const updateDiscountQuery = `
+            UPDATE ${prefix}product_discount
+            SET price = ?
+            WHERE price_id = ?
+          `;
+          
+          await DbConnector.executeQuery(pool, updateDiscountQuery, [params.depotPrice, priceId]);
+        } else {
+          // Insert new discount
+          const insertDiscountQuery = `
+            INSERT INTO ${prefix}product_discount 
+            (product_id, customer_group_id, quantity, priority, price, date_start, date_end)
+            VALUES (?, ?, 1, 1, ?, '0000-00-00', '0000-00-00')
+          `;
+          
+          await DbConnector.executeQuery(pool, insertDiscountQuery, [productId, depotGroupId, params.depotPrice]);
+        }
+        
+        console.log(`Updated depot price for product ${productId} from ${result.old_depot_price} to ${result.new_depot_price}`);
+      }
       
-      // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating depot price for product ${productId} from ${result.old_depot_price} to ${result.new_depot_price}`);
-    }
-    
-    // Update warehouse price
-    if (params.warehousePrice !== undefined) {
-      result.old_warehouse_price = currentValues.warehousePrice;
-      result.new_warehouse_price = params.warehousePrice;
+      // Update Namibia SD (warehouse) price
+      if (params.warehousePrice !== undefined) {
+        result.old_warehouse_price = currentValues.warehousePrice;
+        result.new_warehouse_price = params.warehousePrice;
+        
+        // Check if warehouse price discount exists
+        const checkDiscountQuery = `
+          SELECT price_id
+          FROM ${prefix}product_discount
+          WHERE product_id = ? AND customer_group_id = ?
+          LIMIT 1
+        `;
+        
+        const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, namibiaGroupId]);
+        
+        // If discount exists, update it, otherwise insert a new one
+        if (Array.isArray(discountExists) && discountExists.length > 0) {
+          // @ts-ignore - We know this property exists
+          const priceId = discountExists[0].price_id;
+          
+          const updateDiscountQuery = `
+            UPDATE ${prefix}product_discount
+            SET price = ?
+            WHERE price_id = ?
+          `;
+          
+          await DbConnector.executeQuery(pool, updateDiscountQuery, [params.warehousePrice, priceId]);
+        } else {
+          // Insert new discount
+          const insertDiscountQuery = `
+            INSERT INTO ${prefix}product_discount 
+            (product_id, customer_group_id, quantity, priority, price, date_start, date_end)
+            VALUES (?, ?, 1, 1, ?, '0000-00-00', '0000-00-00')
+          `;
+          
+          await DbConnector.executeQuery(pool, insertDiscountQuery, [productId, namibiaGroupId, params.warehousePrice]);
+        }
+        
+        console.log(`Updated warehouse price for product ${productId} from ${result.old_warehouse_price} to ${result.new_warehouse_price}`);
+      }
       
-      // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating warehouse price for product ${productId} from ${result.old_warehouse_price} to ${result.new_warehouse_price}`);
-    }
-    
-    // Update quantity
-    if (params.quantity !== undefined) {
-      result.old_quantity = currentValues.quantity;
-      result.new_quantity = params.quantity;
+      // Update quantity
+      if (params.quantity !== undefined) {
+        result.old_quantity = currentValues.quantity;
+        result.new_quantity = params.quantity;
+        
+        // Update the product quantity in OpenCart database
+        const updateQuantityQuery = `
+          UPDATE ${prefix}product
+          SET quantity = ?, date_modified = NOW()
+          WHERE product_id = ?
+        `;
+        
+        await DbConnector.executeQuery(pool, updateQuantityQuery, [params.quantity, productId]);
+        console.log(`Updated quantity for product ${productId} from ${result.old_quantity} to ${result.new_quantity}`);
+      }
       
-      // Simulate update (would be a SQL UPDATE in real implementation)
-      console.log(`Updating quantity for product ${productId} from ${result.old_quantity} to ${result.new_quantity}`);
+      // Commit the transaction
+      await DbConnector.commitTransaction(dbConnection);
+      
+      return result;
+    } catch (error) {
+      // Rollback the transaction if any queries failed
+      await DbConnector.rollbackTransaction(dbConnection);
+      throw error;
     }
-    
-    // Simulate update delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    return result;
   } catch (error) {
     console.error(`Error updating product ${sku} in store ${connection.storeId}:`, error);
     throw new Error(`Failed to update product: ${error instanceof Error ? error.message : "Unknown error"}`);
+  } finally {
+    // Ensure connection is closed even if there was an error
+    if (pool) {
+      await DbConnector.closeConnection(pool);
+    }
   }
 }

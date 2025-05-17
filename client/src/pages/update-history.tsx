@@ -58,16 +58,49 @@ export default function UpdateHistory() {
       
       const detailsData = await response.json();
       
-      // Ensure the data has the required structure for the preview modal
-      const formattedData = {
-        filename: detailsData.filename || "Unknown file",
-        recordCount: detailsData.recordCount || 0,
-        validationIssues: detailsData.validationIssues || [],
-        rows: detailsData.rows || [],
-        // Include backup information if available
-        backups: detailsData.backups || [],
-        hasBackups: detailsData.hasBackups || false
-      };
+      // Check if the response is already in the expected format (array of product details)
+      let formattedData;
+      
+      if (Array.isArray(detailsData)) {
+        // Find the update that we're viewing to get the filename
+        const update = updates?.find(u => u.id === id);
+        const filename = update?.filename || "Unknown file";
+        
+        // Format the data for the preview modal
+        formattedData = {
+          filename: filename,
+          recordCount: detailsData.length,
+          validationIssues: [],
+          // Map the product details to match what the preview modal expects
+          rows: detailsData.map(product => ({
+            sku: product.sku || product.model || "",
+            name: product.name || `Product ${product.sku || ""}`,
+            regularPrice: product.oldRegularPrice !== undefined ? product.oldRegularPrice : product.newRegularPrice,
+            depotPrice: product.oldDepotPrice !== undefined ? product.oldDepotPrice : product.newDepotPrice,
+            warehousePrice: product.oldWarehousePrice !== undefined ? product.oldWarehousePrice : product.newWarehousePrice,
+            quantity: product.oldQuantity !== undefined ? product.oldQuantity : product.newQuantity,
+            newRegularPrice: product.newRegularPrice,
+            newDepotPrice: product.newDepotPrice,
+            newWarehousePrice: product.newWarehousePrice,
+            newQuantity: product.newQuantity,
+            store: product.store || "Unknown Store",
+            status: product.status || "unknown"
+          })),
+          backups: [],
+          hasBackups: false
+        };
+      } else {
+        // Handle the object format response (original format)
+        formattedData = {
+          filename: detailsData.filename || "Unknown file",
+          recordCount: detailsData.recordCount || 0,
+          validationIssues: detailsData.validationIssues || [],
+          rows: detailsData.rows || [],
+          // Include backup information if available
+          backups: detailsData.backups || [],
+          hasBackups: detailsData.hasBackups || false
+        };
+      }
       
       setSelectedUpdate(id);
       setPreviewData(formattedData);

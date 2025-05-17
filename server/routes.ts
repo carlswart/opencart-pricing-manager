@@ -12,6 +12,21 @@ import { updates, updateDetails } from "@shared/schema";
 import { getCompletedUpdatesCount } from "./utils/db-stats";
 import { checkMilestones, getAchievedMilestones, getNextMilestone } from "./services/milestone-service";
 import { eq, sql } from "drizzle-orm";
+
+// Helper function to format time saved into a readable string
+function formatTimeSaved(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 8); // Assuming 8-hour workdays
+  
+  let formattedTime = `${minutes} min`;
+  if (hours > 0) {
+    formattedTime = `${hours} hr ${minutes % 60} min`;
+  }
+  if (days > 0) {
+    formattedTime = `${days} days ${hours % 8} hr`;
+  }
+  return formattedTime;
+}
 import { 
   insertStoreSchema, 
   insertUpdateSchema, 
@@ -145,6 +160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // We know the count is 10 from earlier, so we'll calculate percentage based on that
       const timeChangePercent = "+25%"; 
       
+      // Check for milestone achievements
+      const recentlyAchievedMilestone = await checkMilestones(minutes);
+      const nextMilestone = await getNextMilestone(minutes);
+      
       const response = {
         timeSaved: formattedTimeSaved,
         timeMinutes: minutes,
@@ -152,6 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         connectedStores: `${connectedStores}/${totalStores}`,
         lastUpdateTime: lastUpdate || "Never",
         timeChangePercent,
+        recentlyAchievedMilestone,
+        nextMilestone
       };
       
       console.log("Sending dashboard stats response:", response);
@@ -159,6 +180,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+  
+  // Milestone tracking endpoint
+  app.get("/api/milestones", authenticate, async (req, res) => {
+    try {
+      // Get the current time saved in minutes
+      const { join } = await import('path');
+      const Database = await import('better-sqlite3');
+      const dbPath = join(process.cwd(), 'data', 'app.db');
+      const db = new Database.default(dbPath);
+      const result = db.prepare("SELECT COUNT(*) FROM update_details WHERE status = 'completed'").get();
+      db.close();
+      
+      const minutesSaved = result && result['COUNT(*)'] ? result['COUNT(*)'] : 0;
+      
+      // Get all achieved milestones and the next one to reach
+      const achievedMilestones = await getAchievedMilestones();
+      const nextMilestone = await getNextMilestone(minutesSaved);
+      
+      res.json({
+        timeSaved: minutesSaved,
+        achievedMilestones,
+        nextMilestone,
+        formattedTimeSaved: formatTimeSaved(minutesSaved)
+      });
+    } catch (error) {
+      console.error("Error fetching milestone data:", error);
+      res.status(500).json({ message: "Failed to fetch milestone data" });
     }
   });
   

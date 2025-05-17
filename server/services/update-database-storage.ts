@@ -3,36 +3,42 @@
  */
 
 import { storage } from '../database-storage';
+import { db } from '../db';
 import { 
   User, 
   InsertUser, 
   InsertStore, 
   InsertDbConnection, 
   InsertUpdate, 
-  InsertUpdateDetail 
+  InsertUpdateDetail,
+  updateDetails 
 } from '@shared/schema';
 
 /**
  * Creates an update detail with correct snake_case field names
  */
 export async function createUpdateDetail(detail: any) {
-  // Create a clean object with only the fields needed by the database schema
-  const cleanDetail = {
-    updateId: detail.update_id,
-    storeId: detail.store_id,
-    sku: detail.sku,
-    productId: detail.product_id || 0,
-    oldPrice: detail.old_regular_price || null,
-    newPrice: detail.new_regular_price || null,
-    oldQuantity: detail.old_quantity || null,
-    newQuantity: detail.new_quantity || null,
-    status: detail.success ? 'success' : 'failed'
-  };
-  
   try {
-    return await storage.createUpdateDetail(cleanDetail);
+    // Bypass the storage interface and directly insert into the database
+    console.log("Creating update detail with values:", JSON.stringify(detail));
+    
+    // Map directly to the database schema fields
+    const result = await db.insert(updateDetails).values({
+      update_id: detail.update_id,
+      store_id: detail.store_id,
+      sku: detail.sku,
+      product_id: detail.product_id || 0,
+      old_price: detail.old_regular_price,
+      new_price: detail.new_regular_price,
+      old_quantity: detail.old_quantity,
+      new_quantity: detail.new_quantity,
+      status: detail.success ? 'success' : 'failed',
+      created_at: new Date().toISOString()
+    }).returning();
+    
+    return result[0];
   } catch (error) {
-    console.error("Error creating update detail:", error, "Detail:", cleanDetail);
+    console.error("Error creating update detail:", error);
     throw error;
   }
 }

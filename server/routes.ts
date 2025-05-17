@@ -676,15 +676,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Also store update details in the database
             for (const detail of updateDetails) {
               try {
-                await db.insert(updateDetails).values({
-                  updateId: updateId,
-                  storeId: detail.storeId,
-                  productId: detail.productId,
+                // Fix: Use schema.updateDetails (the actual table) instead of passing the array
+                await db.insert(schema.updateDetails).values({
+                  update_id: updateId,
+                  store_id: detail.storeId,
+                  product_id: detail.productId,
                   sku: detail.sku,
-                  oldPrice: detail.oldPrice,
-                  newPrice: detail.newPrice,
-                  oldQuantity: detail.oldQuantity,
-                  newQuantity: detail.newQuantity,
+                  old_price: detail.oldPrice,
+                  new_price: detail.newPrice,
+                  old_quantity: detail.oldQuantity,
+                  new_quantity: detail.newQuantity,
                   status: detail.status,
                   created_at: new Date().toISOString()
                 });

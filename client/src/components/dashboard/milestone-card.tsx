@@ -24,7 +24,14 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export function MilestoneCard() {
-  const { data, isLoading, error } = useQuery({
+  interface MilestoneResponse {
+    timeSaved: number;
+    achievedMilestones: Milestone[];
+    nextMilestone: Milestone | null;
+    formattedTimeSaved: string;
+  }
+
+  const { data, isLoading, error } = useQuery<MilestoneResponse>({
     queryKey: ["/api/milestones"],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

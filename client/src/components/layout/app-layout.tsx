@@ -49,6 +49,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
         return "User Management";
       case location === "/settings":
         return "Settings";
+      case location === "/achievements":
+        return "Achievements";
       default:
         return "Dashboard";
     }

@@ -10,6 +10,7 @@ import {
   Settings, 
   LogOut,
   RefreshCw,
+  Trophy,
 } from "lucide-react";
 
 // Helper function to get user initials
@@ -44,6 +45,11 @@ const mainNavItems: MenuItem[] = [
     icon: <History className="h-5 w-5" />,
     label: "Update History",
     href: "/update-history"
+  },
+  {
+    icon: <Trophy className="h-5 w-5" />,
+    label: "Achievements",
+    href: "/achievements"
   }
 ];
 

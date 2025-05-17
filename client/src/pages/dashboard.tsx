@@ -31,6 +31,13 @@ export default function Dashboard() {
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
+    onSuccess: (data) => {
+      // Diagnostic log to check what's coming from the API
+      console.log("Dashboard stats received:", data);
+    },
+    onError: (error) => {
+      console.error("Failed to load dashboard stats:", error);
+    }
   });
   
   // Fetch recent updates

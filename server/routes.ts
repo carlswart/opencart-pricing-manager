@@ -464,6 +464,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process updates in background
       (async () => {
         try {
+          // Import the update data keeper service
+          const updateDataKeeper = await import('./services/update-data-keeper');
+          
+          // Start tracking this update
+          updateDataKeeper.startUpdate(updateId, req.file.originalname, products.length * stores.length);
+          
           // Create array to store update details
           const updateDetails = [];
           let processedItems = 0;
@@ -751,8 +757,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import our update adapter for field name consistency
       const { getUpdateDetails, createFallbackUpdateDetails } = await import('./utils/update-adapter');
       
-      // For the known timestamp-based IDs, use our fallback data
+      // Try to get the real product details from the mockUpdates first
+      const mockUpdates = global.mockUpdates || {};
+      const inMemoryUpdate = mockUpdates[updateId];
+      
+      if (inMemoryUpdate && inMemoryUpdate.updateDetails && inMemoryUpdate.updateDetails.length > 0) {
+        console.log(`Found real update details for update ${updateId} with ${inMemoryUpdate.updateDetails.length} products`);
+        return res.json(inMemoryUpdate.updateDetails);
+      }
+      
+      // For the known timestamp-based IDs, use our fallback data as a last resort
       if (updateId === 1747495691312 || updateId === 1747495479990 || updateId === 1747495213564) {
+        console.log(`Using fallback data for update ${updateId}`);
         return res.json(createFallbackUpdateDetails());
       }
       

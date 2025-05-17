@@ -304,33 +304,64 @@ export class DatabaseStorage implements IStorage {
     // Calculate time saved based on product updates across stores
     // Each product update saves 1 minute per store (1 min/product/store)
     try {
-      // First, count stores to calculate multiplier
-      const storesResult = await db
-        .select({ count: count() })
-        .from(stores)
+      // Method 1: Calculate from update details
+      let totalMinutesSaved = 0;
+      
+      // Get all updates that were successful
+      const updatesList = await db
+        .select()
+        .from(updates)
+        .where(eq(updates.status, 'completed'))
         .execute();
       
-      const storesCount = storesResult.length > 0 ? storesResult[0].count : 0;
-      
-      // If no stores, no time saved
-      if (storesCount === 0) {
-        return 0;
+      // For each update, count the successful update details
+      for (const update of updatesList) {
+        // Get details for this update
+        const details = await db
+          .select()
+          .from(updateDetails)
+          .where(
+            and(
+              eq(updateDetails.update_id, update.id),
+              eq(updateDetails.status, 'success')
+            )
+          )
+          .execute();
+        
+        if (details.length > 0) {
+          // Get unique stores involved in this update
+          const storeIds = new Set(details.map(detail => detail.store_id));
+          const uniqueStoreCount = storeIds.size;
+          
+          // Calculate minutes saved for this update: products × stores
+          totalMinutesSaved += details.length * (uniqueStoreCount || 1);
+        }
       }
       
-      // Count successful updates
-      const updatesResult = await db
-        .select({ count: count() })
-        .from(updateDetails)
-        .where(
-          eq(updateDetails.status, 'success')
-        )
-        .execute();
+      // Method 2: If no detailed tracking, use simple approximation
+      if (totalMinutesSaved === 0) {
+        // Count all stores
+        const storesResult = await db
+          .select({ count: count() })
+          .from(stores)
+          .execute();
+        
+        const storesCount = storesResult.length > 0 ? storesResult[0].count : 0;
+        
+        // Count all successful update details
+        const detailsResult = await db
+          .select({ count: count() })
+          .from(updateDetails)
+          .where(eq(updateDetails.status, 'success'))
+          .execute();
+        
+        const successfulDetails = detailsResult.length > 0 ? detailsResult[0].count : 0;
+        
+        // Basic calculation: 1 minute per update per store
+        totalMinutesSaved = successfulDetails * (storesCount || 1);
+      }
       
-      const successfulUpdates = updatesResult.length > 0 ? updatesResult[0].count : 0;
-      
-      // Calculate time saved: 1 minute per product per store
-      const minutesSaved = successfulUpdates * storesCount;
-      return minutesSaved;
+      return totalMinutesSaved;
     } catch (error) {
       console.error("Error calculating time saved:", error);
       return 0;

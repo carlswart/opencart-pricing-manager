@@ -99,22 +99,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats
   app.get("/api/dashboard/stats", authenticate, async (req, res) => {
     try {
-      // Get basic stats
+      // Count updates that were completed directly from the database
+      let successfulUpdates = 0;
+      
+      try {
+        // Use raw SQL with the sqlite database connection
+        const countQuery = `SELECT COUNT(*) as count FROM updates WHERE status = 'completed'`;
+        const countResult = sqlite.prepare(countQuery).get();
+        successfulUpdates = countResult?.count || 0;
+      } catch (sqlError) {
+        console.error("SQL error counting updates:", sqlError);
+        // Note the error but continue with other stats
+      }
+      
+      // Get other stats (these work fine)
       const recentUpdates = await storage.getRecentUpdatesCount();
       const connectedStores = await storage.getConnectedStoresCount();
       const totalStores = await storage.getTotalStoresCount();
       const lastUpdate = await storage.getLastUpdateTime();
       
-      // Hard code a time saved value based on the updates we have
-      // This simulates what we would get if we had actual data in the database
-      // The calculation is roughly 1 minute saved per update processed
-      let minutes = 120; // Show 2 hours of time saved based on all the updates we've done
-      
-      // If we have multiple updates, multiply it
-      if (recentUpdates > 0) {
-        // Each update represents about 30 minutes saved
-        minutes = recentUpdates * 30;
-      }
+      // Calculate time saved: 1 minute per update
+      const minutes = successfulUpdates;
       
       // Convert to hours and days
       const hours = Math.floor(minutes / 60);

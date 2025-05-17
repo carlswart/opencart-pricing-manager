@@ -913,14 +913,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         console.log(`Checking SQLite database for update details for update ${updateId}`);
         
-        // Query update details directly with SQL to avoid field mapping issues
-        const query = `
-          SELECT * FROM update_details 
-          WHERE update_id = ${updateId}
-        `;
-        
-        const result = await db.execute(query);
-        const dbDetails = result.rows;
+        // Query update details directly using the Drizzle ORM
+        const dbDetails = await db
+          .select()
+          .from(updateDetails)
+          .where(eq(updateDetails.updateId, updateId));
         
         if (dbDetails && dbDetails.length > 0) {
           console.log(`Found ${dbDetails.length} update details in the SQLite database for update ${updateId}`);
@@ -928,14 +925,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Map database records to the expected format
           const formattedDetails = dbDetails.map(detail => ({
             id: detail.id,
-            storeId: detail.store_id,
-            updateId: detail.update_id,
-            productId: detail.product_id,
+            storeId: detail.storeId,
+            updateId: detail.updateId,
+            productId: detail.productId,
             sku: detail.sku,
-            oldPrice: detail.old_price, 
-            newPrice: detail.new_price,
-            oldQuantity: detail.old_quantity,
-            newQuantity: detail.new_quantity,
+            oldPrice: detail.oldPrice, 
+            newPrice: detail.newPrice,
+            oldQuantity: detail.oldQuantity,
+            newQuantity: detail.newQuantity,
             status: detail.status,
             errorMessage: null // This field doesn't exist in our simple database schema
           }));

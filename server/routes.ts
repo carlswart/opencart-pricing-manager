@@ -552,19 +552,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Update the product
                 const result = await OpenCartService.updateProduct(connection, product.sku, updateParams);
                 
-                // Add to update details
-                updateDetails.push({
+                // Create detailed product update record
+                const productDetail = {
                   id: updateDetails.length + 1,
                   storeId: storeId,
                   updateId: updateId,
                   productId: result.product_id,
                   sku: product.sku,
+                  model: product.sku,
+                  name: result.name || `Product ${product.sku}`,
+                  store: storeName || `Store ${storeId}`,
                   status: "completed",
-                  oldPrice: result.old_regular_price,
-                  newPrice: result.new_regular_price,
+                  oldRegularPrice: result.old_regular_price,
+                  newRegularPrice: result.new_regular_price,
+                  oldDepotPrice: result.old_depot_price,
+                  newDepotPrice: product.depotPrice,
+                  oldWarehousePrice: result.old_warehouse_price,
+                  newWarehousePrice: product.warehousePrice,
                   oldQuantity: result.old_quantity,
                   newQuantity: result.new_quantity
-                });
+                };
+                
+                // Add to update details array
+                updateDetails.push(productDetail);
+                
+                // Also store in our update data keeper for permanent reference
+                updateDataKeeper.addProductDetail(updateId, productDetail, true);
                 
                 successCount++;
                 processedItems++;
@@ -574,19 +587,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 errorCount++;
                 processedItems++;
                 
-                // Add error to update details
-                updateDetails.push({
+                // Create detailed error record
+                const errorDetail = {
                   id: updateDetails.length + 1,
                   storeId: storeId,
                   updateId: updateId,
                   productId: 0,
                   sku: product.sku,
+                  model: product.sku,
+                  name: `Product ${product.sku}`,
+                  store: storeName || `Store ${storeId}`,
                   status: "error",
-                  oldPrice: null,
-                  newPrice: product.regularPrice,
+                  oldRegularPrice: null,
+                  newRegularPrice: product.regularPrice,
+                  oldDepotPrice: null,
+                  newDepotPrice: product.depotPrice,
+                  oldWarehousePrice: null,
+                  newWarehousePrice: product.warehousePrice,
                   oldQuantity: null,
                   newQuantity: product.quantity || null
-                });
+                };
+                
+                // Add to update details array
+                updateDetails.push(errorDetail);
+                
+                // Also store in our update data keeper for permanent reference
+                updateDataKeeper.addProductDetail(updateId, errorDetail, false);
               }
               
               // Update progress
@@ -604,7 +630,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           mockUpdate.status = errorCount > 0 ? 'partial' : 'completed';
           mockUpdate.completedAt = new Date().toISOString();
           
-          console.log(`Completed processing: ${successCount} successful, ${errorCount} errors`);
+          // Also complete the update in our data keeper
+          const finalStatus = errorCount > 0 ? 'partial' : 'completed';
+          updateDataKeeper.completeUpdate(updateId, finalStatus);
+          
+          console.log(`Completed processing: ${successCount} successful, ${errorCount} errors (Update ID: ${updateId})`);
           
         } catch (processError) {
           console.error('Error in background processing:', processError);
@@ -757,7 +787,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import our update adapter for field name consistency
       const { getUpdateDetails, createFallbackUpdateDetails } = await import('./utils/update-adapter');
       
-      // Try to get the real product details from the mockUpdates first
+      // Try to get the real product details from our update data keeper first
+      const { getProductDetails } = await import('./services/update-data-keeper');
+      const realProductDetails = getProductDetails(updateId);
+      
+      if (realProductDetails && realProductDetails.length > 0) {
+        console.log(`Found real update details in data keeper for update ${updateId} with ${realProductDetails.length} products`);
+        return res.json(realProductDetails);
+      }
+      
+      // Fallback to older in-memory storage if needed
       const mockUpdates = global.mockUpdates || {};
       const inMemoryUpdate = mockUpdates[updateId];
       

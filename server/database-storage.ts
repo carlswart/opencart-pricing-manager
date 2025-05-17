@@ -1,5 +1,5 @@
 import { IStorage } from './storage';
-import { db } from './db';
+import { db, sqlite } from './db';
 import { 
   User, InsertUser, 
   Store, InsertStore, 
@@ -302,32 +302,34 @@ export class DatabaseStorage implements IStorage {
   // Dashboard stats methods
   async getTimeSaved(): Promise<number> {
     try {
-      // Count successful update details (products with status = 'success')
-      // Each successful update detail is one product that was updated, saving 1 minute
-      const query = `SELECT COUNT(*) as count FROM update_details WHERE status = 'success'`;
+      // Count completed update details (products with status = 'completed')
+      // Each completed detail is one product that was updated, saving 1 minute
+      const query = `SELECT COUNT(*) as count FROM update_details WHERE status = 'completed'`;
       const statement = sqlite.prepare(query);
       const result = statement.get();
       
-      // Use the count of successful updates, or fall back to update count
-      const successCount = result?.count || 0;
+      console.log("Time saved calculation - Completed updates count:", result?.count);
       
-      if (successCount === 0) {
-        // If no successful updates found, count total updates as a fallback
+      // Use the count of completed updates, or fall back to update count
+      const completedCount = result?.count || 0;
+      
+      if (completedCount === 0) {
+        // If no completed updates found, count total updates as a fallback
         const updatesCount = await this.getRecentUpdatesCount();
-        return updatesCount; // One minute per update as fallback
+        return updatesCount * 2; // Two minutes per update as fallback (assuming multiple products per update)
       }
       
-      return successCount; // One minute per successful product update
+      return completedCount; // One minute per completed product update
     } catch (error) {
       console.error("Error calculating time saved:", error);
       
       // Fallback to counting updates if there's an error with update_details
       try {
         const updatesCount = await this.getRecentUpdatesCount();
-        return updatesCount;
+        return updatesCount * 2; // Two minutes per update
       } catch (secondError) {
         console.error("Secondary error counting updates:", secondError);
-        return 4; // Hard fallback to 4 minutes (1 per update we know exists)
+        return 8; // Hard fallback to expected value
       }
     }
   }

@@ -6,7 +6,7 @@ import * as SpreadsheetService from "./services/spreadsheet";
 import * as OpenCartService from "./services/opencart";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { db } from "./db"; // Add import for direct database access
+import { db, sqlite } from "./db"; // Import both the ORM and direct SQLite connection
 import * as schema from "@shared/schema"; // Import all schema elements
 import { updates, updateDetails } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -678,8 +678,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             for (const detail of updateDetails) {
               try {
                 // Fix: Use the direct imported updateDetails table
-                // Use SQL statement directly to ensure correct field names
-                const stmt = db.getClient().prepare(`
+                // Use SQL statement directly with the properly imported sqlite connection
+                const stmt = sqlite.prepare(`
                   INSERT INTO update_details (
                     update_id, store_id, product_id, sku, 
                     old_price, new_price, old_quantity, new_quantity, 

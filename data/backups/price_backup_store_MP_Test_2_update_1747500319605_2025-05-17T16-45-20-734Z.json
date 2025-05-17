@@ -1,0 +1,30 @@
+{
+  "updateId": 1747500319605,
+  "storeName": "MP Test 2",
+  "timestamp": "2025-05-17T16:45:29.236Z",
+  "connection": {
+    "id": 9,
+    "storeId": 9,
+    "host": "129.232.217.107",
+    "database": "pric_OpenCart",
+    "prefix": "ocjk_"
+  },
+  "products": [
+    {
+      "sku": "DEGR-1L",
+      "productId": 54,
+      "regularPrice": 70,
+      "depotPrice": 57,
+      "warehousePrice": 52,
+      "quantity": 10
+    },
+    {
+      "sku": "TEST-PACK",
+      "productId": 59,
+      "regularPrice": 350,
+      "depotPrice": 287,
+      "warehousePrice": 259,
+      "quantity": 33
+    }
+  ]
+}

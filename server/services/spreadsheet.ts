@@ -624,30 +624,30 @@ async function processUpdates(
           // Record the updates
           if (changesMade) {
             await storage.createUpdateDetail({
-              update_id: updateId,
-              store_id: storeId,
+              updateId: updateId,
+              storeId: storeId,
               sku: product.sku,
-              product_id: result.product_id,
-              old_price: result.old_regular_price,
-              new_price: result.new_regular_price,
-              old_quantity: result.old_quantity,
-              new_quantity: result.new_quantity,
-              success: true
+              productId: result.product_id,
+              oldPrice: result.old_regular_price,
+              newPrice: result.new_regular_price,
+              oldQuantity: result.old_quantity,
+              newQuantity: result.new_quantity,
+              status: 'success'
             });
             
             storeSuccessCount++;
           } else {
             // No changes needed (values already match)
             await storage.createUpdateDetail({
-              update_id: updateId,
-              store_id: storeId,
+              updateId: updateId,
+              storeId: storeId,
               sku: product.sku,
-              product_id: result.product_id,
-              old_price: result.old_regular_price,
-              new_price: result.old_regular_price, // No change
-              old_quantity: result.old_quantity,
-              new_quantity: result.old_quantity, // No change
-              success: true
+              productId: result.product_id,
+              oldPrice: result.old_regular_price,
+              newPrice: result.old_regular_price, // No change
+              oldQuantity: result.old_quantity,
+              newQuantity: result.old_quantity, // No change
+              status: 'success'
             });
             
             // Still count as success since we found the product and processed it

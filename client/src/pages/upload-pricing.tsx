@@ -278,16 +278,42 @@ export default function UploadPricing() {
               <CardTitle>Upload Spreadsheet</CardTitle>
             </CardHeader>
             <CardContent>
-              <FileUpload
-                accept={{
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-                  'application/vnd.ms-excel': ['.xls'],
-                  'text/csv': ['.csv'],
-                }}
-                onFilesSelected={handleFileSelected}
-              />
+              {/* Custom file input that's more reliable than react-dropzone */}
+              <div className="border-2 border-dashed border-primary/30 rounded-lg p-6 text-center hover:bg-primary/5 transition-colors duration-200">
+                <div className="flex flex-col items-center justify-center mb-2">
+                  <FileUp className="h-8 w-8 text-primary mb-2" />
+                  <input
+                    type="file"
+                    id="manual-file-input"
+                    className="hidden"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files && files.length > 0) {
+                        console.log("File selected via direct input:", files[0].name, files[0].size);
+                        handleFileSelected([files[0]]);
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="manual-file-input"
+                    className="inline-flex items-center justify-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"
+                  >
+                    Select File
+                  </label>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Select a spreadsheet file with product data
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Supported formats: Excel (.xlsx, .xls) and CSV (.csv)
+                </p>
+              </div>
               {file && (
-                <p className="mt-2 text-sm text-primary">Selected: {file.name}</p>
+                <div className="mt-2 text-sm text-primary flex items-center">
+                  <span className="font-medium">Selected: {file.name}</span>
+                  <span className="ml-2 text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
+                </div>
               )}
 
               {file && stores && stores.length > 0 && (

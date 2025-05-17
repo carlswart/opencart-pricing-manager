@@ -22,17 +22,18 @@ export function FileUpload({
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
-      // Make sure the files are properly processed
-      const processedFiles = acceptedFiles.map(file => 
-        // Create a new File object to ensure it's fully serializable
-        new File([file], file.name, { 
-          type: file.type,
-          lastModified: file.lastModified 
-        })
-      );
+      // Verify files are not empty
+      const validFiles = acceptedFiles.filter(file => file.size > 0);
       
-      if (processedFiles.length > 0) {
-        onFilesSelected(processedFiles);
+      if (validFiles.length === 0 && acceptedFiles.length > 0) {
+        console.error("Dropped files have zero size", acceptedFiles);
+        setFileRejections(["The dropped file appears to be empty. Please try selecting the file through the file browser instead."]);
+        return;
+      }
+      
+      if (validFiles.length > 0) {
+        // Use the files directly - creating new File objects can cause issues with some browsers
+        onFilesSelected(validFiles);
         setFileRejections([]);
       }
 
@@ -54,7 +55,11 @@ export function FileUpload({
     maxFiles,
     maxSize,
     useFsAccessApi: false, // Disable File System Access API for better compatibility 
-    multiple: false // Only allow single file uploads
+    multiple: false, // Only allow single file uploads
+    noClick: false, // Enable click to open file dialog
+    noKeyboard: false, // Enable keyboard navigation
+    preventDropOnDocument: true, // Prevent dropping on document (which can cause navigation)
+    noDrag: false // Keep drag-and-drop functionality enabled
   });
 
   return (

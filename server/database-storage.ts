@@ -207,8 +207,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUpdateDetail(detail: InsertUpdateDetail): Promise<UpdateDetail> {
-    const [newDetail] = await db.insert(updateDetails).values(detail).returning();
-    return newDetail;
+    try {
+      // Log what we're trying to insert
+      console.log("Creating update detail with values:", JSON.stringify(detail));
+      
+      // Ensure we have exactly the fields needed by the schema
+      const cleanDetail = {
+        updateId: detail.updateId,
+        storeId: detail.storeId,
+        productId: detail.productId,
+        sku: detail.sku,
+        oldPrice: detail.oldPrice,
+        newPrice: detail.newPrice,
+        oldQuantity: detail.oldQuantity,
+        newQuantity: detail.newQuantity,
+        status: detail.status
+      };
+      
+      const [newDetail] = await db.insert(updateDetails).values(cleanDetail).returning();
+      return newDetail;
+    } catch (error) {
+      console.error("Error creating update detail:", error);
+      throw error;
+    }
   }
 
   async deleteUpdateDetail(id: number): Promise<boolean> {

@@ -16,18 +16,25 @@ import {
  * Creates an update detail with correct snake_case field names
  */
 export async function createUpdateDetail(detail: any) {
-  // Match exactly the fields in the updateDetails table schema
-  return storage.createUpdateDetail({
+  // Create a clean object with only the fields needed by the database schema
+  const cleanDetail = {
     updateId: detail.update_id,
     storeId: detail.store_id,
     sku: detail.sku,
     productId: detail.product_id || 0,
-    oldPrice: detail.old_regular_price,
-    newPrice: detail.new_regular_price,
-    oldQuantity: detail.old_quantity,
-    newQuantity: detail.new_quantity,
+    oldPrice: detail.old_regular_price || null,
+    newPrice: detail.new_regular_price || null,
+    oldQuantity: detail.old_quantity || null,
+    newQuantity: detail.new_quantity || null,
     status: detail.success ? 'success' : 'failed'
-  });
+  };
+  
+  try {
+    return await storage.createUpdateDetail(cleanDetail);
+  } catch (error) {
+    console.error("Error creating update detail:", error, "Detail:", cleanDetail);
+    throw error;
+  }
 }
 
 /**

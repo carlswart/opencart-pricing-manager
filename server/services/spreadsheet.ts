@@ -190,13 +190,13 @@ export const handleProcess = [
                   await storage.createUpdateDetail({
                     update_id: update.id,
                     store_id: store,
-                    product_id: product.productId || 0,
+                    product_id: product.sku ? parseInt(product.sku) || 0 : 0,
                     sku: product.sku,
                     status: 'processing',
                     old_price: null,
-                    new_price: product.price,
+                    new_price: product.regularPrice || null,
                     old_quantity: null,
-                    new_quantity: product.quantity
+                    new_quantity: product.quantity || null
                   });
                   
                   console.log(`Updated product ${product.sku} in store ${storeData.name}`);

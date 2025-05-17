@@ -688,8 +688,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update history routes
   app.get("/api/updates/recent", authenticate, async (req, res) => {
     try {
+      console.log("Fetching recent updates for display");
       const updates = await storage.getRecentUpdates();
-      res.json(updates);
+      console.log(`Found ${updates?.length || 0} recent updates`);
+      
+      // Format the updates for display
+      const formattedUpdates = updates?.map(update => ({
+        id: update.id,
+        date: new Date(update.created_at || Date.now()).toLocaleString(),
+        filename: update.filename || "Unknown file",
+        status: update.status || "unknown",
+        products_count: update.productsCount || 0,
+        user: "Admin" // For now, hardcode the user
+      })) || [];
+      
+      res.json(formattedUpdates);
     } catch (error) {
       console.error("Error fetching recent updates:", error);
       res.status(500).json({ message: "Failed to fetch recent updates" });
@@ -698,8 +711,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/updates/history", authenticate, async (req, res) => {
     try {
+      console.log("Fetching complete update history");
       const updates = await storage.getAllUpdates();
-      res.json(updates);
+      console.log(`Found ${updates?.length || 0} total updates in history`);
+      
+      // Format the updates for display using the same format as recent updates
+      const formattedUpdates = updates?.map(update => ({
+        id: update.id,
+        date: new Date(update.created_at || Date.now()).toLocaleString(),
+        filename: update.filename || "Unknown file",
+        status: update.status || "unknown",
+        products_count: update.productsCount || 0,
+        user: "Admin" // For now, hardcode the user
+      })) || [];
+      
+      res.json(formattedUpdates);
     } catch (error) {
       console.error("Error fetching update history:", error);
       res.status(500).json({ message: "Failed to fetch update history" });

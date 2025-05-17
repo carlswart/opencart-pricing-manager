@@ -8,6 +8,7 @@ import UpdateHistory from "@/pages/update-history";
 import DatabaseSettings from "@/pages/database-settings";
 import UserManagement from "@/pages/user-management";
 import Settings from "@/pages/settings";
+import Achievements from "@/pages/achievements";
 import NotFound from "@/pages/not-found";
 import AppLayout from "@/components/layout/app-layout";
 
@@ -66,6 +67,15 @@ export function Routes() {
         component={() => (
           <AppLayout>
             <Settings />
+          </AppLayout>
+        )} 
+      />
+      
+      <ProtectedRoute 
+        path="/achievements" 
+        component={() => (
+          <AppLayout>
+            <Achievements />
           </AppLayout>
         )} 
       />

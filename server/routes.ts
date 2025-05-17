@@ -678,19 +678,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             for (const detail of updateDetails) {
               try {
                 // Fix: Use the direct imported updateDetails table
-                // Insert using the snake_case field names to match the database schema
-                await db.insert(updateDetails).values({
-                  update_id: updateId,
-                  store_id: detail.storeId,
-                  product_id: detail.productId,
-                  sku: detail.sku,
-                  old_price: detail.oldPrice,
-                  new_price: detail.newPrice,
-                  old_quantity: detail.oldQuantity,
-                  new_quantity: detail.newQuantity,
-                  status: detail.status,
-                  created_at: new Date().toISOString()
-                });
+                // Use SQL statement directly to ensure correct field names
+                const stmt = db.getClient().prepare(`
+                  INSERT INTO update_details (
+                    update_id, store_id, product_id, sku, 
+                    old_price, new_price, old_quantity, new_quantity, 
+                    status, created_at
+                  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `);
+                
+                stmt.run(
+                  updateId,
+                  detail.storeId,
+                  detail.productId,
+                  detail.sku,
+                  detail.oldPrice,
+                  detail.newPrice,
+                  detail.oldQuantity,
+                  detail.newQuantity,
+                  detail.status,
+                  new Date().toISOString()
+                );
               } catch (detailError) {
                 console.error(`Error storing detail for SKU ${detail.sku}:`, detailError);
               }

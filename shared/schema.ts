@@ -1,15 +1,20 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, varchar, unique, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { 
+  sqliteTable, 
+  text, 
+  integer, 
+  real
+} from 'drizzle-orm/sqlite-core';
 
 // Users table
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
   role: text("role").notNull().default("user"),
-  created_at: timestamp("created_at").notNull().defaultNow(),
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -18,11 +23,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
 });
 
 // Stores table
-export const stores = pgTable("stores", {
-  id: serial("id").primaryKey(),
+export const stores = sqliteTable("stores", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   url: text("url").notNull(),
-  created_at: timestamp("created_at").notNull().defaultNow(),
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertStoreSchema = createInsertSchema(stores).omit({
@@ -31,39 +36,34 @@ export const insertStoreSchema = createInsertSchema(stores).omit({
 });
 
 // Database connections table
-export const dbConnections = pgTable("db_connections", {
-  id: serial("id").primaryKey(),
-  store_id: integer("store_id").references(() => stores.id).notNull(),
+export const dbConnections = sqliteTable("db_connections", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  storeId: integer("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
   host: text("host").notNull(),
   port: text("port").notNull(),
   database: text("database").notNull(),
   username: text("username").notNull(),
   password: text("password").notNull(),
   prefix: text("prefix").notNull().default("oc_"),
-  is_active: boolean("is_active").notNull().default(true),
-  last_connected: timestamp("last_connected"),
-  created_at: timestamp("created_at").notNull().defaultNow(),
-  updated_at: timestamp("updated_at").notNull().defaultNow(),
+  isActive: integer("is_active", { mode: 'boolean' }).notNull().default(true),
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertDbConnectionSchema = createInsertSchema(dbConnections).omit({
   id: true,
-  last_connected: true,
   created_at: true,
-  updated_at: true,
 });
 
 // Updates history table
-export const updates = pgTable("updates", {
-  id: serial("id").primaryKey(),
-  user_id: integer("user_id").references(() => users.id).notNull(),
+export const updates = sqliteTable("updates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   filename: text("filename").notNull(),
-  products_count: integer("products_count").notNull(),
+  productsCount: integer("products_count").notNull(),
   status: text("status").notNull(), // completed, partial, failed
-  date: timestamp("date").notNull().defaultNow(), // For sorting and display
-  details: jsonb("details"),
-  completed_at: timestamp("completed_at"),
-  created_at: timestamp("created_at").notNull().defaultNow(),
+  details: text("details"),
+  completed_at: text("completed_at"),
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertUpdateSchema = createInsertSchema(updates).omit({
@@ -73,23 +73,18 @@ export const insertUpdateSchema = createInsertSchema(updates).omit({
 });
 
 // Update details table for products updated in each batch
-export const updateDetails = pgTable("update_details", {
-  id: serial("id").primaryKey(),
-  update_id: integer("update_id").references(() => updates.id).notNull(),
-  store_id: integer("store_id").references(() => stores.id).notNull(),
+export const updateDetails = sqliteTable("update_details", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  updateId: integer("update_id").notNull().references(() => updates.id, { onDelete: "cascade" }),
+  storeId: integer("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
+  productId: integer("product_id").notNull(),
   sku: text("sku").notNull(),
-  product_id: integer("product_id"),
-  old_regular_price: integer("old_regular_price"),
-  new_regular_price: integer("new_regular_price"),
-  old_depot_price: integer("old_depot_price"),
-  new_depot_price: integer("new_depot_price"),
-  old_warehouse_price: integer("old_warehouse_price"),
-  new_warehouse_price: integer("new_warehouse_price"),
-  old_quantity: integer("old_quantity"),
-  new_quantity: integer("new_quantity"),
-  success: boolean("success").notNull().default(true),
-  error_message: text("error_message"),
-  created_at: timestamp("created_at").notNull().defaultNow(),
+  oldPrice: real("old_price"),
+  newPrice: real("new_price"),
+  oldQuantity: integer("old_quantity"),
+  newQuantity: integer("new_quantity"),
+  status: text("status").notNull(),
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertUpdateDetailSchema = createInsertSchema(updateDetails).omit({
@@ -98,12 +93,12 @@ export const insertUpdateDetailSchema = createInsertSchema(updateDetails).omit({
 });
 
 // Customer group discount settings
-export const customerGroups = pgTable("customer_groups", {
-  id: serial("id").primaryKey(),
+export const customerGroups = sqliteTable("customer_groups", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),
   displayName: text("display_name").notNull(),
-  discountPercentage: numeric("discount_percentage", { precision: 5, scale: 2 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  discountPercentage: real("discount_percentage").notNull(),
+  createdAt: text("created_at").notNull().default("")
 });
 
 export const insertCustomerGroupSchema = createInsertSchema(customerGroups, {
@@ -114,18 +109,32 @@ export const insertCustomerGroupSchema = createInsertSchema(customerGroups, {
 });
 
 // Store-specific customer group mappings
-export const storeCustomerGroupMappings = pgTable("store_customer_group_mappings", {
-  id: serial("id").primaryKey(),
+export const storeCustomerGroupMappings = sqliteTable("store_customer_group_mappings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   storeId: integer("store_id").notNull().references(() => stores.id, { onDelete: "cascade" }),
   customerGroupId: integer("customer_group_id").notNull().references(() => customerGroups.id, { onDelete: "cascade" }),
   opencartCustomerGroupId: integer("opencart_customer_group_id").notNull(),
   opencartCustomerGroupName: text("opencart_customer_group_name").notNull(),
-  assignDiscount: boolean("assign_discount").notNull().default(false),
-  discountPercentage: numeric("discount_percentage", { precision: 5, scale: 2 }).notNull().default("0"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  assignDiscount: integer("assign_discount", { mode: 'boolean' }).notNull().default(false),
+  discountPercentage: real("discount_percentage").notNull().default(0),
+  createdAt: text("created_at").notNull().default("")
 });
 
 export const insertStoreCustomerGroupMappingSchema = createInsertSchema(storeCustomerGroupMappings).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Settings table for application settings
+export const settings = sqliteTable('settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  createdAt: text('created_at').notNull().default("")
+});
+
+export const insertSettingsSchema = createInsertSchema(settings).omit({
   id: true,
   createdAt: true,
 });

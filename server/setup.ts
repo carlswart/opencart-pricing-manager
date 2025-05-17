@@ -1,6 +1,6 @@
-import { db, initializeSchema } from './sqlite-db';
+import { db, initializeSchema } from './db';
 import { hash } from './auth-utils';
-import { users, stores, customerGroups } from '@shared/sqlite-schema';
+import { users, stores, customerGroups } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 /**

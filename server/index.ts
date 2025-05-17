@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDemoData, initializeCustomerGroups } from "./setup";
-import { initializeSchema, closeDatabase } from "./sqlite-db";
+import { initializeSchema, closeDatabase } from "./db";
 import { storage } from "./database-storage";
 
 const app = express();

@@ -38,7 +38,18 @@ export default function UploadPricing() {
 
   const handleFileSelected = (files: File[]) => {
     if (files.length > 0) {
-      setFile(files[0]);
+      // Create a clean File object to prevent serialization issues
+      const selectedFile = files[0];
+      
+      console.log("File selected:", {
+        name: selectedFile.name,
+        type: selectedFile.type,
+        size: selectedFile.size,
+        lastModified: selectedFile.lastModified
+      });
+      
+      // Save to state
+      setFile(selectedFile);
       
       // Auto-select all stores when a file is uploaded
       if (stores && stores.length > 0) {
@@ -84,9 +95,31 @@ export default function UploadPricing() {
       return;
     }
 
+    // Log file details before upload
+    console.log("Starting upload for file:", {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
+    // Create a new clean File object for better compatibility
+    // This helps resolve issues with drag-and-drop uploads
+    let fileToUpload;
+    try {
+      // Create a clean File object to resolve potential issues with drag-and-drop
+      fileToUpload = new File([file], file.name, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+    } catch (error) {
+      console.error("Error creating File object:", error);
+      // Fallback to the original file if there was an error
+      fileToUpload = file;
+    }
+
     // Create form data to send the file
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", fileToUpload);
     formData.append("options", JSON.stringify({
       stores: selectedStores,
       updateOptions,

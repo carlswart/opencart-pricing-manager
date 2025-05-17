@@ -53,6 +53,8 @@ export function FileUpload({
     accept,
     maxFiles,
     maxSize,
+    useFsAccessApi: false, // Disable File System Access API for better compatibility 
+    multiple: false // Only allow single file uploads
   });
 
   return (

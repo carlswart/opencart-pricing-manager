@@ -753,14 +753,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import our new update adapter to handle field name conversions
       const { getAllUpdates, createFallbackUpdate } = await import('./utils/update-adapter');
       
-      // Try to get updates from the database first
-      let updates = await getAllUpdates();
+      // First try to get updates from our update data keeper
+      let updates = [];
+      try {
+        const { getAllUpdates: getKeeperUpdates } = await import('./services/update-data-keeper');
+        const keeperUpdates = getKeeperUpdates();
+        
+        if (keeperUpdates && keeperUpdates.length > 0) {
+          console.log(`Found ${keeperUpdates.length} updates in the update data keeper`);
+          updates = keeperUpdates.map(update => ({
+            id: update.id,
+            createdAt: update.startTime,
+            completedAt: update.endTime,
+            filename: update.filename,
+            status: update.status,
+            productsCount: update.totalProducts,
+          }));
+        }
+      } catch (keeperError) {
+        console.error("Error accessing update data keeper:", keeperError);
+      }
       
-      // If we couldn't get any real updates, use our fallback data for recent uploads
-      if (!updates || updates.length === 0) {
+      // Then try to get updates from the database as a fallback
+      if (updates.length === 0) {
+        console.log("No updates found in keeper, checking database");
+        const dbUpdates = await getAllUpdates();
+        if (dbUpdates && dbUpdates.length > 0) {
+          updates = dbUpdates;
+        }
+      }
+      
+      // If we still couldn't get any real updates, use our fallback data for demonstration
+      if (updates.length === 0) {
         const uploadTimestamps = [1747495691312, 1747495479990, 1747495213564];
         updates = uploadTimestamps.map(timestamp => createFallbackUpdate(timestamp));
       }
+      
+      // Also add in-memory mock updates to ensure we see the most recent uploads
+      const mockUpdates = global.mockUpdates || {};
+      Object.keys(mockUpdates).forEach(id => {
+        const mockUpdate = mockUpdates[id];
+        if (mockUpdate && !updates.some(u => u.id === parseInt(id))) {
+          updates.push({
+            id: parseInt(id),
+            createdAt: mockUpdate.createdAt,
+            completedAt: mockUpdate.completedAt,
+            filename: mockUpdate.filename || "Uploaded file",
+            status: mockUpdate.status,
+            productsCount: mockUpdate.totalItems || 0
+          });
+        }
+      });
       
       // Format the updates for display
       const formattedUpdates = updates.map(update => ({

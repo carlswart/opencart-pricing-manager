@@ -19,6 +19,7 @@ export function getCompletedUpdatesCount(): number {
     
     // SQLite returns the count as the first column with no name
     if (result && typeof result['COUNT(*)'] === 'number') {
+      console.log('Found completed updates count:', result['COUNT(*)']);
       return result['COUNT(*)'];
     }
     

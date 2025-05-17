@@ -131,7 +131,7 @@ const COLUMN_MAPPINGS = {
 };
 
 // Parse spreadsheet buffer into product rows
-async function parseSpreadsheet(buffer: Buffer, filename: string): Promise<ProductRow[]> {
+export async function parseSpreadsheet(buffer: Buffer, filename: string): Promise<ProductRow[]> {
   try {
     // Read the workbook from buffer
     const workbook = XLSX.read(buffer, { type: 'buffer' });

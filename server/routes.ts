@@ -909,6 +909,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(realProductDetails);
       }
       
+      // Check for details directly in SQLite database for older uploads
+      try {
+        console.log(`Checking SQLite database for update details for update ${updateId}`);
+        const dbDetails = await db.select().from(updateDetails).where(eq(updateDetails.updateId, updateId));
+        
+        if (dbDetails && dbDetails.length > 0) {
+          console.log(`Found ${dbDetails.length} update details in the SQLite database for update ${updateId}`);
+          
+          // Map database records to the expected format
+          const formattedDetails = dbDetails.map(detail => ({
+            id: detail.id,
+            storeId: detail.storeId,
+            updateId: detail.updateId, 
+            productId: detail.productId,
+            sku: detail.sku,
+            oldPrice: detail.oldPrice,
+            newPrice: detail.newPrice,
+            oldQuantity: detail.oldQuantity,
+            newQuantity: detail.newQuantity,
+            status: detail.status,
+            errorMessage: detail.errorMessage || null
+          }));
+          
+          return res.json(formattedDetails);
+        } else {
+          console.log(`No details found in SQLite database for update ${updateId}`);
+        }
+      } catch (dbError) {
+        console.error("Error retrieving update details from SQLite database:", dbError);
+      }
+      
       // Fallback to older in-memory storage if needed
       const mockUpdates = global.mockUpdates || {};
       const inMemoryUpdate = mockUpdates[updateId];

@@ -98,14 +98,14 @@ export const customerGroups = sqliteTable("customer_groups", {
   name: text("name").notNull().unique(),
   displayName: text("display_name").notNull(),
   discountPercentage: real("discount_percentage").notNull(),
-  createdAt: text("created_at").notNull().default("")
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertCustomerGroupSchema = createInsertSchema(customerGroups, {
   discountPercentage: z.number().min(0).max(100),
 }).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Store-specific customer group mappings
@@ -117,12 +117,12 @@ export const storeCustomerGroupMappings = sqliteTable("store_customer_group_mapp
   opencartCustomerGroupName: text("opencart_customer_group_name").notNull(),
   assignDiscount: integer("assign_discount", { mode: 'boolean' }).notNull().default(false),
   discountPercentage: real("discount_percentage").notNull().default(0),
-  createdAt: text("created_at").notNull().default("")
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertStoreCustomerGroupMappingSchema = createInsertSchema(storeCustomerGroupMappings).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Settings table for application settings
@@ -131,12 +131,12 @@ export const settings = sqliteTable('settings', {
   key: text('key').notNull().unique(),
   value: text('value').notNull(),
   description: text('description'),
-  createdAt: text('created_at').notNull().default("")
+  created_at: text('created_at').notNull().default("")
 });
 
 export const insertSettingsSchema = createInsertSchema(settings).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Type definitions

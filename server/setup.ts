@@ -29,7 +29,7 @@ export async function initializeCustomerGroups() {
     for (const group of defaultCustomerGroups) {
       await db.insert(customerGroups).values({
         ...group,
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       });
     }
     

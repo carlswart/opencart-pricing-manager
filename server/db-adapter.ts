@@ -2,7 +2,8 @@
  * Database adapter to handle field mapping between database and application
  */
 import { db } from './db';
-import { SQL, SQLiteColumn, SQLiteTable, eq } from 'drizzle-orm';
+import { SQL, eq } from 'drizzle-orm';
+import { SQLiteTable, SQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { transformToCamelCase, transformToSnakeCase } from './utils/field-mapping';
 
 /**

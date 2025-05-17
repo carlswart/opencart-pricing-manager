@@ -132,7 +132,6 @@ export function UpdateProgressModal({
           <Button 
             variant="outline" 
             onClick={onCancel}
-            disabled={progressPercentage === 100}
           >
             {progressPercentage === 100 ? "Close" : "Cancel Update"}
           </Button>

@@ -46,3 +46,25 @@ export async function initializeSchema() {
 export function closeDatabase() {
   sqlite?.close();
 }
+
+// Execute a SQL query directly and return the result
+export function executeRawQuery(query: string, params: any[] = []): any {
+  try {
+    console.log(`Executing raw SQL query: ${query} with params:`, params);
+    const statement = sqlite.prepare(query);
+    
+    // If the query starts with SELECT, execute get or all
+    if (query.trim().toUpperCase().startsWith('SELECT')) {
+      if (query.includes('COUNT(*)')) {
+        return statement.get(...params);
+      }
+      return statement.all(...params);
+    }
+    
+    // For other operations (INSERT, UPDATE, DELETE)
+    return statement.run(...params);
+  } catch (error) {
+    console.error('Raw SQL query execution failed:', error);
+    throw error;
+  }
+}

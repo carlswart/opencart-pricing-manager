@@ -177,11 +177,25 @@ export function SpreadsheetPreviewModal({
                     <TableRow className="bg-neutral-50 dark:bg-neutral-800">
                       <TableHead className="border-r border-neutral-200 dark:border-neutral-700">SKU</TableHead>
                       <TableHead className="border-r border-neutral-200 dark:border-neutral-700">Product Name</TableHead>
-                      <TableHead className="border-r border-neutral-200 dark:border-neutral-700">Regular Price</TableHead>
-                      <TableHead className="border-r border-neutral-200 dark:border-neutral-700">Depot Price</TableHead>
-                      <TableHead className="border-r border-neutral-200 dark:border-neutral-700">Warehouse Price</TableHead>
-                      <TableHead>Quantity</TableHead>
+                      <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center" colSpan={2}>Regular Price</TableHead>
+                      <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center" colSpan={2}>Depot Price</TableHead>
+                      <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center" colSpan={2}>Warehouse Price</TableHead>
+                      <TableHead className="text-center" colSpan={2}>Quantity</TableHead>
                     </TableRow>
+                    {isHistoryView && (
+                      <TableRow className="bg-neutral-50 dark:bg-neutral-800">
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700"></TableHead>
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700"></TableHead>
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center whitespace-nowrap text-xs text-neutral-500">Old</TableHead>
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center whitespace-nowrap text-xs text-neutral-500">New</TableHead>
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center whitespace-nowrap text-xs text-neutral-500">Old</TableHead>
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center whitespace-nowrap text-xs text-neutral-500">New</TableHead>
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center whitespace-nowrap text-xs text-neutral-500">Old</TableHead>
+                        <TableHead className="border-r border-neutral-200 dark:border-neutral-700 text-center whitespace-nowrap text-xs text-neutral-500">New</TableHead>
+                        <TableHead className="text-center whitespace-nowrap text-xs text-neutral-500">Old</TableHead>
+                        <TableHead className="text-center whitespace-nowrap text-xs text-neutral-500">New</TableHead>
+                      </TableRow>
+                    )}
                   </TableHeader>
                   <TableBody>
                     {rows.map((row, index) => (
@@ -194,20 +208,75 @@ export function SpreadsheetPreviewModal({
                       >
                         <TableCell className="border-r border-neutral-200 dark:border-neutral-700">{row.sku}</TableCell>
                         <TableCell className="border-r border-neutral-200 dark:border-neutral-700">{row.name}</TableCell>
-                        <TableCell className="border-r border-neutral-200 dark:border-neutral-700">R {row.regularPrice}</TableCell>
-                        <TableCell className={cn(
-                          "border-r border-neutral-200 dark:border-neutral-700",
-                          row.hasDepotPriceError && "font-medium text-destructive"
-                        )}>
-                          R {row.depotPrice}
-                        </TableCell>
-                        <TableCell className={cn(
-                          "border-r border-neutral-200 dark:border-neutral-700",
-                          row.hasWarehousePriceError && "font-medium text-destructive"
-                        )}>
-                          R {row.warehousePrice}
-                        </TableCell>
-                        <TableCell>{row.quantity}</TableCell>
+                        
+                        {isHistoryView ? (
+                          <>
+                            {/* Regular Price Old & New */}
+                            <TableCell className="border-r border-neutral-200 dark:border-neutral-700 text-center">
+                              {row.oldRegularPrice !== undefined && `R ${row.oldRegularPrice}`}
+                            </TableCell>
+                            <TableCell className={cn(
+                              "border-r border-neutral-200 dark:border-neutral-700 text-center",
+                              row.oldRegularPrice !== row.newRegularPrice && "text-blue-600 font-medium"
+                            )}>
+                              {row.newRegularPrice !== undefined && `R ${row.newRegularPrice}`}
+                            </TableCell>
+                            
+                            {/* Depot Price Old & New */}
+                            <TableCell className="border-r border-neutral-200 dark:border-neutral-700 text-center">
+                              {row.oldDepotPrice !== undefined && `R ${row.oldDepotPrice}`}
+                            </TableCell>
+                            <TableCell className={cn(
+                              "border-r border-neutral-200 dark:border-neutral-700 text-center",
+                              row.oldDepotPrice !== row.newDepotPrice && "text-blue-600 font-medium"
+                            )}>
+                              {row.newDepotPrice !== undefined && `R ${row.newDepotPrice}`}
+                            </TableCell>
+                            
+                            {/* Warehouse Price Old & New */}
+                            <TableCell className="border-r border-neutral-200 dark:border-neutral-700 text-center">
+                              {row.oldWarehousePrice !== undefined && `R ${row.oldWarehousePrice}`}
+                            </TableCell>
+                            <TableCell className={cn(
+                              "border-r border-neutral-200 dark:border-neutral-700 text-center",
+                              row.oldWarehousePrice !== row.newWarehousePrice && "text-blue-600 font-medium"
+                            )}>
+                              {row.newWarehousePrice !== undefined && `R ${row.newWarehousePrice}`}
+                            </TableCell>
+                            
+                            {/* Quantity Old & New */}
+                            <TableCell className="text-center">
+                              {row.oldQuantity !== undefined && row.oldQuantity}
+                            </TableCell>
+                            <TableCell className={cn(
+                              "text-center",
+                              row.oldQuantity !== row.newQuantity && "text-blue-600 font-medium"
+                            )}>
+                              {row.newQuantity !== undefined && row.newQuantity}
+                            </TableCell>
+                          </>
+                        ) : (
+                          <>
+                            <TableCell className="border-r border-neutral-200 dark:border-neutral-700 text-center" colSpan={2}>
+                              R {row.regularPrice}
+                            </TableCell>
+                            <TableCell className={cn(
+                              "border-r border-neutral-200 dark:border-neutral-700 text-center",
+                              row.hasDepotPriceError && "font-medium text-destructive"
+                            )} colSpan={2}>
+                              R {row.depotPrice}
+                            </TableCell>
+                            <TableCell className={cn(
+                              "border-r border-neutral-200 dark:border-neutral-700 text-center",
+                              row.hasWarehousePriceError && "font-medium text-destructive"
+                            )} colSpan={2}>
+                              R {row.warehousePrice}
+                            </TableCell>
+                            <TableCell className="text-center" colSpan={2}>
+                              {row.quantity}
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>

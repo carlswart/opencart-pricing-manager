@@ -489,22 +489,53 @@ export async function restoreFromBackup(
         
         // Update special pricing for depot customer group if available
         if (product.depotPrice !== undefined && customerGroups.depot) {
-          // Check if special price exists
-          const checkDiscountQuery = `
-            SELECT price_id
-            FROM ${prefix}product_discount
-            WHERE product_id = ? AND customer_group_id = ?
-            LIMIT 1
-          `;
+          // Check if special price exists - handle different OpenCart schemas
+          // Try with product_discount_id first (OpenCart 2.x and some 3.x)
+          let discountIdFieldName = '';
+          let discountExists: any = null;
           
-          const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
-            product.productId, 
-            customerGroups.depot
-          ]);
+          try {
+            const checkDiscountQuery = `
+              SELECT product_discount_id
+              FROM ${prefix}product_discount
+              WHERE product_id = ? AND customer_group_id = ?
+              LIMIT 1
+            `;
+            
+            discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
+              product.productId, 
+              customerGroups.depot
+            ]);
+            
+            if (Array.isArray(discountExists) && discountExists.length > 0) {
+              discountIdFieldName = 'product_discount_id';
+            }
+          } catch (e) {
+            // Try with price_id as fallback (some OpenCart variations)
+            try {
+              const checkDiscountQuery = `
+                SELECT price_id
+                FROM ${prefix}product_discount
+                WHERE product_id = ? AND customer_group_id = ?
+                LIMIT 1
+              `;
+              
+              discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
+                product.productId, 
+                customerGroups.depot
+              ]);
+              
+              if (Array.isArray(discountExists) && discountExists.length > 0) {
+                discountIdFieldName = 'price_id';
+              }
+            } catch (innerE) {
+              console.log("Could not find primary key field for product_discount table, will use INSERT/DELETE instead");
+            }
+          }
           
-          if (Array.isArray(discountExists) && discountExists.length > 0) {
+          if (discountIdFieldName && Array.isArray(discountExists) && discountExists.length > 0) {
             // @ts-ignore - We know this property exists
-            const priceId = discountExists[0].price_id;
+            const discountId = discountExists[0][discountIdFieldName];
             
             // Update existing price
             const updateDiscountQuery = `
@@ -535,33 +566,64 @@ export async function restoreFromBackup(
         
         // Update special pricing for Namibia SD (warehouse) customer group if available
         if (product.warehousePrice !== undefined && customerGroups.namibiaSD) {
-          // Check if special price exists
-          const checkDiscountQuery = `
-            SELECT price_id
-            FROM ${prefix}product_discount
-            WHERE product_id = ? AND customer_group_id = ?
-            LIMIT 1
-          `;
+          // Check if special price exists - handle different OpenCart schemas
+          // Try with product_discount_id first (OpenCart 2.x and some 3.x)
+          let discountIdFieldName = '';
+          let discountExists: any = null;
           
-          const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
-            product.productId, 
-            customerGroups.namibiaSD
-          ]);
+          try {
+            const checkDiscountQuery = `
+              SELECT product_discount_id
+              FROM ${prefix}product_discount
+              WHERE product_id = ? AND customer_group_id = ?
+              LIMIT 1
+            `;
+            
+            discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
+              product.productId, 
+              customerGroups.namibiaSD
+            ]);
+            
+            if (Array.isArray(discountExists) && discountExists.length > 0) {
+              discountIdFieldName = 'product_discount_id';
+            }
+          } catch (e) {
+            // Try with price_id as fallback (some OpenCart variations)
+            try {
+              const checkDiscountQuery = `
+                SELECT price_id
+                FROM ${prefix}product_discount
+                WHERE product_id = ? AND customer_group_id = ?
+                LIMIT 1
+              `;
+              
+              discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
+                product.productId, 
+                customerGroups.namibiaSD
+              ]);
+              
+              if (Array.isArray(discountExists) && discountExists.length > 0) {
+                discountIdFieldName = 'price_id';
+              }
+            } catch (innerE) {
+              console.log("Could not find primary key field for product_discount table, will use INSERT/DELETE instead");
+            }
+          }
           
-          if (Array.isArray(discountExists) && discountExists.length > 0) {
+          if (discountIdFieldName && Array.isArray(discountExists) && discountExists.length > 0) {
             // @ts-ignore - We know this property exists
-            const priceId = discountExists[0].price_id;
+            const discountId = discountExists[0][discountIdFieldName];
             
             // Update existing price
             const updateDiscountQuery = `
               UPDATE ${prefix}product_discount
               SET price = ?
-              WHERE price_id = ?
+              WHERE ${discountIdFieldName} = ?
             `;
             
             await DbConnector.executeQuery(pool, updateDiscountQuery, [
               product.warehousePrice, 
-              priceId
+              discountId
             ]);
           } else {
             // Insert new discount
@@ -678,28 +740,56 @@ export async function updateProduct(
         result.old_depot_price = currentValues.depotPrice;
         result.new_depot_price = params.depotPrice;
         
-        // Check if depot price discount exists
-        const checkDiscountQuery = `
-          SELECT price_id
-          FROM ${prefix}product_discount
-          WHERE product_id = ? AND customer_group_id = ?
-          LIMIT 1
-        `;
+        // Handle different OpenCart database schemas
+        // Try with product_discount_id first (OpenCart 2.x and 3.x)
+        let discountIdFieldName = '';
+        let discountExists: any = null;
         
-        const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, depotGroupId]);
+        try {
+          const checkDiscountQuery = `
+            SELECT product_discount_id
+            FROM ${prefix}product_discount
+            WHERE product_id = ? AND customer_group_id = ?
+            LIMIT 1
+          `;
+          
+          discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, depotGroupId]);
+          
+          if (Array.isArray(discountExists) && discountExists.length > 0) {
+            discountIdFieldName = 'product_discount_id';
+          }
+        } catch (e) {
+          // Try with price_id as fallback (some OpenCart variations)
+          try {
+            const checkDiscountQuery = `
+              SELECT price_id
+              FROM ${prefix}product_discount
+              WHERE product_id = ? AND customer_group_id = ?
+              LIMIT 1
+            `;
+            
+            discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, depotGroupId]);
+            
+            if (Array.isArray(discountExists) && discountExists.length > 0) {
+              discountIdFieldName = 'price_id';
+            }
+          } catch (innerE) {
+            console.log("Could not find primary key field for product_discount table, will use direct delete/insert instead");
+          }
+        }
         
         // If discount exists, update it, otherwise insert a new one
-        if (Array.isArray(discountExists) && discountExists.length > 0) {
+        if (discountIdFieldName && Array.isArray(discountExists) && discountExists.length > 0) {
           // @ts-ignore - We know this property exists
-          const priceId = discountExists[0].price_id;
+          const discountId = discountExists[0][discountIdFieldName];
           
           const updateDiscountQuery = `
             UPDATE ${prefix}product_discount
             SET price = ?
-            WHERE price_id = ?
+            WHERE ${discountIdFieldName} = ?
           `;
           
-          await DbConnector.executeQuery(pool, updateDiscountQuery, [params.depotPrice, priceId]);
+          await DbConnector.executeQuery(pool, updateDiscountQuery, [params.depotPrice, discountId]);
         } else {
           // Insert new discount
           const insertDiscountQuery = `
@@ -719,28 +809,56 @@ export async function updateProduct(
         result.old_warehouse_price = currentValues.warehousePrice;
         result.new_warehouse_price = params.warehousePrice;
         
-        // Check if warehouse price discount exists
-        const checkDiscountQuery = `
-          SELECT price_id
-          FROM ${prefix}product_discount
-          WHERE product_id = ? AND customer_group_id = ?
-          LIMIT 1
-        `;
+        // Handle different OpenCart database schemas
+        // Try with product_discount_id first (OpenCart 2.x and 3.x)
+        let discountIdFieldName = '';
+        let discountExists: any = null;
         
-        const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, namibiaGroupId]);
+        try {
+          const checkDiscountQuery = `
+            SELECT product_discount_id
+            FROM ${prefix}product_discount
+            WHERE product_id = ? AND customer_group_id = ?
+            LIMIT 1
+          `;
+          
+          discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, namibiaGroupId]);
+          
+          if (Array.isArray(discountExists) && discountExists.length > 0) {
+            discountIdFieldName = 'product_discount_id';
+          }
+        } catch (e) {
+          // Try with price_id as fallback (some OpenCart variations)
+          try {
+            const checkDiscountQuery = `
+              SELECT price_id
+              FROM ${prefix}product_discount
+              WHERE product_id = ? AND customer_group_id = ?
+              LIMIT 1
+            `;
+            
+            discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [productId, namibiaGroupId]);
+            
+            if (Array.isArray(discountExists) && discountExists.length > 0) {
+              discountIdFieldName = 'price_id';
+            }
+          } catch (innerE) {
+            console.log("Could not find primary key field for product_discount table, will use direct delete/insert instead");
+          }
+        }
         
         // If discount exists, update it, otherwise insert a new one
-        if (Array.isArray(discountExists) && discountExists.length > 0) {
+        if (discountIdFieldName && Array.isArray(discountExists) && discountExists.length > 0) {
           // @ts-ignore - We know this property exists
-          const priceId = discountExists[0].price_id;
+          const discountId = discountExists[0][discountIdFieldName];
           
           const updateDiscountQuery = `
             UPDATE ${prefix}product_discount
             SET price = ?
-            WHERE price_id = ?
+            WHERE ${discountIdFieldName} = ?
           `;
           
-          await DbConnector.executeQuery(pool, updateDiscountQuery, [params.warehousePrice, priceId]);
+          await DbConnector.executeQuery(pool, updateDiscountQuery, [params.warehousePrice, discountId]);
         } else {
           // Insert new discount
           const insertDiscountQuery = `

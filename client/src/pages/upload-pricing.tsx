@@ -209,11 +209,19 @@ export default function UploadPricing() {
 
   const handleCancelUpdate = () => {
     setShowProgress(false);
-    // Implement actual cancellation logic if needed
-    toast({
-      title: "Update cancelled",
-      description: "The price update has been cancelled",
-    });
+    
+    // Show appropriate message based on update status
+    if (updateStatus?.status === "completed") {
+      toast({
+        title: "Update completed",
+        description: "The price update has been successfully completed",
+      });
+    } else {
+      toast({
+        title: "Update cancelled",
+        description: "The price update has been cancelled",
+      });
+    }
   };
 
   return (

@@ -31,7 +31,7 @@ export async function createUpdateDetail(detail: {
   success: boolean;
   error_message: string | null;
 }) {
-  // Looking at the schema, we need to match exactly what updateDetails table expects
+  // Match exactly the fields in the updateDetails table schema
   return storage.createUpdateDetail({
     updateId: detail.update_id,
     storeId: detail.store_id,

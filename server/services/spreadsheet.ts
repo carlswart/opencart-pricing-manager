@@ -461,15 +461,11 @@ async function processUpdates(
             update_id: updateId,
             store_id: storeId,
             sku: product.sku,
-            product_id: null,
+            product_id: 0, // Use 0 instead of null since productId is notNull in schema
             old_regular_price: null,
-            new_regular_price: null,
-            old_depot_price: null,
-            new_depot_price: null,
-            old_warehouse_price: null,
-            new_warehouse_price: null,
+            new_regular_price: product.regularPrice,
             old_quantity: null,
-            new_quantity: null,
+            new_quantity: product.quantity || null,
             success: false,
             error_message: `Store with ID ${storeId} not found`
           });
@@ -490,15 +486,11 @@ async function processUpdates(
             update_id: updateId,
             store_id: storeId,
             sku: product.sku,
-            product_id: null,
-            old_regular_price: null,
-            new_regular_price: null,
-            old_depot_price: null,
-            new_depot_price: null,
-            old_warehouse_price: null,
-            new_warehouse_price: null,
+            product_id: 0, // 0 instead of null since not nullable in schema
+            old_regular_price: null, 
+            new_regular_price: product.regularPrice,
             old_quantity: null,
-            new_quantity: null,
+            new_quantity: product.quantity || null,
             success: false,
             error_message: `No database connection configured for store "${store.name}"`
           });
@@ -519,15 +511,11 @@ async function processUpdates(
               update_id: updateId,
               store_id: storeId,
               sku: product.sku,
-              product_id: null,
+              product_id: 0,
               old_regular_price: null,
-              new_regular_price: null,
-              old_depot_price: null,
-              new_depot_price: null,
-              old_warehouse_price: null,
-              new_warehouse_price: null,
+              new_regular_price: product.regularPrice,
               old_quantity: null,
-              new_quantity: null,
+              new_quantity: product.quantity || null,
               success: false,
               error_message: `Failed to connect to database for store "${store.name}"`
             });

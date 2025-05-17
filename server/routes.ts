@@ -7,6 +7,8 @@ import * as OpenCartService from "./services/opencart";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { db } from "./db"; // Add import for direct database access
+import { updates, updateDetails } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { 
   insertStoreSchema, 
   insertUpdateSchema, 
@@ -456,6 +458,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       global.mockUpdates = global.mockUpdates || {};
       global.mockUpdates[updateId] = mockUpdate;
       
+      // Actually store in database for persistence
+      try {
+        // Get authenticated user or default to admin
+        const user = req.user || { id: 1 };
+        
+        // Insert into the database
+        await db.insert(updates).values({
+          id: updateId,
+          userId: user.id,
+          filename: req.file?.originalname || "Uploaded file",
+          productsCount: products.length,
+          status: "processing",
+          details: JSON.stringify({
+            stores: stores,
+            options: updateOptions,
+          }),
+          created_at: new Date().toISOString()
+        });
+        
+        console.log(`Created database record for update ${updateId}`);
+      } catch (dbError) {
+        console.error("Error creating update database record:", dbError);
+        // Non-fatal, continue with in-memory tracking
+      }
+      
       // Respond to client immediately with the updateId
       res.status(200).json({
         updateId: updateId,
@@ -634,6 +661,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Also complete the update in our data keeper
           const finalStatus = errorCount > 0 ? 'partial' : 'completed';
           updateDataKeeper.completeUpdate(updateId, finalStatus);
+          
+          // Update the database record to mark as completed
+          try {
+            await db.update(updates)
+              .set({ 
+                status: finalStatus,
+                completed_at: new Date().toISOString() 
+              })
+              .where(eq(updates.id, updateId));
+              
+            console.log(`Updated database record for update ${updateId} to ${finalStatus}`);
+            
+            // Also store update details in the database
+            for (const detail of updateDetails) {
+              try {
+                await db.insert(updateDetails).values({
+                  updateId: updateId,
+                  storeId: detail.storeId,
+                  productId: detail.productId,
+                  sku: detail.sku,
+                  oldPrice: detail.oldPrice,
+                  newPrice: detail.newPrice,
+                  oldQuantity: detail.oldQuantity,
+                  newQuantity: detail.newQuantity,
+                  status: detail.status,
+                  created_at: new Date().toISOString()
+                });
+              } catch (detailError) {
+                console.error(`Error storing detail for SKU ${detail.sku}:`, detailError);
+              }
+            }
+          } catch (dbError) {
+            console.error("Error updating database record:", dbError);
+          }
           
           console.log(`Completed processing: ${successCount} successful, ${errorCount} errors (Update ID: ${updateId})`);
           

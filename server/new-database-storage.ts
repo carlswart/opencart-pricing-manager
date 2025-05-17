@@ -3,10 +3,9 @@
  * This uses the field mapping utilities to handle snake_case/camelCase conversion
  */
 import { IStorage } from './storage';
-import { DbAdapter } from './db-adapter';
-import {
-  User, InsertUser,
-  Store, InsertStore,
+import { 
+  User, InsertUser, 
+  Store, InsertStore, 
   DbConnection, InsertDbConnection,
   Update, InsertUpdate,
   UpdateDetail, InsertUpdateDetail,
@@ -17,11 +16,13 @@ import {
   customerGroups, storeCustomerGroupMappings
 } from '@shared/schema';
 import { eq, desc, and, count, isNull, or, ne } from 'drizzle-orm';
+import { db } from './db';
 import session from 'express-session';
 import createMemoryStore from 'memorystore';
-import { SessionStore } from './storage';
+import { DbAdapter } from './db-adapter';
 
-// Create memory store for session data
+// Import the SessionStore type defined in storage.ts
+import { SessionStore } from './storage';
 const MemoryStore = createMemoryStore(session);
 
 export class DatabaseStorage implements IStorage {
@@ -109,14 +110,12 @@ export class DatabaseStorage implements IStorage {
 
   // Update methods
   async getAllUpdates(): Promise<Update[]> {
-    return await DbAdapter.select(updates, undefined) as Update[];
+    return await DbAdapter.select(updates, desc(updates.created_at)) as Update[];
   }
 
   async getRecentUpdates(limit: number = 4): Promise<Update[]> {
-    const results = await DbAdapter.select(updates, undefined) as Update[];
-    return results
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
+    const results = await DbAdapter.select(updates, desc(updates.created_at));
+    return results.slice(0, limit) as Update[];
   }
 
   async getUpdateById(id: number): Promise<Update | undefined> {
@@ -128,13 +127,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async completeUpdate(id: number, status: 'completed' | 'partial' | 'failed', details?: any): Promise<Update | undefined> {
-    const updateData = {
+    const completedData = {
       status,
       completedAt: new Date().toISOString(),
       details: details ? JSON.stringify(details) : null
     };
-    
-    return await DbAdapter.update(updates, updates.id, id, updateData) as Update | undefined;
+
+    return await DbAdapter.update(updates, updates.id, id, completedData) as Update | undefined;
   }
 
   async deleteUpdate(id: number): Promise<boolean> {
@@ -216,50 +215,88 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setSetting(key: string, value: string, description?: string): Promise<boolean> {
-    const existing = await DbAdapter.select(settings, eq(settings.key, key));
+    // Check if setting exists
+    const exists = await this.getSetting(key);
     
-    if (existing.length > 0) {
+    if (exists !== null) {
+      // Update existing setting
       const settingData = { value, description };
-      await DbAdapter.update(settings, settings.id, existing[0].id, settingData);
+      const result = await DbAdapter.select(settings, eq(settings.key, key));
+      if (result.length > 0) {
+        const id = result[0].id;
+        await DbAdapter.update(settings, settings.id, id, settingData);
+      }
     } else {
-      const settingData = { key, value, description };
-      await DbAdapter.insert(settings, settingData);
+      // Create new setting
+      await DbAdapter.insert(settings, {
+        key,
+        value,
+        description: description || ''
+      });
     }
     
     return true;
   }
 
-  // Dashboard stats methods
+  // Analytics methods
   async getTimeSaved(): Promise<number> {
-    const timeSaved = await this.getSetting('time_saved');
-    return timeSaved ? parseInt(timeSaved, 10) : 0;
+    const setting = await this.getSetting('time_saved');
+    return setting ? parseInt(setting, 10) : 0;
   }
 
   async getTotalProducts(): Promise<number> {
-    const result = await this.getSetting('total_products');
-    return result ? parseInt(result, 10) : 0;
+    const results = await db.select({ count: count() }).from(updateDetails);
+    return results[0].count;
   }
 
   async getRecentUpdatesCount(): Promise<number> {
-    const results = await DbAdapter.select(updates) as Update[];
-    return results.length;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const results = await db
+      .select({ count: count() })
+      .from(updates)
+      .where(and(
+        ne(updates.status, 'failed'),
+        or(
+          eq(updates.status, 'completed'),
+          eq(updates.status, 'partial')
+        )
+      ));
+    
+    return results[0].count;
   }
 
   async getConnectedStoresCount(): Promise<number> {
-    const results = await DbAdapter.select(dbConnections, eq(dbConnections.isActive, true));
-    return results.length;
+    const results = await db
+      .select({ count: count() })
+      .from(dbConnections)
+      .where(eq(dbConnections.isActive, true));
+    
+    return results[0].count;
   }
 
   async getTotalStoresCount(): Promise<number> {
-    const results = await DbAdapter.select(stores);
-    return results.length;
+    const results = await db.select({ count: count() }).from(stores);
+    return results[0].count;
   }
 
   async getLastUpdateTime(): Promise<string | null> {
-    const updates = await this.getRecentUpdates(1);
-    return updates.length > 0 ? updates[0].createdAt : null;
+    const latestUpdates = await db
+      .select()
+      .from(updates)
+      .where(and(
+        ne(updates.status, 'failed'),
+        or(
+          eq(updates.status, 'completed'),
+          eq(updates.status, 'partial')
+        )
+      ))
+      .orderBy(desc(updates.created_at))
+      .limit(1);
+    
+    return latestUpdates.length > 0 ? latestUpdates[0].created_at : null;
   }
 }
 
-// Create a singleton instance of the DatabaseStorage
 export const storage = new DatabaseStorage();

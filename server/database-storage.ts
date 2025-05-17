@@ -145,14 +145,14 @@ export class DatabaseStorage implements IStorage {
 
   // Update methods
   async getAllUpdates(): Promise<Update[]> {
-    return await db.select().from(updates).orderBy(desc(updates.createdAt));
+    return await db.select().from(updates).orderBy(desc(updates.created_at));
   }
 
   async getRecentUpdates(limit: number = 4): Promise<Update[]> {
     return await db
       .select()
       .from(updates)
-      .orderBy(desc(updates.createdAt))
+      .orderBy(desc(updates.created_at))
       .limit(limit);
   }
 
@@ -173,7 +173,7 @@ export class DatabaseStorage implements IStorage {
       .update(updates)
       .set({ 
         status, 
-        completedAt: now,
+        completed_at: now,
         details: details ? JSON.stringify(details) : null
       })
       .where(eq(updates.id, id))
@@ -384,14 +384,14 @@ export class DatabaseStorage implements IStorage {
     try {
       // Get the most recent completed update time
       const result = await db
-        .select({ completedAt: updates.completedAt })
+        .select({ completed_at: updates.completed_at })
         .from(updates)
         .where(eq(updates.status, 'completed'))
-        .orderBy(desc(updates.completedAt))
+        .orderBy(desc(updates.completed_at))
         .limit(1)
         .execute();
       
-      return result.length > 0 ? result[0].completedAt : null;
+      return result.length > 0 ? result[0].completed_at : null;
     } catch (error) {
       console.error("Error getting last update time:", error);
       return null;
@@ -433,7 +433,7 @@ export class DatabaseStorage implements IStorage {
       const now = new Date().toISOString();
       const [newGroup] = await db.insert(customerGroups).values({
         ...group,
-        createdAt: now
+        created_at: now
       }).returning();
       return newGroup;
     } catch (error) {
@@ -504,7 +504,7 @@ export class DatabaseStorage implements IStorage {
       const now = new Date().toISOString();
       const [newMapping] = await db.insert(storeCustomerGroupMappings).values({
         ...mapping,
-        createdAt: now
+        created_at: now
       }).returning();
       return newMapping;
     } catch (error) {

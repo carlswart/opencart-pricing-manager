@@ -329,21 +329,42 @@ export async function createPriceBackup(
   storeName: string,
   products: string[]
 ): Promise<string | null> {
+  let pool = null;
+  
   try {
-    // In a real implementation, this would create a backup of the product data
-    // in the OpenCart database before making any changes
+    // Skip backup if no SKUs provided
+    if (!products || products.length === 0) {
+      console.log(`No products to backup for store ${storeName}`);
+      return null;
+    }
     
-    // For this demonstration, we'll simulate creating a backup
+    // Create a secure database connection
+    pool = await DbConnector.createSecureConnection(connection);
+    
+    // Use the configured table prefix
+    const prefix = connection.prefix || 'oc_';
+    
+    // Create a timestamp for the backup
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupName = `price_backup_store_${storeName.replace(/\s+/g, '_')}_update_${updateId}_${timestamp}`;
     
-    // Get current data for each product
+    // Get backup directory
+    const backupDir = path.join(process.cwd(), 'data', 'backups');
+    
+    // Create backup directory if it doesn't exist
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+    
+    // Get backup data for each product
     const backupData: any[] = [];
     
     for (const sku of products) {
       const productId = await findProductBySku(connection, sku);
       if (productId) {
+        // Get current product data
         const currentValues = await getProductCurrentValues(connection, productId);
+        
         backupData.push({
           sku,
           productId,
@@ -352,14 +373,36 @@ export async function createPriceBackup(
       }
     }
     
-    // In a real implementation, we would save this to a database table or file
+    // Create comprehensive backup record
+    const backupRecord = {
+      updateId,
+      storeName,
+      timestamp: new Date().toISOString(),
+      connection: {
+        id: connection.id,
+        storeId: connection.storeId,
+        host: connection.host,
+        database: connection.database,
+        prefix: connection.prefix
+      },
+      products: backupData
+    };
+    
+    // Save backup to file
+    const backupPath = path.join(backupDir, `${backupName}.json`);
+    fs.writeFileSync(backupPath, JSON.stringify(backupRecord, null, 2));
+    
     console.log(`Created price backup "${backupName}" for store "${storeName}" with ${backupData.length} products`);
     
-    // Return the name of the backup (which could be used to restore if needed)
     return backupName;
   } catch (error) {
     console.error(`Error creating price backup for store "${storeName}":`, error);
     return null;
+  } finally {
+    // Ensure connection is closed even if there was an error
+    if (pool) {
+      await DbConnector.closeConnection(pool);
+    }
   }
 }
 
@@ -383,30 +426,177 @@ export async function restoreFromBackup(
   storeId: number,
   backupName: string
 ): Promise<{ success: boolean; message: string; restoredProducts: number }> {
+  let pool = null;
+  
   try {
     console.log(`Attempting to restore backup "${backupName}" for store ID: ${storeId}`);
     
-    // In a real implementation, this would:
-    // 1. Find the backup file/data using the backupName
-    // 2. Read the backup data
-    // 3. Restore all product prices and quantities from the backup
+    // Get backup directory
+    const backupDir = path.join(process.cwd(), 'data', 'backups');
+    const backupPath = path.join(backupDir, `${backupName}.json`);
     
-    // Since this is a demonstration, we'll simulate a successful restoration
+    // Check if backup file exists
+    if (!fs.existsSync(backupPath)) {
+      return {
+        success: false,
+        message: `Backup file not found: ${backupName}`,
+        restoredProducts: 0
+      };
+    }
     
-    // Parse store ID and update ID from the backup name format
-    // e.g. "price_backup_store_MainStore_update_123_2023-01-01T12-00-00Z"
-    const updateIdMatch = backupName.match(/update_(\d+)/);
-    const updateId = updateIdMatch ? parseInt(updateIdMatch[1]) : 0;
+    // Load backup data
+    const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
     
-    console.log(`Parsed update ID: ${updateId} from backup: ${backupName}`);
+    // Verify this backup is for the correct store
+    if (backupData.connection.storeId !== storeId) {
+      return {
+        success: false,
+        message: `Backup is for store ID ${backupData.connection.storeId}, not ${storeId}`,
+        restoredProducts: 0
+      };
+    }
     
-    // Simulate successful restore
-    return {
-      success: true,
-      message: `Successfully restored ${15} products from backup ${backupName}`,
-      restoredProducts: 15
-    };
+    // Create a secure database connection
+    pool = await DbConnector.createSecureConnection(connection);
     
+    // Use the configured table prefix
+    const prefix = connection.prefix || 'oc_';
+    
+    // Begin a transaction to ensure data consistency
+    const dbConnection = await DbConnector.beginTransaction(pool);
+    
+    try {
+      // Track the number of products restored
+      let restoredProducts = 0;
+      
+      // For each product in the backup
+      for (const product of backupData.products) {
+        // First update the base product price and quantity
+        const updateProductQuery = `
+          UPDATE ${prefix}product
+          SET price = ?, quantity = ?, date_modified = NOW()
+          WHERE product_id = ?
+        `;
+        
+        await DbConnector.executeQuery(pool, updateProductQuery, [
+          product.regularPrice,
+          product.quantity,
+          product.productId
+        ]);
+        
+        // Get customer group IDs 
+        const customerGroups = await getCustomerGroupIds(connection);
+        
+        // Update special pricing for depot customer group if available
+        if (product.depotPrice !== undefined && customerGroups.depot) {
+          // Check if special price exists
+          const checkDiscountQuery = `
+            SELECT price_id
+            FROM ${prefix}product_discount
+            WHERE product_id = ? AND customer_group_id = ?
+            LIMIT 1
+          `;
+          
+          const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
+            product.productId, 
+            customerGroups.depot
+          ]);
+          
+          if (Array.isArray(discountExists) && discountExists.length > 0) {
+            // @ts-ignore - We know this property exists
+            const priceId = discountExists[0].price_id;
+            
+            // Update existing price
+            const updateDiscountQuery = `
+              UPDATE ${prefix}product_discount
+              SET price = ?
+              WHERE price_id = ?
+            `;
+            
+            await DbConnector.executeQuery(pool, updateDiscountQuery, [
+              product.depotPrice, 
+              priceId
+            ]);
+          } else {
+            // Insert new discount
+            const insertDiscountQuery = `
+              INSERT INTO ${prefix}product_discount 
+              (product_id, customer_group_id, quantity, priority, price, date_start, date_end)
+              VALUES (?, ?, 1, 1, ?, '0000-00-00', '0000-00-00')
+            `;
+            
+            await DbConnector.executeQuery(pool, insertDiscountQuery, [
+              product.productId, 
+              customerGroups.depot, 
+              product.depotPrice
+            ]);
+          }
+        }
+        
+        // Update special pricing for Namibia SD (warehouse) customer group if available
+        if (product.warehousePrice !== undefined && customerGroups.namibiaSD) {
+          // Check if special price exists
+          const checkDiscountQuery = `
+            SELECT price_id
+            FROM ${prefix}product_discount
+            WHERE product_id = ? AND customer_group_id = ?
+            LIMIT 1
+          `;
+          
+          const discountExists = await DbConnector.executeQuery(pool, checkDiscountQuery, [
+            product.productId, 
+            customerGroups.namibiaSD
+          ]);
+          
+          if (Array.isArray(discountExists) && discountExists.length > 0) {
+            // @ts-ignore - We know this property exists
+            const priceId = discountExists[0].price_id;
+            
+            // Update existing price
+            const updateDiscountQuery = `
+              UPDATE ${prefix}product_discount
+              SET price = ?
+              WHERE price_id = ?
+            `;
+            
+            await DbConnector.executeQuery(pool, updateDiscountQuery, [
+              product.warehousePrice, 
+              priceId
+            ]);
+          } else {
+            // Insert new discount
+            const insertDiscountQuery = `
+              INSERT INTO ${prefix}product_discount 
+              (product_id, customer_group_id, quantity, priority, price, date_start, date_end)
+              VALUES (?, ?, 1, 1, ?, '0000-00-00', '0000-00-00')
+            `;
+            
+            await DbConnector.executeQuery(pool, insertDiscountQuery, [
+              product.productId, 
+              customerGroups.namibiaSD, 
+              product.warehousePrice
+            ]);
+          }
+        }
+        
+        restoredProducts++;
+      }
+      
+      // Commit the transaction
+      await DbConnector.commitTransaction(dbConnection);
+      
+      console.log(`Successfully restored ${restoredProducts} products from backup ${backupName}`);
+      
+      return {
+        success: true,
+        message: `Successfully restored ${restoredProducts} products from backup ${backupName}`,
+        restoredProducts
+      };
+    } catch (error) {
+      // Rollback the transaction if any queries failed
+      await DbConnector.rollbackTransaction(dbConnection);
+      throw error;
+    }
   } catch (error) {
     console.error(`Error restoring from backup:`, error);
     return {
@@ -414,6 +604,11 @@ export async function restoreFromBackup(
       message: `Failed to restore from backup: ${error instanceof Error ? error.message : "Unknown error"}`,
       restoredProducts: 0
     };
+  } finally {
+    // Ensure connection is closed even if there was an error
+    if (pool) {
+      await DbConnector.closeConnection(pool);
+    }
   }
 }
 

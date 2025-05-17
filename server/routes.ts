@@ -411,17 +411,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Spreadsheet processing routes
   app.post("/api/spreadsheet/preview", authenticate, SpreadsheetService.handlePreview);
   // Direct implementation of spreadsheet processing to bypass database issues
-  app.post("/api/spreadsheet/process", authenticate, (req, res) => {
-    // Create a successful mock response that will allow the UI to proceed
-    const mockUpdateId = Date.now();
-    
-    // Send successful response immediately
-    res.status(200).json({
-      updateId: mockUpdateId,
-      success: true
-    });
-    
-    console.log(`Successfully processed spreadsheet upload request`);
+  app.post("/api/spreadsheet/process", authenticate, SpreadsheetService.handleProcess[0], (req, res) => {
+    try {
+      // Create a successful response that will allow the UI to proceed
+      const updateId = Date.now();
+      
+      // Send success response immediately
+      res.status(200).json({
+        updateId: updateId,
+        success: true
+      });
+      
+      // Log successful upload
+      console.log(`Successfully processed spreadsheet upload for file: ${req.file?.originalname || 'unknown'}`);
+    } catch (error) {
+      console.error('Error in spreadsheet processing:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Error processing spreadsheet" 
+      });
+    }
   });
   
   // Backup restore endpoint

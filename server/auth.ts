@@ -3,7 +3,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcrypt";
-import { User } from "@shared/sqlite-schema";
+import { User } from "@shared/schema";
 
 declare global {
   namespace Express {

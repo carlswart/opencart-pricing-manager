@@ -1,5 +1,5 @@
 import { IStorage } from './storage';
-import { db } from './sqlite-db';
+import { db } from './db';
 import { 
   User, InsertUser, 
   Store, InsertStore, 
@@ -11,7 +11,7 @@ import {
   Setting, InsertSetting,
   users, stores, dbConnections, updates, updateDetails, settings,
   customerGroups, storeCustomerGroupMappings
-} from '@shared/sqlite-schema';
+} from '@shared/schema';
 import { eq, desc, and, count, isNull, or, ne } from 'drizzle-orm';
 import session from 'express-session';
 import createMemoryStore from 'memorystore';

@@ -6,8 +6,9 @@ import {
   Update, InsertUpdate,
   UpdateDetail, InsertUpdateDetail,
   CustomerGroup, InsertCustomerGroup,
-  StoreCustomerGroupMapping, InsertStoreCustomerGroupMapping
-} from "@shared/sqlite-schema";
+  StoreCustomerGroupMapping, InsertStoreCustomerGroupMapping,
+  Setting, InsertSetting
+} from "@shared/schema";
 
 // Import memorystore for session store type
 import createMemoryStore from 'memorystore';

@@ -160,3 +160,6 @@ export type InsertUpdate = z.infer<typeof insertUpdateSchema>;
 
 export type UpdateDetail = typeof updateDetails.$inferSelect;
 export type InsertUpdateDetail = z.infer<typeof insertUpdateDetailSchema>;
+
+export type Setting = typeof settings.$inferSelect;
+export type InsertSetting = z.infer<typeof insertSettingsSchema>;

@@ -132,9 +132,9 @@ export default function Dashboard() {
         <StatsCard
           title="Time Saved"
           value={statsLoading ? "Loading..." : (stats?.timeSaved ?? "0 min")}
-          icon={<Clock className="text-primary" />}
+          icon={<Clock className="text-white" />}
           iconBgColor="bg-primary"
-          iconColor="text-primary"
+          iconColor="text-white"
           tooltip="Time saved is calculated as 1 minute per product per store. Each successful price/quantity update saves manual entry time across all stores."
           footer={
             <div className="text-xs text-success flex items-center">
@@ -147,9 +147,9 @@ export default function Dashboard() {
         <StatsCard
           title="Recent Updates"
           value={statsLoading ? "Loading..." : (stats?.recentUpdates ?? 0)}
-          icon={<RefreshCw className="text-primary" />}
+          icon={<RefreshCw className="text-white" />}
           iconBgColor="bg-primary"
-          iconColor="text-primary"
+          iconColor="text-white"
           footer={
             <div className="text-xs text-muted-foreground">
               <span>Last update: {statsLoading ? "Loading..." : (stats?.lastUpdateTime ?? "Never")}</span>
@@ -160,9 +160,9 @@ export default function Dashboard() {
         <StatsCard
           title="Connected Stores"
           value={statsLoading ? "Loading..." : (stats?.connectedStores ?? "0/0")}
-          icon={<Store className="text-primary" />}
+          icon={<Store className="text-white" />}
           iconBgColor="bg-primary" 
-          iconColor="text-primary"
+          iconColor="text-white"
           footer={(() => {
             if (statsLoading) return (
               <div className="text-xs text-muted-foreground flex items-center">

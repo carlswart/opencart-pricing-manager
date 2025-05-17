@@ -79,6 +79,12 @@ export default function UpdateHistory() {
             depotPrice: product.oldDepotPrice !== undefined ? product.oldDepotPrice : product.newDepotPrice,
             warehousePrice: product.oldWarehousePrice !== undefined ? product.oldWarehousePrice : product.newWarehousePrice,
             quantity: product.oldQuantity !== undefined ? product.oldQuantity : product.newQuantity,
+            // Explicitly add oldPrice fields for the comparison view
+            oldRegularPrice: product.oldRegularPrice,
+            oldDepotPrice: product.oldDepotPrice,
+            oldWarehousePrice: product.oldWarehousePrice,
+            oldQuantity: product.oldQuantity,
+            // New price fields
             newRegularPrice: product.newRegularPrice,
             newDepotPrice: product.newDepotPrice,
             newWarehousePrice: product.newWarehousePrice,

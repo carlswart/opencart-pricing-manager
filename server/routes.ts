@@ -331,17 +331,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Convert from snake_case to camelCase
         return {
           id: conn.id,
-          storeId: conn.store_id, // Critical field that was missing
+          storeId: conn.storeId, 
           host: conn.host,
           port: conn.port,
           database: conn.database,
           username: conn.username,
           password: conn.password,
           prefix: conn.prefix || "oc_",
-          isActive: conn.is_active,
-          lastConnected: conn.last_connected,
-          createdAt: conn.created_at,
-          updatedAt: conn.updated_at
+          isActive: conn.isActive,
+          lastConnected: conn.lastConnected,
+          createdAt: conn.createdAt,
+          updatedAt: conn.updatedAt
         };
       });
       
@@ -392,17 +392,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transform to consistent camelCase format for frontend
       const transformedConnection = {
         id: connection.id,
-        storeId: connection.store_id,
+        storeId: connection.storeId,
         host: connection.host,
         port: connection.port,
         database: connection.database,
         username: connection.username,
         password: connection.password,
         prefix: connection.prefix || "oc_",
-        isActive: connection.is_active,
-        lastConnected: connection.last_connected,
-        createdAt: connection.created_at,
-        updatedAt: connection.updated_at
+        isActive: connection.isActive,
+        lastConnected: connection.lastConnected,
+        createdAt: connection.createdAt,
+        updatedAt: connection.updatedAt
       };
       
       res.status(201).json(transformedConnection);

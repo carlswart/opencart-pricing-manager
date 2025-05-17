@@ -658,20 +658,15 @@ async function processUpdates(
           console.error(`Error updating product "${product.sku}" in store "${store.name}":`, error);
           
           await storage.createUpdateDetail({
-            update_id: updateId,
-            store_id: storeId,
+            updateId: updateId,
+            storeId: storeId,
             sku: product.sku,
-            product_id: 0,
-            old_regular_price: null,
-            new_regular_price: null,
-            old_depot_price: null,
-            new_depot_price: null,
-            old_warehouse_price: null,
-            new_warehouse_price: null,
-            old_quantity: null,
-            new_quantity: null,
-            success: false,
-            error_message: `Update failed: ${error instanceof Error ? error.message : "Unknown error"}`
+            productId: 0,
+            oldPrice: null,
+            newPrice: null,
+            oldQuantity: null,
+            newQuantity: null,
+            status: 'failed'
           });
           
           storeFailedCount++;

@@ -687,13 +687,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `);
                 
+                // Map the price fields correctly from the detail object
+                // Debug the object structure to see what fields are available
+                console.log(`Detail for SKU ${detail.sku}:`, JSON.stringify(detail));
+                
                 stmt.run(
                   updateId,
                   detail.storeId,
                   detail.productId,
                   detail.sku,
-                  detail.oldPrice,
-                  detail.newPrice,
+                  detail.oldRegularPrice || 0,  // Use regular price as the main price
+                  detail.newRegularPrice || 0,  // Use regular price as the main price
                   detail.oldQuantity,
                   detail.newQuantity,
                   detail.status,

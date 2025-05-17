@@ -45,8 +45,15 @@ const iconMap: Record<string, React.ReactNode> = {
   "star": <Star className="h-10 w-10 text-yellow-400" />,
 };
 
+interface MilestoneResponse {
+  timeSaved: number;
+  achievedMilestones: Milestone[];
+  nextMilestone: Milestone | null;
+  formattedTimeSaved: string;
+}
+
 export default function AchievementsPage() {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<MilestoneResponse>({
     queryKey: ["/api/milestones"],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -93,11 +100,15 @@ export default function AchievementsPage() {
     );
   }
 
-  const { timeSaved, achievedMilestones = [], nextMilestone, formattedTimeSaved } = data || {};
+  // Extract data with defaults to handle typing properly
+  const achievedMilestones = data?.achievedMilestones || [];
+  const nextMilestone = data?.nextMilestone || null;
+  const timeSaved = data?.timeSaved || 0;
+  const formattedTimeSaved = data?.formattedTimeSaved || "0 min";
   
   // Get all milestones
   const allMilestones = [
-    ...(achievedMilestones || []),
+    ...achievedMilestones,
     ...(nextMilestone ? [nextMilestone] : []),
   ].sort((a, b) => a.minutes - b.minutes);
 
@@ -107,7 +118,7 @@ export default function AchievementsPage() {
   
   if (nextMilestone) {
     // If there are achieved milestones, use the last one as the base
-    if (achievedMilestones?.length > 0) {
+    if (achievedMilestones.length > 0) {
       const lastMilestone = achievedMilestones[achievedMilestones.length - 1];
       lastMilestoneMinutes = lastMilestone.minutes;
     }
@@ -116,7 +127,7 @@ export default function AchievementsPage() {
     const totalRangeMinutes = nextMilestone.minutes - lastMilestoneMinutes;
     const progressMinutes = timeSaved - lastMilestoneMinutes;
     progressPercentage = Math.round((progressMinutes / totalRangeMinutes) * 100);
-  } else if (achievedMilestones?.length > 0) {
+  } else if (achievedMilestones.length > 0) {
     // If all milestones are achieved
     progressPercentage = 100;
   }

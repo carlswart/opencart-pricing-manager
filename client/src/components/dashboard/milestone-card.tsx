@@ -66,7 +66,11 @@ export function MilestoneCard() {
     );
   }
 
-  const { timeSaved, nextMilestone, achievedMilestones, formattedTimeSaved } = data || {};
+  // Get data with default values to handle typing properly
+  const achievedMilestones = data?.achievedMilestones || [];
+  const nextMilestone = data?.nextMilestone || null;
+  const timeSaved = data?.timeSaved || 0;
+  const formattedTimeSaved = data?.formattedTimeSaved || "0 min";
   
   // Calculate progress percentage toward next milestone
   let progressPercentage = 0;
@@ -74,7 +78,7 @@ export function MilestoneCard() {
   
   if (nextMilestone) {
     // If there are achieved milestones, use the last one as the base
-    if (achievedMilestones?.length > 0) {
+    if (achievedMilestones.length > 0) {
       const lastMilestone = achievedMilestones[achievedMilestones.length - 1];
       lastMilestoneMinutes = lastMilestone.minutes;
     }
@@ -83,7 +87,7 @@ export function MilestoneCard() {
     const totalRangeMinutes = nextMilestone.minutes - lastMilestoneMinutes;
     const progressMinutes = timeSaved - lastMilestoneMinutes;
     progressPercentage = Math.round((progressMinutes / totalRangeMinutes) * 100);
-  } else if (achievedMilestones?.length > 0) {
+  } else if (achievedMilestones.length > 0) {
     // If all milestones are achieved
     progressPercentage = 100;
   }
@@ -124,26 +128,31 @@ export function MilestoneCard() {
           )}
           
           {/* Last achieved milestone */}
-          {achievedMilestones?.length > 0 && (
+          {achievedMilestones.length > 0 && (
             <div className="pt-2 mt-2 border-t">
               <div className="text-sm font-medium mb-2">Last achievement:</div>
-              <div className="flex items-start space-x-3">
-                {iconMap[achievedMilestones[achievedMilestones.length - 1].icon] || 
-                 <Award className="h-6 w-6 text-amber-500" />}
-                <div>
-                  <div className="font-medium text-sm">
-                    {achievedMilestones[achievedMilestones.length - 1].name}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {achievedMilestones[achievedMilestones.length - 1].description}
-                  </div>
-                  {achievedMilestones[achievedMilestones.length - 1].achieved_at && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Achieved on {new Date(achievedMilestones[achievedMilestones.length - 1].achieved_at).toLocaleDateString()}
+              {(() => {
+                const lastMilestone = achievedMilestones[achievedMilestones.length - 1];
+                return (
+                  <div className="flex items-start space-x-3">
+                    {iconMap[lastMilestone.icon] || 
+                     <Award className="h-6 w-6 text-amber-500" />}
+                    <div>
+                      <div className="font-medium text-sm">
+                        {lastMilestone.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {lastMilestone.description}
+                      </div>
+                      {lastMilestone.achieved_at && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Achieved on {new Date(lastMilestone.achieved_at).toLocaleDateString()}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

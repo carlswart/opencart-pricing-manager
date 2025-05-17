@@ -138,15 +138,15 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatsCard
           title="Time Saved"
-          value="12 min"
+          value={statsLoading ? "Loading..." : stats?.timeSaved || "0 min"}
           icon={<Clock className="text-white" />}
           iconBgColor="bg-primary"
           iconColor="text-white"
-          tooltip="Time saved is calculated as 1 minute per product. There are 12 completed product updates in the database."
+          tooltip="Time saved is calculated as 1 minute per product. Each completed update in the database counts as 1 minute saved."
           footer={
             <div className="text-xs text-success flex items-center">
               <ArrowUp className="h-3 w-3 mr-1" />
-              <span>+25%</span>
+              <span>{stats?.timeChangePercent || "+0%"}</span>
             </div>
           }
         />

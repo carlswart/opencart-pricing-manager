@@ -107,9 +107,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalStores = await storage.getTotalStoresCount();
       const lastUpdate = await storage.getLastUpdateTime();
       
-      // Directly set the value to 12 based on our SQL query findings
-      // This will always be the correct value returned to the client
-      const minutes = 12;
+      // Use our utility function to get the actual count from the database
+      const { getCompletedUpdatesCount } = require('./utils/db-stats');
+      const minutes = getCompletedUpdatesCount();
+      console.log("Dynamic count of completed updates from DB:", minutes);
       
       // Convert to hours and days
       const hours = Math.floor(minutes / 60);

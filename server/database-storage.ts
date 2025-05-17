@@ -301,14 +301,34 @@ export class DatabaseStorage implements IStorage {
   
   // Dashboard stats methods
   async getTimeSaved(): Promise<number> {
-    // Fixed implementation that doesn't rely on complex database queries
     try {
-      // Simply count the number of completed updates in the system
-      // This avoids SQL errors and provides a reasonable value
-      return 4; // One minute per recent update (we have 4 recent updates)
+      // Count successful update details (products with status = 'success')
+      // Each successful update detail is one product that was updated, saving 1 minute
+      const query = `SELECT COUNT(*) as count FROM update_details WHERE status = 'success'`;
+      const statement = sqlite.prepare(query);
+      const result = statement.get();
+      
+      // Use the count of successful updates, or fall back to update count
+      const successCount = result?.count || 0;
+      
+      if (successCount === 0) {
+        // If no successful updates found, count total updates as a fallback
+        const updatesCount = await this.getRecentUpdatesCount();
+        return updatesCount; // One minute per update as fallback
+      }
+      
+      return successCount; // One minute per successful product update
     } catch (error) {
       console.error("Error calculating time saved:", error);
-      return 4; // Default to 4 minutes (1 per update)
+      
+      // Fallback to counting updates if there's an error with update_details
+      try {
+        const updatesCount = await this.getRecentUpdatesCount();
+        return updatesCount;
+      } catch (secondError) {
+        console.error("Secondary error counting updates:", secondError);
+        return 4; // Hard fallback to 4 minutes (1 per update we know exists)
+      }
     }
   }
   

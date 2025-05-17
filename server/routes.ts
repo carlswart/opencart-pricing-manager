@@ -9,7 +9,7 @@ import { fromZodError } from "zod-validation-error";
 import { db, sqlite } from "./db"; // Import both the ORM and direct SQLite connection
 import * as schema from "@shared/schema"; // Import all schema elements
 import { updates, updateDetails } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { 
   insertStoreSchema, 
   insertUpdateSchema, 
@@ -105,16 +105,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalStores = await storage.getTotalStoresCount();
       const lastUpdate = await storage.getLastUpdateTime();
       
-      // Calculate time saved without using complex SQL queries
-      // Based on the formula: 1 minute saved per product per store
-      
-      // For simplicity, use the number of recent updates and connected stores
-      // Each update typically includes multiple products (average 30)
-      const averageProductsPerUpdate = 30;
-      const estimatedProducts = recentUpdates * averageProductsPerUpdate;
-      
-      // Each product update saves time for each connected store
-      const minutes = estimatedProducts * connectedStores;
+      // Count successful updates directly from the database
+      let minutes = 0;
+      try {
+        // Use direct SQLite connection to count successful updates
+        // 1 successful update = 1 minute saved
+        const result = sqlite.prepare(
+          "SELECT COUNT(*) as count FROM update_details WHERE status = 'success'"
+        ).get();
+        
+        minutes = result?.count || 0;
+      } catch (sqlError) {
+        console.error("Error counting successful updates:", sqlError);
+        // Fallback: Calculate from stored stats
+        minutes = recentUpdates * 10; // Rough estimate based on update count
+      }
       
       // Convert to hours and days
       const hours = Math.floor(minutes / 60);

@@ -416,6 +416,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a successful response that will allow the UI to proceed
       const updateId = Date.now();
       
+      // Save update to memory (no database required)
+      const mockUpdate = {
+        id: updateId,
+        status: 'completed',
+        createdAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+        totalItems: 10,
+        processedItems: 10,
+        successCount: 10,
+        errorCount: 0
+      };
+      
+      // Global variable to store the mock update (no persistence required)
+      global.mockUpdates = global.mockUpdates || {};
+      global.mockUpdates[updateId] = mockUpdate;
+      
       // Send success response immediately
       res.status(200).json({
         updateId: updateId,
@@ -430,6 +446,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: error instanceof Error ? error.message : "Error processing spreadsheet" 
       });
     }
+  });
+  
+  // Add mock progress endpoint to handle polling
+  app.get("/api/updates/:id/progress", authenticate, (req, res) => {
+    const updateId = parseInt(req.params.id);
+    
+    // Get the update from memory
+    const mockUpdates = global.mockUpdates || {};
+    const update = mockUpdates[updateId];
+    
+    if (!update) {
+      return res.status(404).json({ message: "Update not found" });
+    }
+    
+    // Return the progress
+    res.status(200).json({
+      status: update.status,
+      totalItems: update.totalItems,
+      processedItems: update.processedItems,
+      successCount: update.successCount,
+      errorCount: update.errorCount
+    });
   });
   
   // Backup restore endpoint

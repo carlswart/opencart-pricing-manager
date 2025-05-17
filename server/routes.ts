@@ -589,12 +589,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateDetails = await storage.getUpdateDetails(updateId);
       
       // Extract unique store IDs from the update details
-      const updatedStoreIds = [...new Set(updateDetails.map(detail => detail.store_id))];
+      const updatedStoreIds = [...new Set(updateDetails.map(detail => detail.storeId))];
       
       // If no stores were found in details, return an empty list
       if (updatedStoreIds.length === 0) {
         res.json({
-          overall: update.completedAt ? 100 : 0,
+          overall: update.completed_at ? 100 : 0,
           stores: [],
         });
         return;
@@ -605,7 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedStores = allStores.filter(store => updatedStoreIds.includes(store.id));
       
       // For a complete update, return 100% progress
-      if (update.completedAt) {
+      if (update.completed_at) {
         res.json({
           overall: 100,
           stores: updatedStores.map(store => ({
@@ -621,7 +621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Simulate progress for this example
       const progress = Math.min(
         Math.floor(
-          (Date.now() - new Date(update.createdAt).getTime()) / 100
+          (Date.now() - new Date(update.created_at).getTime()) / 100
         ),
         100
       );

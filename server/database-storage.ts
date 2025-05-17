@@ -254,7 +254,7 @@ export class DatabaseStorage implements IStorage {
           .set({ 
             value, 
             description: description || existingSetting[0].description,
-            createdAt: now 
+            created_at: now 
           })
           .where(eq(settings.key, key))
           .execute();
@@ -266,7 +266,7 @@ export class DatabaseStorage implements IStorage {
             key,
             value,
             description: description || '',
-            createdAt: now
+            created_at: now
           })
           .execute();
       }

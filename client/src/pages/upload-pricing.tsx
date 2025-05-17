@@ -28,6 +28,7 @@ export default function UploadPricing() {
   const [updateProgress, setUpdateProgress] = useState({
     overall: 0,
     stores: [] as { id: number; name: string; progress: number }[],
+    status: "",
   });
 
   // Fetch stores
@@ -176,10 +177,16 @@ export default function UploadPricing() {
           }
           
           const progress = await progressRes.json();
-          setUpdateProgress(progress);
+          
+          // Update progress with status from the server
+          setUpdateProgress({
+            ...progress,
+            overall: progress.processedItems / progress.totalItems * 100,
+            status: progress.status
+          });
           
           // If the update is complete, stop polling
-          if (progress.overall === 100) {
+          if (progress.status === "completed") {
             clearInterval(pollInterval);
             setTimeout(() => {
               setShowProgress(false);
@@ -211,7 +218,7 @@ export default function UploadPricing() {
     setShowProgress(false);
     
     // Show appropriate message based on update status
-    if (updateStatus?.status === "completed") {
+    if (updateProgress?.status === "completed") {
       toast({
         title: "Update completed",
         description: "The price update has been successfully completed",

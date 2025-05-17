@@ -41,7 +41,12 @@ export async function createUpdateDetail(detail: {
     newPrice: detail.new_regular_price,
     oldQuantity: detail.old_quantity,
     newQuantity: detail.new_quantity,
-    status: detail.success ? 'success' : 'failed'
+    status: detail.success ? 'success' : 'failed',
+    // Add required field that was missing (even if it's null)
+    // This is likely the cause of "Too few parameter values" error
+    newRegularPrice: detail.new_regular_price,
+    newDepotPrice: detail.new_depot_price,
+    newWarehousePrice: detail.new_warehouse_price
   });
 }
 

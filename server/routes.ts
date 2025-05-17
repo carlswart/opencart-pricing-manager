@@ -815,7 +815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import our new update adapter to handle field name conversions
       const { getAllUpdates, createFallbackUpdate } = await import('./utils/update-adapter');
       
-      // First try to get updates from our update data keeper
+      // First get updates from our update data keeper
       let updates = [];
       try {
         const { getAllUpdates: getKeeperUpdates } = await import('./services/update-data-keeper');
@@ -836,12 +836,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error accessing update data keeper:", keeperError);
       }
       
-      // Then try to get updates from the database as a fallback
-      if (updates.length === 0) {
-        console.log("No updates found in keeper, checking database");
-        const dbUpdates = await getAllUpdates();
-        if (dbUpdates && dbUpdates.length > 0) {
-          updates = dbUpdates;
+      // Also get updates from the database and combine with memory updates
+      console.log("Getting database updates to combine with memory updates");
+      const dbUpdates = await getAllUpdates();
+      if (dbUpdates && dbUpdates.length > 0) {
+        // Add database updates that aren't already in the list
+        for (const dbUpdate of dbUpdates) {
+          if (!updates.some(u => u.id === dbUpdate.id)) {
+            updates.push(dbUpdate);
+          }
         }
       }
       
@@ -875,8 +878,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: update.status || "unknown",
         products_count: update.productsCount || 0,
         user: "Admin", // For now, hardcode the user
-        stores: ["MP Test 2"] // From logs, we know this was the store updated
+        stores: ["MP Test 2"] // Known store from the system
       }));
+      
+      // Sort updates by date, newest first
+      formattedUpdates.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
       
       res.json(formattedUpdates);
     } catch (error) {

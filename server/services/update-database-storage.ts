@@ -22,19 +22,53 @@ export async function createUpdateDetail(detail: any) {
     // Bypass the storage interface and directly insert into the database
     console.log("Creating update detail with values:", JSON.stringify(detail));
     
-    // Map directly to the database schema fields
-    const result = await db.insert(updateDetails).values({
+    // Map directly to the database schema fields using the correct field names
+    // The updateDetails schema is expecting camelCase field names that match the db column names
+    const cleanDetail = {
       update_id: detail.update_id,
       store_id: detail.store_id,
       sku: detail.sku,
       product_id: detail.product_id || 0,
-      old_price: detail.old_regular_price,
-      new_price: detail.new_regular_price,
-      old_quantity: detail.old_quantity,
-      new_quantity: detail.new_quantity,
+      old_price: detail.old_regular_price || null,
+      new_price: detail.new_regular_price || null, 
+      old_quantity: detail.old_quantity || null,
+      new_quantity: detail.new_quantity || null,
       status: detail.success ? 'success' : 'failed',
       created_at: new Date().toISOString()
-    }).returning();
+    };
+    
+    console.log("Clean detail object:", JSON.stringify(cleanDetail));
+    
+    // Use raw SQL to bypass the ORM schema validation
+    const query = `
+      INSERT INTO update_details (
+        update_id, store_id, product_id, sku, 
+        old_price, new_price, old_quantity, new_quantity, 
+        status, created_at
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const stmt = db.run(
+      query, 
+      [
+        cleanDetail.update_id,
+        cleanDetail.store_id,
+        cleanDetail.product_id,
+        cleanDetail.sku,
+        cleanDetail.old_price,
+        cleanDetail.new_price,
+        cleanDetail.old_quantity,
+        cleanDetail.new_quantity,
+        cleanDetail.status,
+        cleanDetail.created_at
+      ]
+    );
+    
+    const lastId = stmt.lastInsertRowid;
+    
+    // Get the inserted record
+    const insertedRecord = db.get(`SELECT * FROM update_details WHERE id = ?`, [lastId]);
     
     return result[0];
   } catch (error) {

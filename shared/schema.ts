@@ -84,12 +84,12 @@ export const updateDetails = sqliteTable("update_details", {
   oldQuantity: integer("old_quantity"),
   newQuantity: integer("new_quantity"),
   status: text("status").notNull(),
-  createdAt: text("created_at").notNull().default("")
+  created_at: text("created_at").notNull().default("")
 });
 
 export const insertUpdateDetailSchema = createInsertSchema(updateDetails).omit({
   id: true,
-  createdAt: true,
+  created_at: true,
 });
 
 // Customer group discount settings

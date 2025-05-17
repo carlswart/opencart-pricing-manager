@@ -4,7 +4,8 @@ import {
   sqliteTable, 
   text, 
   integer, 
-  real
+  real,
+  primaryKey
 } from 'drizzle-orm/sqlite-core';
 
 // Users table
@@ -139,6 +140,25 @@ export const insertSettingsSchema = createInsertSchema(settings).omit({
   created_at: true,
 });
 
+// Time savings milestones table
+export const milestones = sqliteTable("milestones", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  minutes: integer("minutes").notNull(), // Number of minutes for this milestone
+  name: text("name").notNull(), // Name of the milestone (e.g., "30 minutes", "1 hour")
+  description: text("description").notNull(), // Description/message to show
+  icon: text("icon").notNull().default("award"), // Icon to display (from Lucide icons)
+  achieved: integer("achieved", { mode: 'boolean' }).notNull().default(false),
+  achieved_at: text("achieved_at"), // When this milestone was achieved
+  created_at: text("created_at").notNull().default("")
+});
+
+export const insertMilestoneSchema = createInsertSchema(milestones).omit({
+  id: true,
+  achieved: true,
+  achieved_at: true,
+  created_at: true,
+});
+
 // Type definitions
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -162,4 +182,6 @@ export type UpdateDetail = typeof updateDetails.$inferSelect;
 export type InsertUpdateDetail = z.infer<typeof insertUpdateDetailSchema>;
 
 export type Setting = typeof settings.$inferSelect;
+export type Milestone = typeof milestones.$inferSelect;
+export type InsertMilestone = z.infer<typeof insertMilestoneSchema>;
 export type InsertSetting = z.infer<typeof insertSettingsSchema>;

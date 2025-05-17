@@ -2,6 +2,7 @@ import { db, initializeSchema } from './db';
 import { hash } from './auth-utils';
 import { users, stores, customerGroups } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { initializeMilestones } from './services/milestone-service';
 
 /**
  * Initialize the database with demo data if it doesn't exist
@@ -44,6 +45,9 @@ export async function initializeDemoData() {
   try {
     // Initialize schema first
     await initializeSchema();
+    
+    // Initialize milestone tracking system
+    await initializeMilestones();
     
     // Check if we already have users
     const existingUsers = await db.select().from(users);

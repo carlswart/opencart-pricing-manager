@@ -22,8 +22,17 @@ export function FileUpload({
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
-      if (acceptedFiles.length > 0) {
-        onFilesSelected(acceptedFiles);
+      // Make sure the files are properly processed
+      const processedFiles = acceptedFiles.map(file => 
+        // Create a new File object to ensure it's fully serializable
+        new File([file], file.name, { 
+          type: file.type,
+          lastModified: file.lastModified 
+        })
+      );
+      
+      if (processedFiles.length > 0) {
+        onFilesSelected(processedFiles);
         setFileRejections([]);
       }
 

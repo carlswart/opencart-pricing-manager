@@ -150,8 +150,25 @@ export class DatabaseStorage implements IStorage {
     return await DbAdapter.select(updateDetails, eq(updateDetails.storeId, storeId)) as UpdateDetail[];
   }
 
-  async createUpdateDetail(detail: InsertUpdateDetail): Promise<UpdateDetail> {
-    return await DbAdapter.insert(updateDetails, detail) as UpdateDetail;
+  async createUpdateDetail(detail: any): Promise<UpdateDetail> {
+    // Handle both snake_case and camelCase inputs by mapping fields correctly
+    console.log("Creating update detail with values:", JSON.stringify(detail));
+    
+    // Create a properly formatted object that matches our schema
+    const formattedDetail = {
+      updateId: detail.updateId || detail.update_id,
+      storeId: detail.storeId || detail.store_id,
+      productId: detail.productId || detail.product_id || 0,
+      sku: detail.sku,
+      oldPrice: detail.oldPrice || detail.old_price || detail.old_regular_price || null,
+      newPrice: detail.newPrice || detail.new_price || detail.new_regular_price || null,
+      oldQuantity: detail.oldQuantity || detail.old_quantity || null, 
+      newQuantity: detail.newQuantity || detail.new_quantity || null,
+      status: detail.status || (detail.success ? 'success' : 'failed')
+    };
+    
+    console.log("Formatted detail for DB insert:", JSON.stringify(formattedDetail));
+    return await DbAdapter.insert(updateDetails, formattedDetail) as UpdateDetail;
   }
 
   async deleteUpdateDetail(id: number): Promise<boolean> {

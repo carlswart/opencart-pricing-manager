@@ -217,7 +217,7 @@ export function SpreadsheetPreviewModal({
                             </TableCell>
                             <TableCell className={cn(
                               "border-r border-neutral-200 dark:border-neutral-700 text-center",
-                              row.oldRegularPrice !== row.newRegularPrice && "text-blue-600 font-medium"
+                              row.oldRegularPrice !== row.newRegularPrice && "text-primary font-medium"
                             )}>
                               {row.newRegularPrice !== undefined && `R ${row.newRegularPrice}`}
                             </TableCell>
@@ -228,7 +228,7 @@ export function SpreadsheetPreviewModal({
                             </TableCell>
                             <TableCell className={cn(
                               "border-r border-neutral-200 dark:border-neutral-700 text-center",
-                              row.oldDepotPrice !== row.newDepotPrice && "text-blue-600 font-medium"
+                              row.oldDepotPrice !== row.newDepotPrice && "text-primary font-medium"
                             )}>
                               {row.newDepotPrice !== undefined && `R ${row.newDepotPrice}`}
                             </TableCell>
@@ -239,7 +239,7 @@ export function SpreadsheetPreviewModal({
                             </TableCell>
                             <TableCell className={cn(
                               "border-r border-neutral-200 dark:border-neutral-700 text-center",
-                              row.oldWarehousePrice !== row.newWarehousePrice && "text-blue-600 font-medium"
+                              row.oldWarehousePrice !== row.newWarehousePrice && "text-primary font-medium"
                             )}>
                               {row.newWarehousePrice !== undefined && `R ${row.newWarehousePrice}`}
                             </TableCell>
@@ -250,7 +250,7 @@ export function SpreadsheetPreviewModal({
                             </TableCell>
                             <TableCell className={cn(
                               "text-center",
-                              row.oldQuantity !== row.newQuantity && "text-blue-600 font-medium"
+                              row.oldQuantity !== row.newQuantity && "text-primary font-medium"
                             )}>
                               {row.newQuantity !== undefined && row.newQuantity}
                             </TableCell>

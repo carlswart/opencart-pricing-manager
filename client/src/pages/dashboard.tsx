@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Clock, RefreshCw, Store, ArrowUp, CheckCircle } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -9,11 +9,14 @@ import { UploadModal } from "@/components/modals/upload-modal";
 import { DatabaseSettingsModal } from "@/components/modals/database-settings-modal";
 import { SpreadsheetPreviewModal } from "@/components/modals/spreadsheet-preview-modal";
 import { Store as StoreType, DbConnection } from "@shared/schema";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [dbSettingsModalOpen, setDbSettingsModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   
   // Define types for dashboard stats
   interface DashboardStats {
@@ -25,12 +28,36 @@ export default function Dashboard() {
     timeChangePercent: string;
   }
   
+  // Auto-refresh every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshData();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Function to refresh all dashboard data
+  const refreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/updates/recent'] });
+      console.log("Dashboard data refreshed");
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+  
   // Define type for recent updates
   type RecentUpdate = UpdateRecord;
   
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
+    refetchInterval: 5000, // Refetch every 5 seconds
     onSuccess: (data) => {
       // Diagnostic log to check what's coming from the API
       console.log("Dashboard stats received:", data);
@@ -134,6 +161,21 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* Header with Refresh Button */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <Button 
+          onClick={refreshData} 
+          size="sm" 
+          variant="outline" 
+          className="flex items-center gap-1"
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh Data
+        </Button>
+      </div>
+      
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatsCard

@@ -49,7 +49,7 @@ export default function Dashboard() {
   });
   
   const handleUploadClick = () => {
-    setUploadModalOpen(true);
+    setLocation("/upload-pricing");
   };
   
   const handleDatabaseClick = () => {

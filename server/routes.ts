@@ -320,36 +320,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const connections = await storage.getAllDbConnections();
       
-      // Transform snake_case to camelCase for frontend compatibility
-      // Fix the transformation to preserve storeId
-      const transformedConnections = connections.map(conn => {
-        // First check if this is already using the new format
-        if (conn.storeId !== undefined) {
-          return conn; // Already in the correct format
-        }
-        
-        // Convert from snake_case to camelCase
-        return {
-          id: conn.id,
-          storeId: conn.storeId, 
-          host: conn.host,
-          port: conn.port,
-          database: conn.database,
-          username: conn.username,
-          password: conn.password,
-          prefix: conn.prefix || "oc_",
-          isActive: conn.isActive,
-          lastConnected: conn.lastConnected,
-          createdAt: conn.createdAt,
-          updatedAt: conn.updatedAt
-        };
-      });
+      // DbAdapter now automatically handles field mapping between snake_case and camelCase
+      // No manual transformation needed
       
-      // Log the transformed connections for debugging
-      console.log("Original connections:", JSON.stringify(connections));
-      console.log("Transformed connections:", JSON.stringify(transformedConnections));
-      
-      res.json(transformedConnections);
+      res.json(connections);
     } catch (error) {
       console.error("Error fetching database connections:", error);
       res.status(500).json({ message: "Failed to fetch database connections" });
@@ -389,23 +363,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertDbConnectionSchema.parse(req.body);
       const connection = await storage.createDbConnection(validatedData);
       
-      // Transform to consistent camelCase format for frontend
-      const transformedConnection = {
-        id: connection.id,
-        storeId: connection.storeId,
-        host: connection.host,
-        port: connection.port,
-        database: connection.database,
-        username: connection.username,
-        password: connection.password,
-        prefix: connection.prefix || "oc_",
-        isActive: connection.isActive,
-        lastConnected: connection.lastConnected,
-        createdAt: connection.createdAt,
-        updatedAt: connection.updatedAt
-      };
-      
-      res.status(201).json(transformedConnection);
+      // DbAdapter now handles field mapping automatically
+      res.status(201).json(connection);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);

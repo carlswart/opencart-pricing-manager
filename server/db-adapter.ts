@@ -57,7 +57,8 @@ export class DbAdapter {
     values: Record<string, any>
   ): Promise<Record<string, any>> {
     const snakeCaseValues = transformToSnakeCase(values);
-    const [result] = await db.insert(table).values(snakeCaseValues).returning();
+    // Fix: Cast as any to avoid TypeScript error with Record<string, any>
+    const [result] = await db.insert(table).values(snakeCaseValues as any).returning();
     return transformToCamelCase(result);
   }
 
@@ -76,9 +77,10 @@ export class DbAdapter {
     values: Record<string, any>
   ): Promise<Record<string, any> | undefined> {
     const snakeCaseValues = transformToSnakeCase(values);
+    // Fix: Cast as any to avoid TypeScript error with Record<string, any>
     const [result] = await db
       .update(table)
-      .set(snakeCaseValues)
+      .set(snakeCaseValues as any)
       .where(eq(idColumn, id))
       .returning();
     

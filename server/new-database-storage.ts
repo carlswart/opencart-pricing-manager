@@ -127,9 +127,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async completeUpdate(id: number, status: 'completed' | 'partial' | 'failed', details?: any): Promise<Update | undefined> {
+    // Field mapping from camelCase to snake_case is handled by DbAdapter
     const completedData = {
       status,
-      completedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(), // DbAdapter will convert to completed_at
       details: details ? JSON.stringify(details) : null
     };
 

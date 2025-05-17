@@ -53,7 +53,7 @@ export default function Dashboard() {
   };
   
   const handleDatabaseClick = () => {
-    setDbSettingsModalOpen(true);
+    setLocation("/database-settings");
   };
   
   const handleHistoryClick = () => {

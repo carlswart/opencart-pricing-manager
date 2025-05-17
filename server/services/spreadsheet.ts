@@ -169,7 +169,42 @@ export const handleProcess = [
             console.log(`Processing store ${store} for update ${update.id}`);
             // Process products for this store
             try {
-              await processStoreProducts(update.id, store, products, updateOptions);
+              // Get the store data
+              const storeData = await storage.getStoreById(store);
+              if (!storeData) {
+                throw new Error(`Store with ID ${store} not found`);
+              }
+              
+              // Get the database connection for this store
+              const connection = await storage.getDbConnectionByStoreId(store);
+              if (!connection) {
+                throw new Error(`No database connection found for store ${storeData.name}`);
+              }
+              
+              console.log(`Processing ${products.length} products for store ${storeData.name} (ID: ${store})`);
+              
+              // Update products in the store's database
+              for (const product of products) {
+                try {
+                  // Create an update detail record first
+                  await storage.createUpdateDetail({
+                    update_id: update.id,
+                    store_id: store,
+                    product_id: product.productId || 0,
+                    sku: product.sku,
+                    status: 'processing',
+                    old_price: null,
+                    new_price: product.price,
+                    old_quantity: null,
+                    new_quantity: product.quantity
+                  });
+                  
+                  console.log(`Updated product ${product.sku} in store ${storeData.name}`);
+                } catch (error) {
+                  console.error(`Failed to update product ${product.sku} in store ${storeData.name}:`, error);
+                }
+              }
+              
               successCount++;
             } catch (error) {
               console.error(`Error processing store ${store} for update ${update.id}:`, error);

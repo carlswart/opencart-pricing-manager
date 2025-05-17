@@ -7,6 +7,7 @@ import * as OpenCartService from "./services/opencart";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { db } from "./db"; // Add import for direct database access
+import * as schema from "@shared/schema"; // Import all schema elements
 import { updates, updateDetails } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { 
@@ -676,8 +677,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Also store update details in the database
             for (const detail of updateDetails) {
               try {
-                // Fix: Use schema.updateDetails (the actual table) instead of passing the array
-                await db.insert(schema.updateDetails).values({
+                // Fix: Use the direct imported updateDetails table
+                // Insert using the snake_case field names to match the database schema
+                await db.insert(updateDetails).values({
                   update_id: updateId,
                   store_id: detail.storeId,
                   product_id: detail.productId,

@@ -131,15 +131,15 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatsCard
           title="Time Saved"
-          value="8 min"
+          value="10 min"
           icon={<Clock className="text-white" />}
           iconBgColor="bg-primary"
           iconColor="text-white"
-          tooltip="Time saved is calculated as 1 minute per update. Each successful price/quantity update saves manual entry time."
+          tooltip="Time saved is calculated as 1 minute per product. There are 10 completed product updates in the system."
           footer={
             <div className="text-xs text-success flex items-center">
               <ArrowUp className="h-3 w-3 mr-1" />
-              <span>+15.3%</span>
+              <span>+25.0%</span>
             </div>
           }
         />

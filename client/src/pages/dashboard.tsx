@@ -7,6 +7,7 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentUpdates, UpdateRecord } from "@/components/dashboard/recent-updates";
 import { UploadModal } from "@/components/modals/upload-modal";
 import { DatabaseSettingsModal } from "@/components/modals/database-settings-modal";
+import { SpreadsheetPreviewModal } from "@/components/modals/spreadsheet-preview-modal";
 import { Store as StoreType, DbConnection } from "@shared/schema";
 
 export default function Dashboard() {
@@ -63,8 +64,65 @@ export default function Dashboard() {
     setLocation("/update-history");
   };
   
-  const handleViewUpdateDetails = (id: number) => {
-    setLocation(`/update-history/${id}`);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  
+  // Handler to view update details
+  const handleViewUpdateDetails = async (id: number) => {
+    try {
+      const response = await fetch(`/api/updates/${id}/details`, {
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        console.error("Failed to fetch update details");
+        return;
+      }
+      
+      const detailsData = await response.json();
+      
+      // Format the data for the preview modal
+      if (Array.isArray(detailsData)) {
+        // Find the update to get filename
+        const update = recentUpdates?.find(u => u.id === id);
+        const filename = update?.filename || "Unknown file";
+        
+        // Format the data for the preview modal
+        const formattedData = {
+          filename: filename,
+          recordCount: detailsData.length,
+          validationIssues: [],
+          // Map the product details
+          rows: detailsData.map(product => ({
+            sku: product.sku || product.model || "",
+            name: product.name || `Product ${product.sku || ""}`,
+            regularPrice: product.oldRegularPrice !== undefined ? product.oldRegularPrice : product.newRegularPrice,
+            depotPrice: product.oldDepotPrice !== undefined ? product.oldDepotPrice : product.newDepotPrice,
+            warehousePrice: product.oldWarehousePrice !== undefined ? product.oldWarehousePrice : product.newWarehousePrice,
+            quantity: product.oldQuantity !== undefined ? product.oldQuantity : product.newQuantity,
+            // Explicitly add oldPrice fields for the comparison view
+            oldRegularPrice: product.oldRegularPrice,
+            oldDepotPrice: product.oldDepotPrice,
+            oldWarehousePrice: product.oldWarehousePrice,
+            oldQuantity: product.oldQuantity,
+            // New price fields
+            newRegularPrice: product.newRegularPrice,
+            newDepotPrice: product.newDepotPrice,
+            newWarehousePrice: product.newWarehousePrice,
+            newQuantity: product.newQuantity,
+            store: product.store || "Unknown Store",
+            status: product.status || "unknown"
+          })),
+          backups: [],
+          hasBackups: false
+        };
+        
+        setPreviewData(formattedData);
+        setShowPreview(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch update details:", error);
+    }
   };
 
   return (
@@ -176,6 +234,15 @@ export default function Dashboard() {
           selectedStoreId={null}
         />
       )}
+      
+      {/* Spreadsheet Preview Modal */}
+      <SpreadsheetPreviewModal 
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        data={previewData}
+        onConfirm={() => setShowPreview(false)}
+        isHistoryView={true}
+      />
     </div>
   );
 }

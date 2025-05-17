@@ -711,19 +711,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/updates/history", authenticate, async (req, res) => {
     try {
-      console.log("Fetching complete update history");
-      const updates = await storage.getAllUpdates();
-      console.log(`Found ${updates?.length || 0} total updates in history`);
+      console.log("Fetching complete update history directly from database");
       
-      // Format the updates for display using the same format as recent updates
-      const formattedUpdates = updates?.map(update => ({
+      // Import db if it hasn't been imported yet
+      const { db } = require('../db');
+      
+      // Query the updates table directly using SQL
+      const result = await db.execute(`
+        SELECT id, created_at, filename, status, products_count, user_id 
+        FROM updates 
+        ORDER BY created_at DESC
+      `);
+      
+      console.log("Raw database results:", result);
+      
+      // Format the updates for display
+      const formattedUpdates = result.map((update: any) => ({
         id: update.id,
         date: new Date(update.created_at || Date.now()).toLocaleString(),
         filename: update.filename || "Unknown file",
         status: update.status || "unknown",
-        products_count: update.productsCount || 0,
+        products_count: update.products_count || 0,
         user: "Admin" // For now, hardcode the user
       })) || [];
+      
+      console.log("Formatted updates for display:", formattedUpdates);
       
       res.json(formattedUpdates);
     } catch (error) {

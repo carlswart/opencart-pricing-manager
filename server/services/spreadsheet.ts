@@ -5,6 +5,9 @@ import { User, DbConnection } from "@shared/sqlite-schema";
 import * as storage from "./update-database-storage";
 import { calculateDepotPrice, calculateWarehousePrice, isValidDepotPrice, isValidWarehousePrice } from "./pricing";
 import * as XLSX from 'xlsx';
+import { db } from '../db';
+import { updates, updateDetails } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 // Extend the Request type to include multer's file property
 declare global {
@@ -218,12 +221,19 @@ export const handleProcess = [
           // Mark the update as completed
           const status = failedCount === 0 ? 'completed' : (successCount > 0 ? 'partial' : 'failed');
           
-          await storage.completeUpdate(update.id, status, {
-            totalStores: stores.length,
-            successfulStores: successCount,
-            failedStores: failedCount,
-            completedAt: new Date().toISOString()
-          });
+          // Update directly in the database with snake_case field names
+          await db.update(updates)
+            .set({
+              status: status,
+              completed_at: new Date().toISOString(),
+              details: JSON.stringify({
+                totalStores: stores.length,
+                successfulStores: successCount,
+                failedStores: failedCount,
+                completedAt: new Date().toISOString()
+              })
+            })
+            .where(eq(updates.id, update.id));
           
           console.log(`Completed update ${update.id} with status: ${status}`);
         } catch (error) {

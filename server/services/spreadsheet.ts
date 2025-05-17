@@ -628,16 +628,11 @@ async function processUpdates(
               store_id: storeId,
               sku: product.sku,
               product_id: result.product_id,
-              old_regular_price: result.old_regular_price,
-              new_regular_price: result.new_regular_price,
-              old_depot_price: result.old_depot_price,
-              new_depot_price: result.new_depot_price,
-              old_warehouse_price: result.old_warehouse_price,
-              new_warehouse_price: result.new_warehouse_price,
+              old_price: result.old_regular_price,
+              new_price: result.new_regular_price,
               old_quantity: result.old_quantity,
               new_quantity: result.new_quantity,
-              success: true,
-              error_message: null
+              success: true
             });
             
             storeSuccessCount++;
@@ -648,16 +643,11 @@ async function processUpdates(
               store_id: storeId,
               sku: product.sku,
               product_id: result.product_id,
-              old_regular_price: result.old_regular_price,
-              new_regular_price: result.old_regular_price, // No change
-              old_depot_price: result.old_depot_price,
-              new_depot_price: result.old_depot_price, // No change
-              old_warehouse_price: result.old_warehouse_price,
-              new_warehouse_price: result.old_warehouse_price, // No change
+              old_price: result.old_regular_price,
+              new_price: result.old_regular_price, // No change
               old_quantity: result.old_quantity,
               new_quantity: result.old_quantity, // No change
-              success: true,
-              error_message: 'No changes needed based on selected update options'
+              success: true
             });
             
             // Still count as success since we found the product and processed it

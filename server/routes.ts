@@ -10,6 +10,7 @@ import { db, sqlite } from "./db"; // Import both the ORM and direct SQLite conn
 import * as schema from "@shared/schema"; // Import all schema elements
 import { updates, updateDetails } from "@shared/schema";
 import { getCompletedUpdatesCount } from "./utils/db-stats";
+import { checkMilestones, getAchievedMilestones, getNextMilestone } from "./services/milestone-service";
 import { eq, sql } from "drizzle-orm";
 import { 
   insertStoreSchema, 

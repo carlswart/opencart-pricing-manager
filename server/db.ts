@@ -31,13 +31,33 @@ export async function initializeSchema() {
     'update_details',
     'settings',
     'customer_groups',
-    'store_customer_group_mappings'
+    'store_customer_group_mappings',
+    'milestones'
   ];
   
+  // Create tables that don't exist
   for (const table of tables) {
     const exists = sqlite.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`).get(table);
     if (!exists) {
       console.log(`Creating table: ${table}`);
+      
+      // Create the table using the schema definition
+      // This uses SQL migrations that Drizzle would generate
+      if (table === 'milestones') {
+        sqlite.exec(`
+          CREATE TABLE IF NOT EXISTS milestones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            minutes INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            icon TEXT NOT NULL DEFAULT 'award',
+            achieved INTEGER NOT NULL DEFAULT 0,
+            achieved_at TEXT,
+            created_at TEXT NOT NULL DEFAULT ''
+          );
+        `);
+      }
+      // We can add other table creation statements here if needed
     }
   }
 }

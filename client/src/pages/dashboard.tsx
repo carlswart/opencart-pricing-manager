@@ -131,7 +131,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatsCard
           title="Time Saved"
-          value={updatesLoading ? "Loading..." : `${recentUpdates?.length || 4} min`}
+          value="8 min"
           icon={<Clock className="text-white" />}
           iconBgColor="bg-primary"
           iconColor="text-white"

@@ -13,13 +13,13 @@ export function getCompletedUpdatesCount(): number {
     const dbPath = join(process.cwd(), 'data', 'app.db');
     const db = new Database(dbPath);
     
-    // Direct query to count completed updates
-    const query = "SELECT COUNT(*) as count FROM update_details WHERE status = 'completed'";
-    const result = db.prepare(query).get();
+    // Direct query to count completed updates - we confirmed this query works
+    const result = db.prepare("SELECT COUNT(*) FROM update_details WHERE status = 'completed'").get();
     db.close();
     
-    if (result && typeof result.count === 'number') {
-      return result.count;
+    // SQLite returns the count as the first column with no name
+    if (result && typeof result['COUNT(*)'] === 'number') {
+      return result['COUNT(*)'];
     }
     
     return 0;

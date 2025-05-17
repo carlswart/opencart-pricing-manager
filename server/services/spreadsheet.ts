@@ -132,8 +132,8 @@ export const handleProcess = [
       // Get the authenticated user from the request
       const user = req.user || { id: 1, username: "admin" }; // Default to admin if not authenticated
       
-      // Create the update record
-      const update = await storage.createUpdate({
+      // Create the update record directly with snake_case field names
+      const [update] = await db.insert(updates).values({
         user_id: user.id,
         filename: req.file.originalname,
         products_count: products.length,
@@ -143,8 +143,11 @@ export const handleProcess = [
           selectedStores: stores,
           updateOptions: updateOptions,
           timestamp: new Date().toISOString()
-        })
-      });
+        }),
+        created_at: new Date().toISOString()
+      }).returning();
+      
+      console.log("Created update record:", update);
       
       console.log(`Created update record #${update.id} for "${req.file.originalname}" with ${products.length} products for ${stores.length} stores`);
       

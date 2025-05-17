@@ -15,22 +15,7 @@ import {
 /**
  * Creates an update detail with correct snake_case field names
  */
-export async function createUpdateDetail(detail: {
-  update_id: number;
-  store_id: number;
-  sku: string;
-  product_id: number | null;
-  old_regular_price: number | null;
-  new_regular_price: number | null;
-  old_depot_price: number | null;
-  new_depot_price: number | null;
-  old_warehouse_price: number | null;
-  new_warehouse_price: number | null;
-  old_quantity: number | null;
-  new_quantity: number | null;
-  success: boolean;
-  error_message: string | null;
-}) {
+export async function createUpdateDetail(detail: any) {
   // Match exactly the fields in the updateDetails table schema
   return storage.createUpdateDetail({
     updateId: detail.update_id,

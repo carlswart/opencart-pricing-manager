@@ -42,17 +42,33 @@ export const handlePreview = [
   upload.single("file"),
   async (req: Request, res: Response) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+      // Enhanced file validation
+      if (!req.file || !req.file.buffer || req.file.buffer.length === 0) {
+        console.error("File upload issue - missing or empty file", { 
+          fileExists: Boolean(req.file),
+          size: req.file?.size,
+          originalName: req.file?.originalname 
+        });
+        return res.status(400).json({ message: "No valid file uploaded or file is empty" });
       }
       
       // Parse options from request
-      const options = req.body.options ? JSON.parse(req.body.options) : {};
+      let options = {};
+      try {
+        options = req.body.options ? JSON.parse(req.body.options) : {};
+      } catch (parseError) {
+        console.error("Failed to parse options JSON:", parseError);
+        return res.status(400).json({ message: "Invalid options format" });
+      }
+      
       const { stores = [], updateOptions = {} } = options;
       
-      if (stores.length === 0) {
+      if (!Array.isArray(stores) || stores.length === 0) {
         return res.status(400).json({ message: "No stores selected" });
       }
+      
+      // Log successful file upload
+      console.log(`Processing uploaded file: ${req.file.originalname}, size: ${req.file.size} bytes`);
       
       // Parse spreadsheet
       const products = await parseSpreadsheet(req.file.buffer, req.file.originalname);
@@ -82,12 +98,25 @@ export const handleProcess = [
   upload.single("file"),
   async (req: Request, res: Response) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+      // Enhanced file validation
+      if (!req.file || !req.file.buffer || req.file.buffer.length === 0) {
+        console.error("Process file upload issue - missing or empty file", { 
+          fileExists: Boolean(req.file),
+          size: req.file?.size,
+          originalName: req.file?.originalname 
+        });
+        return res.status(400).json({ message: "No valid file uploaded or file is empty" });
       }
       
       // Parse options from request
-      const options = req.body.options ? JSON.parse(req.body.options) : {};
+      let options = {};
+      try {
+        options = req.body.options ? JSON.parse(req.body.options) : {};
+      } catch (parseError) {
+        console.error("Failed to parse options JSON:", parseError);
+        return res.status(400).json({ message: "Invalid options format" });
+      }
+      
       const { stores = [], updateOptions = {} } = options;
       
       if (stores.length === 0) {
@@ -133,18 +162,42 @@ const COLUMN_MAPPINGS = {
 // Parse spreadsheet buffer into product rows
 export async function parseSpreadsheet(buffer: Buffer, filename: string): Promise<ProductRow[]> {
   try {
-    // Read the workbook from buffer
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    // Log file details to help diagnose issues
+    console.log(`Spreadsheet parsing: file=${filename}, buffer size=${buffer?.length || 0} bytes`);
+    
+    // Validate the buffer is not empty/corrupted
+    if (!buffer || buffer.length < 10) {
+      throw new Error('The uploaded file appears to be empty or corrupted');
+    }
+    
+    // Try to read the workbook from buffer with error handling
+    let workbook;
+    try {
+      workbook = XLSX.read(buffer, { type: 'buffer' });
+    } catch (readError) {
+      console.error("Failed to read spreadsheet:", readError);
+      throw new Error(`Unable to read spreadsheet file: ${readError instanceof Error ? readError.message : "Unknown format"}`);
+    }
 
     // Get the first worksheet
-    if (workbook.SheetNames.length === 0) {
+    if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
       throw new Error('No worksheets found in the file');
     }
 
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     
-    // Convert to JSON
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    if (!worksheet) {
+      throw new Error('The first worksheet in the file is empty');
+    }
+    
+    // Convert to JSON with additional error handling
+    let jsonData;
+    try {
+      jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    } catch (jsonError) {
+      console.error("Failed to convert worksheet to JSON:", jsonError);
+      throw new Error('Failed to extract data from the spreadsheet');
+    }
     
     if (jsonData.length < 2) {
       throw new Error('Spreadsheet must contain at least a header row and one data row');

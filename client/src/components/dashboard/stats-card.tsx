@@ -47,7 +47,7 @@ export function StatsCard({
             </div>
             <h3 className="text-2xl font-semibold mt-1 text-card-foreground">{value}</h3>
           </div>
-          <div className={cn("w-10 h-10 rounded-full bg-opacity-10 flex items-center justify-center", iconBgColor, iconColor)}>
+          <div className={cn("w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center", iconBgColor, iconColor)}>
             {icon}
           </div>
         </div>

@@ -126,20 +126,79 @@ export const handleProcess = [
       // Parse spreadsheet
       const products = await parseSpreadsheet(req.file.buffer, req.file.originalname);
       
-      // Create a direct update response without database operations
-      const updateId = Date.now(); // Use timestamp as ID to avoid conflicts
+      // Create a proper update record in the database
+      const updateId = Date.now(); // Use timestamp as unique ID
       
-      // Log what would have been processed
-      console.log(`Processing spreadsheet "${req.file.originalname}" with ${products.length} products for ${stores.length} stores`);
+      // Get the authenticated user from the request
+      const user = req.user || { id: 1, username: "admin" }; // Default to admin if not authenticated
       
-      // Return success directly to the client
+      // Create the update record
+      const update = await storage.createUpdate({
+        user_id: user.id,
+        filename: req.file.originalname,
+        products_count: products.length,
+        status: "processing",
+        details: JSON.stringify({
+          filename: req.file.originalname,
+          selectedStores: stores,
+          updateOptions: updateOptions,
+          timestamp: new Date().toISOString()
+        })
+      });
+      
+      console.log(`Created update record #${update.id} for "${req.file.originalname}" with ${products.length} products for ${stores.length} stores`);
+      
+      // Return the update ID to the client
       res.json({
-        updateId: updateId,
+        updateId: update.id,
         success: true,
         message: "Spreadsheet uploaded successfully"
       });
       
-      // Don't attempt database operations for now
+      // Process the updates in the background
+      // We'll use the existing process function with slight modifications
+      setTimeout(async () => {
+        try {
+          console.log(`Starting background processing for update ${update.id}`);
+          
+          // Process the products from the spreadsheet
+          let successCount = 0;
+          let failedCount = 0;
+          
+          for (const store of stores) {
+            console.log(`Processing store ${store} for update ${update.id}`);
+            // Process products for this store
+            try {
+              await processStoreProducts(update.id, store, products, updateOptions);
+              successCount++;
+            } catch (error) {
+              console.error(`Error processing store ${store} for update ${update.id}:`, error);
+              failedCount++;
+            }
+          }
+          
+          // Mark the update as completed
+          const status = failedCount === 0 ? 'completed' : (successCount > 0 ? 'partial' : 'failed');
+          
+          await storage.completeUpdate(update.id, status, {
+            totalStores: stores.length,
+            successfulStores: successCount,
+            failedStores: failedCount,
+            completedAt: new Date().toISOString()
+          });
+          
+          console.log(`Completed update ${update.id} with status: ${status}`);
+        } catch (error) {
+          console.error(`Error in background processing for update ${update.id}:`, error);
+          try {
+            await storage.completeUpdate(update.id, 'failed', {
+              error: error instanceof Error ? error.message : "Unknown error during processing"
+            });
+          } catch (e) {
+            console.error(`Failed to update the status of update ${update.id}:`, e);
+          }
+        }
+      }, 100); // Small delay to ensure the response is sent first
     } catch (error) {
       console.error("Error processing spreadsheet:", error);
       res.status(400).json({ 

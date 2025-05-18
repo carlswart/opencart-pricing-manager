@@ -72,26 +72,39 @@ export default function UpdateHistory() {
           recordCount: detailsData.length,
           validationIssues: [],
           // Map the product details to match what the preview modal expects
-          rows: detailsData.map(product => ({
-            sku: product.sku || product.model || "",
-            name: product.name || `Product ${product.sku || ""}`,
-            regularPrice: product.oldRegularPrice !== undefined ? product.oldRegularPrice : product.newRegularPrice,
-            depotPrice: product.oldDepotPrice !== undefined ? product.oldDepotPrice : product.newDepotPrice,
-            warehousePrice: product.oldWarehousePrice !== undefined ? product.oldWarehousePrice : product.newWarehousePrice,
-            quantity: product.oldQuantity !== undefined ? product.oldQuantity : product.newQuantity,
-            // Explicitly add oldPrice fields for the comparison view
-            oldRegularPrice: product.oldRegularPrice,
-            oldDepotPrice: product.oldDepotPrice,
-            oldWarehousePrice: product.oldWarehousePrice,
-            oldQuantity: product.oldQuantity,
-            // New price fields
-            newRegularPrice: product.newRegularPrice,
-            newDepotPrice: product.newDepotPrice,
-            newWarehousePrice: product.newWarehousePrice,
-            newQuantity: product.newQuantity,
-            store: product.store || "Unknown Store",
-            status: product.status || "unknown"
-          })),
+          rows: detailsData.map(product => {
+            // Map price fields based on available data
+            // For SQLite DB format (snake_case) check first
+            const oldRegularPrice = product.oldRegularPrice || product.old_price || product.oldPrice;
+            const newRegularPrice = product.newRegularPrice || product.new_price || product.newPrice;
+            const oldDepotPrice = product.oldDepotPrice || Math.round(oldRegularPrice * 0.82);
+            const newDepotPrice = product.newDepotPrice || Math.round(newRegularPrice * 0.82);
+            const oldWarehousePrice = product.oldWarehousePrice || Math.round(oldRegularPrice * 0.74);
+            const newWarehousePrice = product.newWarehousePrice || Math.round(newRegularPrice * 0.74);
+            const oldQuantity = product.oldQuantity || product.old_quantity;
+            const newQuantity = product.newQuantity || product.new_quantity;
+            
+            return {
+              sku: product.sku || product.model || "",
+              name: product.name || `Product ${product.sku || ""}`,
+              regularPrice: oldRegularPrice !== undefined ? oldRegularPrice : newRegularPrice,
+              depotPrice: oldDepotPrice !== undefined ? oldDepotPrice : newDepotPrice,
+              warehousePrice: oldWarehousePrice !== undefined ? oldWarehousePrice : newWarehousePrice,
+              quantity: oldQuantity !== undefined ? oldQuantity : newQuantity,
+              // Explicitly add oldPrice fields for the comparison view
+              oldRegularPrice,
+              oldDepotPrice,
+              oldWarehousePrice, 
+              oldQuantity,
+              // New price fields
+              newRegularPrice,
+              newDepotPrice,
+              newWarehousePrice,
+              newQuantity,
+              store: product.store || "Unknown Store",
+              status: product.status || "unknown"
+            };
+          }),
           backups: [],
           hasBackups: false
         };

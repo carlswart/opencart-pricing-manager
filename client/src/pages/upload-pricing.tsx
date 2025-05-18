@@ -141,7 +141,26 @@ export default function UploadPricing() {
         throw new Error(errorMessage);
       }
       
-      setPreviewData(responseData);
+      // Transform the data to match the expected format for the SpreadsheetPreviewModal
+      const transformedData = {
+        ...responseData,
+        rows: responseData.rows.map(row => ({
+          sku: row.sku,
+          name: row.name,
+          // For preview, we show the same value for both old and new prices
+          // as this is a new upload (not an update/comparison view)
+          oldRegularPrice: undefined,
+          newRegularPrice: row.regularPrice,
+          oldDepotPrice: undefined,
+          newDepotPrice: row.depotPrice,
+          oldWarehousePrice: undefined,
+          newWarehousePrice: row.warehousePrice,
+          oldQuantity: undefined,
+          newQuantity: row.quantity
+        }))
+      };
+      
+      setPreviewData(transformedData);
       setShowPreview(true);
     } catch (error) {
       // Format the error message for better display - split by newlines

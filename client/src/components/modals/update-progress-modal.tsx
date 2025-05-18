@@ -5,9 +5,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Loader2, Clock, AlertCircle } from "lucide-react";
 
 interface StoreProgress {
   id: number;
@@ -72,15 +74,28 @@ export function UpdateProgressModal({
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Updating Store Prices</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {progressPercentage < 100 && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+            Updating Store Prices
+          </DialogTitle>
+          <DialogDescription>
+            This process may take several minutes. Please do not close this window.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="mb-6">
           <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium text-neutral-600">Overall Progress</span>
+            <span className="text-sm font-medium text-neutral-600 flex items-center gap-1">
+              <Clock className="h-4 w-4 text-primary" /> Overall Progress
+            </span>
             <span className="text-sm text-neutral-600">{progressPercentage}%</span>
           </div>
           <Progress value={progressPercentage} className="h-4" />
+          {progressPercentage > 0 && progressPercentage < 100 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Processing... {progress.processedItems || 0} of {progress.totalItems || '?'} items
+            </p>
+          )}
         </div>
         
         {storesList.length > 0 && (
@@ -116,22 +131,38 @@ export function UpdateProgressModal({
           </div>
         )}
         
-        <div className="mt-6 text-sm text-neutral-600">
-          <p>{getStatusMessage()}</p>
-          {progress.successCount !== undefined && (
-            <p className="mt-2">
-              <span className="text-green-600">{progress.successCount} successful</span>
-              {progress.errorCount !== undefined && progress.errorCount > 0 && (
-                <span className="ml-3 text-red-600">{progress.errorCount} failed</span>
+        <div className="mt-6 text-sm rounded-md bg-muted p-4">
+          <div className="flex items-start gap-2">
+            {progressPercentage < 100 ? (
+              <Loader2 className="h-5 w-5 mt-0.5 animate-spin text-primary" />
+            ) : (
+              <AlertCircle className="h-5 w-5 mt-0.5 text-green-600" />
+            )}
+            <div>
+              <p className="font-medium">{getStatusMessage()}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {progressPercentage < 100 
+                  ? "The update process can take several minutes depending on the number of products and stores." 
+                  : "All products have been processed and the prices are now updated across all stores."}
+              </p>
+              
+              {progress.successCount !== undefined && (
+                <p className="mt-2">
+                  <span className="text-green-600 font-medium">{progress.successCount} successful</span>
+                  {progress.errorCount !== undefined && progress.errorCount > 0 && (
+                    <span className="ml-3 text-red-600 font-medium">{progress.errorCount} failed</span>
+                  )}
+                </p>
               )}
-            </p>
-          )}
+            </div>
+          </div>
         </div>
         
         <DialogFooter>
           <Button 
-            variant="outline" 
+            variant={progressPercentage === 100 ? "default" : "outline"}
             onClick={onCancel}
+            className="gap-1"
           >
             {progressPercentage === 100 ? "Close" : "Cancel Update"}
           </Button>

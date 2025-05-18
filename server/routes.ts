@@ -1012,12 +1012,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
+        // Get the actual update details to count products correctly across stores
+        let productsCount = update.productsCount || 0;
+        try {
+          // Get the update details from the database
+          const updateDetails = await storage.getUpdateDetails(update.id);
+          
+          if (updateDetails && updateDetails.length > 0) {
+            // Count unique products across all stores
+            // Create a Set of unique model/SKU values across all stores
+            const uniqueProducts = new Set();
+            
+            updateDetails.forEach(detail => {
+              // Use model or sku as the unique identifier
+              const productId = detail.model || detail.sku;
+              if (productId) {
+                uniqueProducts.add(productId);
+              }
+            });
+            
+            // Get the number of unique products
+            const uniqueProductCount = uniqueProducts.size;
+            
+            // Calculate total product-store combinations
+            const totalUpdates = updateDetails.length;
+            
+            // Use the total updates count (product × stores) for display
+            productsCount = totalUpdates;
+            
+            console.log(`Update ${update.id}: ${uniqueProductCount} unique products updated across ${totalUpdates} total updates`);
+          }
+        } catch (err) {
+          console.error(`Error counting products for update ${update.id}:`, err);
+        }
+        
         return {
           id: update.id,
           date: new Date(update.createdAt || Date.now()).toLocaleString(),
           filename: update.filename || "Unknown file",
           status: update.status || "unknown",
-          products_count: update.productsCount || 0,
+          products_count: productsCount,
           user: userName,
           stores: ["MP Test 2"] // Known store from the system
         };
@@ -1710,6 +1744,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error updating session settings:", error);
       res.status(500).json({ message: "Failed to update session settings" });
     }
+  });
+  
+  // Session ping endpoint to keep session alive during long operations
+  app.post("/api/session/ping", (req, res) => {
+    // This endpoint simply responds to show the session is still active
+    // The act of making the request refreshes the session automatically
+    console.log("Session ping received - extending session timeout");
+    res.status(200).json({ status: "Session extended" });
   });
 
   return httpServer;

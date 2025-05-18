@@ -103,6 +103,9 @@ export function SpreadsheetPreviewModal({
       <DialogContent className="sm:max-w-5xl h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Spreadsheet Preview</DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            View details of product updates and price changes
+          </p>
         </DialogHeader>
         
         <div className="flex-1 overflow-hidden flex flex-col">

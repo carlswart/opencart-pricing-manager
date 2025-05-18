@@ -4,7 +4,6 @@ import { useLocation } from "wouter";
 import { Clock, RefreshCw, Store, ArrowUp, CheckCircle } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
-import { RecentUpdates, UpdateRecord } from "@/components/dashboard/recent-updates";
 import { MilestoneCard } from "@/components/dashboard/milestone-card";
 import { UploadModal } from "@/components/modals/upload-modal";
 import { DatabaseSettingsModal } from "@/components/modals/database-settings-modal";
@@ -68,10 +67,7 @@ export default function Dashboard() {
     }
   });
   
-  // Fetch recent updates
-  const { data: recentUpdates, isLoading: updatesLoading } = useQuery<RecentUpdate[]>({
-    queryKey: ['/api/updates/recent'],
-  });
+  // Recent updates fetching removed
   
   // Fetch stores for upload modal
   const { data: stores } = useQuery<StoreType[]>({
@@ -263,15 +259,7 @@ export default function Dashboard() {
         />
       </div>
       
-      {/* Recent Updates */}
-      <div className="mt-6">
-        <RecentUpdates
-          updates={recentUpdates ?? []}
-          isLoading={updatesLoading}
-          onViewAll={handleViewAllUpdates}
-          onViewDetails={handleViewUpdateDetails}
-        />
-      </div>
+      {/* Recent Updates section removed as requested */}
       
       {/* Modals */}
       {stores && (

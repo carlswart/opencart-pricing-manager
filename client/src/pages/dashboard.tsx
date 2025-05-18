@@ -249,21 +249,18 @@ export default function Dashboard() {
         />
       </div>
       
-      {/* Two-column layout for milestones and quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Milestone card - takes up 2/3 of the width on medium screens and larger */}
-        <div className="md:col-span-2">
-          <MilestoneCard />
-        </div>
-        
-        {/* Quick actions - takes up 1/3 of the width on medium screens and larger */}
-        <div className="md:col-span-1">
-          <QuickActions
-            onUploadClick={handleUploadClick}
-            onDatabaseClick={handleDatabaseClick}
-            onHistoryClick={handleHistoryClick}
-          />
-        </div>
+      {/* Milestone Card - full width */}
+      <div className="mb-6">
+        <MilestoneCard />
+      </div>
+      
+      {/* Quick Actions - full width */}
+      <div className="mb-6">
+        <QuickActions
+          onUploadClick={handleUploadClick}
+          onDatabaseClick={handleDatabaseClick}
+          onHistoryClick={handleHistoryClick}
+        />
       </div>
       
       {/* Recent Updates */}

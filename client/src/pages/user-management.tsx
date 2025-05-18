@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -33,11 +33,32 @@ import {
 function formatDate(dateString: string | undefined): string {
   if (!dateString) return 'N/A';
   try {
+    // Handle both ISO date strings and SQLite timestamp formats
     const date = new Date(dateString);
+    
     // Check if date is valid
     if (isNaN(date.getTime())) {
+      // If direct parsing fails, try alternative formats
+      // For SQLite timestamp format "YYYY-MM-DD HH:MM:SS.SSS"
+      const parts = dateString.split(/[- :\.]/);
+      if (parts.length >= 6) {
+        const parsedDate = new Date(
+          parseInt(parts[0]), // year
+          parseInt(parts[1]) - 1, // month (0-indexed)
+          parseInt(parts[2]), // day
+          parseInt(parts[3]), // hour
+          parseInt(parts[4]), // minute
+          parseInt(parts[5])  // second
+        );
+        
+        if (!isNaN(parsedDate.getTime())) {
+          return parsedDate.toLocaleDateString();
+        }
+      }
       return 'Invalid date';
     }
+    
+    // Format date with local conventions
     return date.toLocaleDateString();
   } catch (error) {
     console.error("Error formatting date:", error);

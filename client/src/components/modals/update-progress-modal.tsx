@@ -24,10 +24,22 @@ interface UpdateDetail {
   productId: number;
   sku: string;
   status: string;
-  oldPrice: number | null;
-  newPrice: number | null;
-  oldQuantity: number | null;
-  newQuantity: number | null;
+  // Original format fields
+  oldPrice?: number | null;
+  newPrice?: number | null;
+  oldQuantity?: number | null;
+  newQuantity?: number | null;
+  // New detailed format fields
+  oldRegularPrice?: number | null;
+  newRegularPrice?: number | null;
+  oldDepotPrice?: number | null;
+  newDepotPrice?: number | null;
+  oldWarehousePrice?: number | null;
+  newWarehousePrice?: number | null;
+  // Additional fields
+  name?: string;
+  model?: string;
+  store?: string;
 }
 
 interface UpdateProgressModalProps {
@@ -115,16 +127,47 @@ export function UpdateProgressModal({
         {progress.updateDetails && progress.updateDetails.length > 0 && (
           <div className="mt-4 space-y-2">
             <h4 className="text-sm font-medium text-neutral-600">Update Details</h4>
-            <div className="max-h-36 overflow-y-auto rounded border p-2">
+            <div className="max-h-48 overflow-y-auto rounded border p-2">
               {progress.updateDetails.map((detail) => (
-                <div key={detail.id} className="text-xs py-1 border-b last:border-0">
-                  <span className="font-medium">SKU: {detail.sku}</span> - 
-                  {detail.newPrice !== null && detail.oldPrice !== null && (
-                    <span> Price: {detail.oldPrice} → {detail.newPrice}</span>
-                  )}
-                  {detail.newQuantity !== null && detail.oldQuantity !== null && (
-                    <span> Qty: {detail.oldQuantity} → {detail.newQuantity}</span>
-                  )}
+                <div key={detail.id} className="text-xs py-1.5 border-b last:border-0">
+                  <div className="font-medium mb-0.5">SKU: {detail.sku}</div>
+                  <div className="grid grid-cols-2 gap-1">
+                    {/* Regular Price */}
+                    {detail.oldRegularPrice !== undefined && detail.newRegularPrice !== undefined && (
+                      <div className={detail.oldRegularPrice !== detail.newRegularPrice ? "text-primary" : ""}>
+                        Regular: R {detail.oldRegularPrice} → R {detail.newRegularPrice}
+                      </div>
+                    )}
+                    
+                    {/* Depot Price */}
+                    {detail.oldDepotPrice !== undefined && detail.newDepotPrice !== undefined && (
+                      <div className={detail.oldDepotPrice !== detail.newDepotPrice ? "text-primary" : ""}>
+                        Depot: R {detail.oldDepotPrice} → R {detail.newDepotPrice}
+                      </div>
+                    )}
+                    
+                    {/* Warehouse Price */}
+                    {detail.oldWarehousePrice !== undefined && detail.newWarehousePrice !== undefined && (
+                      <div className={detail.oldWarehousePrice !== detail.newWarehousePrice ? "text-primary" : ""}>
+                        Warehouse: R {detail.oldWarehousePrice} → R {detail.newWarehousePrice}
+                      </div>
+                    )}
+                    
+                    {/* Quantity */}
+                    {detail.oldQuantity !== undefined && detail.newQuantity !== undefined && (
+                      <div className={detail.oldQuantity !== detail.newQuantity ? "text-primary" : ""}>
+                        Qty: {detail.oldQuantity} → {detail.newQuantity}
+                      </div>
+                    )}
+                    
+                    {/* Fallback for old format */}
+                    {detail.newPrice !== undefined && detail.oldPrice !== undefined && 
+                     detail.oldRegularPrice === undefined && (
+                      <div className={detail.oldPrice !== detail.newPrice ? "text-primary" : ""}>
+                        Price: R {detail.oldPrice} → R {detail.newPrice}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

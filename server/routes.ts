@@ -972,15 +972,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
+      // Get all users to map user IDs to names
+      const users = await storage.getAllUsers();
+      const userMap = new Map();
+      users.forEach(user => {
+        userMap.set(user.id, user.name);
+      });
+      
       // Format the updates for display
-      const formattedUpdates = updates.map(update => ({
-        id: update.id,
-        date: new Date(update.createdAt || Date.now()).toLocaleString(),
-        filename: update.filename || "Unknown file",
-        status: update.status || "unknown",
-        products_count: update.productsCount || 0,
-        user: "Admin", // For now, hardcode the user
-        stores: ["MP Test 2"] // Known store from the system
+      const formattedUpdates = await Promise.all(updates.map(async update => {
+        // Try to get the user from the database
+        let userName = "Unknown";
+        if (update.userId) {
+          // Use the user map to get the name
+          userName = userMap.get(update.userId) || "Unknown";
+        } else {
+          // If no userId in the update, try to fetch from DB
+          try {
+            const dbUpdate = await db.select()
+              .from(updates)
+              .where(eq(updates.id, update.id))
+              .limit(1);
+            
+            if (dbUpdate && dbUpdate.length > 0 && dbUpdate[0].userId) {
+              userName = userMap.get(dbUpdate[0].userId) || "Unknown";
+            }
+          } catch (err) {
+            console.error(`Error getting user for update ${update.id}:`, err);
+          }
+        }
+        
+        return {
+          id: update.id,
+          date: new Date(update.createdAt || Date.now()).toLocaleString(),
+          filename: update.filename || "Unknown file",
+          status: update.status || "unknown",
+          products_count: update.productsCount || 0,
+          user: userName,
+          stores: ["MP Test 2"] // Known store from the system
+        };
       }));
       
       // Sort updates by date, newest first

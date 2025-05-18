@@ -19,29 +19,29 @@ export function QuickActions({
         <CardTitle className="text-lg">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button 
             onClick={onUploadClick}
-            className="flex items-center justify-center gap-3 p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition"
+            className="flex items-center justify-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition"
           >
             <FileUp className="h-5 w-5 text-primary" />
-            <span className="font-medium">Upload Price Sheet</span>
+            <span className="font-medium text-sm">Upload Price Sheet</span>
           </button>
           
           <button 
             onClick={onDatabaseClick}
-            className="flex items-center justify-center gap-3 p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition"
+            className="flex items-center justify-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition"
           >
             <Database className="h-5 w-5 text-primary" />
-            <span className="font-medium">Manage Store Connections</span>
+            <span className="font-medium text-sm">Manage Connections</span>
           </button>
           
           <button 
             onClick={onHistoryClick}
-            className="flex items-center justify-center gap-3 p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition"
+            className="flex items-center justify-center gap-3 p-4 border border-border rounded-lg hover:bg-muted transition"
           >
             <History className="h-5 w-5 text-primary" />
-            <span className="font-medium">View Update History</span>
+            <span className="font-medium text-sm">View History</span>
           </button>
         </div>
       </CardContent>

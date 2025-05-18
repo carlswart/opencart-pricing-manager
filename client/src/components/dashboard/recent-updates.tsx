@@ -120,7 +120,6 @@ export function RecentUpdates({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="text-primary hover:text-secondary h-8 w-8"
                         onClick={() => onViewDetails(update.id)}
                       >
                         <Eye className="h-4 w-4" />

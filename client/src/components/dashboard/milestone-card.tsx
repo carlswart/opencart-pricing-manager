@@ -16,11 +16,11 @@ interface Milestone {
 
 // Map of icon names to Lucide components
 const iconMap: Record<string, React.ReactNode> = {
-  "award": <Award className="h-6 w-6 text-amber-500" />,
-  "trophy": <Trophy className="h-6 w-6 text-amber-500" />,
-  "clock": <Clock className="h-6 w-6 text-blue-500" />,
-  "calendar-check": <Calendar className="h-6 w-6 text-green-500" />,
-  "crown": <Crown className="h-6 w-6 text-purple-500" />,
+  "award": <Award className="h-6 w-6 text-primary" />,
+  "trophy": <Trophy className="h-6 w-6 text-primary" />,
+  "clock": <Clock className="h-6 w-6 text-primary" />,
+  "calendar-check": <Calendar className="h-6 w-6 text-primary" />,
+  "crown": <Crown className="h-6 w-6 text-primary" />,
 };
 
 export function MilestoneCard() {
@@ -74,26 +74,18 @@ export function MilestoneCard() {
   
   // Calculate progress percentage toward next milestone
   let progressPercentage = 0;
-  let lastMilestoneMinutes = 0;
   
   if (nextMilestone) {
-    // If there are achieved milestones, use the last one as the base
-    if (achievedMilestones.length > 0) {
-      const lastMilestone = achievedMilestones[achievedMilestones.length - 1];
-      lastMilestoneMinutes = lastMilestone.minutes;
-    }
-    
-    // Calculate progress from last milestone to next
-    const totalRangeMinutes = nextMilestone.minutes - lastMilestoneMinutes;
-    const progressMinutes = timeSaved - lastMilestoneMinutes;
-    progressPercentage = Math.round((progressMinutes / totalRangeMinutes) * 100);
+    // Calculate progress from 0 to next milestone
+    const totalMinutes = nextMilestone.minutes;
+    progressPercentage = Math.min(100, Math.round((timeSaved / totalMinutes) * 100));
   } else if (achievedMilestones.length > 0) {
     // If all milestones are achieved
     progressPercentage = 100;
   }
 
   return (
-    <Card>
+    <Card className="border-primary/20 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Milestone Progress</CardTitle>
         <CardDescription>Track your efficiency achievements</CardDescription>
@@ -106,7 +98,7 @@ export function MilestoneCard() {
               <div className="text-2xl font-bold">{formattedTimeSaved}</div>
               <div className="text-sm text-muted-foreground">Time saved through automation</div>
             </div>
-            <Clock className="h-8 w-8 text-primary opacity-80" />
+            <Clock className="h-8 w-8 text-primary" />
           </div>
           
           {/* Next milestone progress bar */}
@@ -117,26 +109,28 @@ export function MilestoneCard() {
                 <div className="text-muted-foreground">{nextMilestone.name}</div>
               </div>
               <Progress value={progressPercentage} className="h-2" />
-              <div className="flex justify-end text-xs text-muted-foreground">
-                {progressPercentage}% complete
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>0 min</span>
+                <span>{Math.round(progressPercentage)}% complete</span>
+                <span>{nextMilestone.minutes} minutes</span>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-center py-2 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 rounded-md">
+            <div className="text-sm text-center py-2 bg-primary/5 text-primary rounded-md">
               Congratulations! You've achieved all milestones!
             </div>
           )}
           
           {/* Last achieved milestone */}
           {achievedMilestones.length > 0 && (
-            <div className="pt-2 mt-2 border-t">
+            <div className="pt-2 mt-2 border-t border-border/40">
               <div className="text-sm font-medium mb-2">Last achievement:</div>
               {(() => {
                 const lastMilestone = achievedMilestones[achievedMilestones.length - 1];
                 return (
                   <div className="flex items-start space-x-3">
                     {iconMap[lastMilestone.icon] || 
-                     <Award className="h-6 w-6 text-amber-500" />}
+                     <Award className="h-6 w-6 text-primary" />}
                     <div>
                       <div className="font-medium text-sm">
                         {lastMilestone.name}
@@ -145,7 +139,8 @@ export function MilestoneCard() {
                         {lastMilestone.description}
                       </div>
                       {lastMilestone.achieved_at && (
-                        <div className="text-xs text-muted-foreground mt-1">
+                        <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
                           Achieved on {new Date(lastMilestone.achieved_at).toLocaleDateString()}
                         </div>
                       )}

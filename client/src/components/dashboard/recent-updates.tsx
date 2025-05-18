@@ -118,12 +118,13 @@ export function RecentUpdates({
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-sm">
                       <Button
-                        size="icon"
-                        variant="ghost"
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center gap-1 h-8 px-3 text-xs"
                         onClick={() => onViewDetails(update.id)}
                       >
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">View details</span>
+                        <Eye className="h-3.5 w-3.5" />
+                        View
                       </Button>
                     </TableCell>
                   </TableRow>

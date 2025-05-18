@@ -100,10 +100,13 @@ export function SpreadsheetPreviewModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl h-[80vh] flex flex-col">
+      <DialogContent 
+        className="sm:max-w-5xl h-[80vh] flex flex-col"
+        aria-describedby="spreadsheet-preview-description"
+      >
         <DialogHeader>
           <DialogTitle>Spreadsheet Preview</DialogTitle>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p id="spreadsheet-preview-description" className="text-sm text-muted-foreground mt-1">
             View details of product updates and price changes
           </p>
         </DialogHeader>

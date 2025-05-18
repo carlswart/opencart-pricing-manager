@@ -26,6 +26,18 @@ export default function Dashboard() {
     connectedStores: string;
     lastUpdateTime: string;
     timeChangePercent: string;
+    recentlyAchievedMilestone?: {
+      id: number;
+      name: string;
+      description: string;
+      icon: string;
+    } | null;
+    nextMilestone?: {
+      id: number;
+      name: string;
+      description: string;
+      icon: string;
+    } | null;
   }
   
   // Auto-refresh every 5 seconds
@@ -56,14 +68,7 @@ export default function Dashboard() {
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
-    refetchInterval: 5000, // Refetch every 5 seconds
-    onSuccess: (data) => {
-      // Diagnostic log to check what's coming from the API
-      console.log("Dashboard stats received:", data);
-    },
-    onError: (error) => {
-      console.error("Failed to load dashboard stats:", error);
-    }
+    refetchInterval: 5000 // Refetch every 5 seconds
   });
   
   // Recent updates fetching removed

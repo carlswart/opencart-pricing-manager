@@ -147,15 +147,15 @@ export default function UploadPricing() {
         rows: responseData.rows.map(row => ({
           sku: row.sku,
           name: row.name,
-          // For preview, we show the same value for both old and new prices
-          // as this is a new upload (not an update/comparison view)
-          oldRegularPrice: undefined,
+          // For preview in the upload form, we need to show appropriate values for both old and new prices
+          // For old prices, we'll display zeros to ensure they're always visible
+          oldRegularPrice: 0,
           newRegularPrice: row.regularPrice,
-          oldDepotPrice: undefined,
+          oldDepotPrice: 0,
           newDepotPrice: row.depotPrice,
-          oldWarehousePrice: undefined,
+          oldWarehousePrice: 0,
           newWarehousePrice: row.warehousePrice,
-          oldQuantity: undefined,
+          oldQuantity: 0,
           newQuantity: row.quantity
         }))
       };

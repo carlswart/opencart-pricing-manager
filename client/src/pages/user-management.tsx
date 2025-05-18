@@ -82,6 +82,13 @@ export default function UserManagement() {
     queryKey: ['/api/users'],
   });
   
+  // For debugging - log users when they change
+  useEffect(() => {
+    if (users && Array.isArray(users)) {
+      console.log('User data from API:', users);
+    }
+  }, [users]);
+  
   const handleAddUser = () => {
     setSelectedUser(null);
     setFormData({

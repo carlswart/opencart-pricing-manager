@@ -114,19 +114,11 @@ export default function AchievementsPage() {
 
   // Calculate progress percentage toward next milestone
   let progressPercentage = 0;
-  let lastMilestoneMinutes = 0;
   
   if (nextMilestone) {
-    // If there are achieved milestones, use the last one as the base
-    if (achievedMilestones.length > 0) {
-      const lastMilestone = achievedMilestones[achievedMilestones.length - 1];
-      lastMilestoneMinutes = lastMilestone.minutes;
-    }
-    
-    // Calculate progress from last milestone to next
-    const totalRangeMinutes = nextMilestone.minutes - lastMilestoneMinutes;
-    const progressMinutes = timeSaved - lastMilestoneMinutes;
-    progressPercentage = Math.round((progressMinutes / totalRangeMinutes) * 100);
+    // Calculate progress from 0 to next milestone
+    const totalMinutes = nextMilestone.minutes;
+    progressPercentage = Math.min(100, Math.round((timeSaved / totalMinutes) * 100));
   } else if (achievedMilestones.length > 0) {
     // If all milestones are achieved
     progressPercentage = 100;
@@ -160,7 +152,7 @@ export default function AchievementsPage() {
             <div className="space-y-2">
               <Progress value={progressPercentage} className="h-2" />
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{formattedTimeSaved}</span>
+                <span>0 min</span>
                 <span>{Math.round(progressPercentage)}% Complete</span>
                 <span>{nextMilestone.minutes} minutes</span>
               </div>

@@ -31,18 +31,18 @@ interface Milestone {
 
 // Map of icon names to Lucide components
 const iconMap: Record<string, React.ReactNode> = {
-  "award": <Award className="h-10 w-10 text-amber-500" />,
-  "trophy": <Trophy className="h-10 w-10 text-amber-500" />,
-  "clock": <Clock className="h-10 w-10 text-blue-500" />,
-  "calendar-check": <CalendarCheck className="h-10 w-10 text-green-500" />,
-  "calendar": <Calendar className="h-10 w-10 text-green-500" />,
-  "crown": <Crown className="h-10 w-10 text-purple-500" />,
-  "medal": <Medal className="h-10 w-10 text-yellow-500" />,
-  "gem": <Gem className="h-10 w-10 text-pink-500" />,
-  "diamond": <Diamond className="h-10 w-10 text-cyan-500" />,
-  "hourglass": <Hourglass className="h-10 w-10 text-indigo-500" />,
-  "clipboard-check": <ClipboardCheck className="h-10 w-10 text-teal-500" />,
-  "star": <Star className="h-10 w-10 text-yellow-400" />,
+  "award": <Award className="h-10 w-10 text-primary" />,
+  "trophy": <Trophy className="h-10 w-10 text-primary" />,
+  "clock": <Clock className="h-10 w-10 text-primary" />,
+  "calendar-check": <CalendarCheck className="h-10 w-10 text-primary" />,
+  "calendar": <Calendar className="h-10 w-10 text-primary" />,
+  "crown": <Crown className="h-10 w-10 text-primary" />,
+  "medal": <Medal className="h-10 w-10 text-primary" />,
+  "gem": <Gem className="h-10 w-10 text-primary" />,
+  "diamond": <Diamond className="h-10 w-10 text-primary" />,
+  "hourglass": <Hourglass className="h-10 w-10 text-primary" />,
+  "clipboard-check": <ClipboardCheck className="h-10 w-10 text-primary" />,
+  "star": <Star className="h-10 w-10 text-primary" />,
 };
 
 interface MilestoneResponse {
@@ -135,23 +135,23 @@ export default function AchievementsPage() {
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Achievements</h1>
-        <div className="flex items-center">
-          <Trophy className="mr-2 h-5 w-5 text-yellow-500" />
+        <h1 className="text-3xl font-bold tracking-tight">Achievements</h1>
+        <div className="flex items-center bg-muted/50 rounded-lg px-4 py-2">
+          <Trophy className="mr-2 h-5 w-5 text-primary" />
           <span className="text-lg font-medium">{formattedTimeSaved} Saved</span>
         </div>
       </div>
       
       {/* Next Milestone Progress */}
       {nextMilestone && (
-        <Card className="mb-8">
+        <Card className="mb-8 border-primary/20 shadow-sm">
           <CardHeader>
             <CardTitle>Next Achievement</CardTitle>
             <CardDescription>Your progress toward the next milestone</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-4 mb-4">
-              {iconMap[nextMilestone.icon] || <Trophy className="h-10 w-10 text-yellow-500" />}
+              {iconMap[nextMilestone.icon] || <Trophy className="h-10 w-10 text-primary" />}
               <div>
                 <div className="text-xl font-bold">{nextMilestone.name}</div>
                 <div className="text-muted-foreground">{nextMilestone.description}</div>
@@ -172,12 +172,18 @@ export default function AchievementsPage() {
       {/* Milestone Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {allMilestones.map((milestone) => (
-          <Card key={milestone.id} className={milestone.achieved ? "border-green-200 bg-green-50/50 dark:bg-green-950/20" : "opacity-70"}>
+          <Card 
+            key={milestone.id} 
+            className={milestone.achieved 
+              ? "border-primary/30 bg-primary/5 shadow-sm" 
+              : "opacity-75 bg-muted/30"
+            }
+          >
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <CardTitle>{milestone.name}</CardTitle>
                 {milestone.achieved && (
-                  <Badge variant="outline" className="bg-green-500 bg-opacity-10 border border-green-500 text-green-600 dark:text-green-400">
+                  <Badge variant="default" className="bg-primary/90 hover:bg-primary">
                     Achieved
                   </Badge>
                 )}
@@ -186,11 +192,12 @@ export default function AchievementsPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-4">
-                {iconMap[milestone.icon] || <Trophy className="h-10 w-10 text-yellow-500" />}
+                {iconMap[milestone.icon] || <Trophy className="h-10 w-10 text-primary" />}
                 <div>
                   <div className="text-sm mb-1">{milestone.description}</div>
                   {milestone.achieved_at && (
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground flex items-center">
+                      <Calendar className="h-3 w-3 mr-1" />
                       Achieved on {new Date(milestone.achieved_at).toLocaleDateString()}
                     </div>
                   )}

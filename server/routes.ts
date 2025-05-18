@@ -490,6 +490,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Spreadsheet processing routes
+  // Session keep-alive endpoint to prevent timeouts during long operations
+  app.post("/api/session/ping", (req, res) => {
+    // This resets the session timer by touching the session
+    if (req.session) {
+      req.session.touch();
+      console.log(`Session ${req.sessionID} extended at ${new Date().toISOString()}`);
+    }
+    res.status(200).json({ success: true, message: 'Session extended' });
+  });
+  
   app.post("/api/spreadsheet/preview", authenticate, SpreadsheetService.handlePreview);
   // Implement actual database updates for spreadsheet processing
   app.post("/api/spreadsheet/process", authenticate, SpreadsheetService.handleProcess[0], async (req, res) => {

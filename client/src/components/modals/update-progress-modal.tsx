@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, Clock, AlertCircle } from "lucide-react";
+import { keepSessionAlive } from "@/lib/queryClient";
 
 interface StoreProgress {
   id: number;
@@ -63,6 +64,39 @@ export function UpdateProgressModal({
   progress,
   onCancel,
 }: UpdateProgressModalProps) {
+  // Reference to store the interval ID for session keep-alive
+  const sessionKeepAliveRef = useRef<number | null>(null);
+  
+  // Start the session keep-alive when the modal is open and the update is in progress
+  useEffect(() => {
+    // Only set up keep-alive if the modal is open and the process is not completed
+    if (open && progress.status !== 'completed') {
+      // Create an interval to ping the server and keep the session alive
+      const intervalId = window.setInterval(async () => {
+        try {
+          const success = await keepSessionAlive();
+          console.log(`Session keep-alive ping: ${success ? 'success' : 'failed'}`);
+        } catch (error) {
+          console.error('Error keeping session alive:', error);
+        }
+      }, 30000); // Ping every 30 seconds
+      
+      // Store the interval ID for cleanup
+      sessionKeepAliveRef.current = intervalId;
+      
+      // Ping immediately when component mounts
+      keepSessionAlive().catch(err => console.error('Initial session ping failed:', err));
+      
+      // Clean up the interval when the component unmounts or the update completes
+      return () => {
+        if (sessionKeepAliveRef.current) {
+          clearInterval(sessionKeepAliveRef.current);
+          sessionKeepAliveRef.current = null;
+        }
+      };
+    }
+  }, [open, progress.status]);
+  
   // Determine the current progress percentage
   const progressPercentage = progress.status === 'completed' ? 100 : 
     progress.totalItems && progress.processedItems

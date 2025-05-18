@@ -52,7 +52,7 @@ export async function apiRequest(
 // Function to keep the session alive by pinging the server
 export async function keepSessionAlive(): Promise<boolean> {
   try {
-    const res = await fetch('/api/settings/session/ping', {
+    const res = await fetch('/api/session/ping', {
       method: 'POST',
       credentials: 'include',
     });

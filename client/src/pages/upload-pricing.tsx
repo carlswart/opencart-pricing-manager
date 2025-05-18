@@ -144,20 +144,27 @@ export default function UploadPricing() {
       // Transform the data to match the expected format for the SpreadsheetPreviewModal
       const transformedData = {
         ...responseData,
-        rows: responseData.rows.map(row => ({
-          sku: row.sku,
-          name: row.name,
-          // For preview in the upload form, we need to show appropriate values for both old and new prices
-          // For old prices, we'll display zeros to ensure they're always visible
-          oldRegularPrice: 0,
-          newRegularPrice: row.regularPrice,
-          oldDepotPrice: 0,
-          newDepotPrice: row.depotPrice,
-          oldWarehousePrice: 0,
-          newWarehousePrice: row.warehousePrice,
-          oldQuantity: 0,
-          newQuantity: row.quantity
-        }))
+        rows: responseData.rows.map(row => {
+          // Check if the data already has old/new format (from server)
+          if (row.oldRegularPrice !== undefined && row.newRegularPrice !== undefined) {
+            return row; // Already in the right format
+          }
+          
+          // Format from server native properties to the expected view properties
+          return {
+            sku: row.sku,
+            name: row.name,
+            // Use the provided fields directly if they exist in expected format
+            oldRegularPrice: row.oldRegularPrice ?? 0,
+            newRegularPrice: row.newRegularPrice ?? row.regularPrice,
+            oldDepotPrice: row.oldDepotPrice ?? 0,
+            newDepotPrice: row.newDepotPrice ?? row.depotPrice,
+            oldWarehousePrice: row.oldWarehousePrice ?? 0,
+            newWarehousePrice: row.newWarehousePrice ?? row.warehousePrice,
+            oldQuantity: row.oldQuantity ?? 0,
+            newQuantity: row.newQuantity ?? row.quantity
+          };
+        })
       };
       
       setPreviewData(transformedData);

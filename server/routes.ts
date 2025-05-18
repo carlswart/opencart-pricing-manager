@@ -238,10 +238,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash the password before saving
       const hashedPassword = await hash(validatedData.password);
       
-      // Create the user
+      // Create the user with current timestamp
       const user = await storage.createUser({
         ...validatedData,
-        password: hashedPassword
+        password: hashedPassword,
+        created_at: new Date().toISOString() // Add creation timestamp
       });
       
       res.status(201).json(user);

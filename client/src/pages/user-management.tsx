@@ -30,13 +30,18 @@ import {
 } from "@/components/ui/select";
 
 // Format date string to a readable format
-function formatDate(dateString: string): string {
-  if (!dateString) return '';
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return 'N/A';
   try {
-    return new Date(dateString).toLocaleDateString();
+    const date = new Date(dateString);
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleDateString();
   } catch (error) {
     console.error("Error formatting date:", error);
-    return dateString;
+    return 'Date error';
   }
 }
 

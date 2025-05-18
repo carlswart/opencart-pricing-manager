@@ -49,6 +49,20 @@ export async function apiRequest(
   return res;
 }
 
+// Function to keep the session alive by pinging the server
+export async function keepSessionAlive(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/settings/session/ping', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    return res.ok;
+  } catch (error) {
+    console.error('Failed to ping session:', error);
+    return false;
+  }
+}
+
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;

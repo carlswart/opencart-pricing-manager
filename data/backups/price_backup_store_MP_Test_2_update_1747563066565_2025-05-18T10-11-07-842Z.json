@@ -1,0 +1,166 @@
+{
+  "updateId": 1747563066565,
+  "storeName": "MP Test 2",
+  "timestamp": "2025-05-18T10:12:25.189Z",
+  "connection": {
+    "id": 9,
+    "storeId": 9,
+    "host": "129.232.217.107",
+    "database": "pric_OpenCart",
+    "prefix": "ocjk_"
+  },
+  "products": [
+    {
+      "sku": "TREATS-500G",
+      "productId": 397,
+      "regularPrice": 60,
+      "depotPrice": 49,
+      "warehousePrice": 44,
+      "quantity": 7
+    },
+    {
+      "sku": "BARKILS TWISTER",
+      "productId": 30,
+      "regularPrice": 61,
+      "depotPrice": 50,
+      "warehousePrice": 45,
+      "quantity": 8
+    },
+    {
+      "sku": "BALM-COMFORT",
+      "productId": 1931,
+      "regularPrice": 62,
+      "depotPrice": 51,
+      "warehousePrice": 46,
+      "quantity": 9
+    },
+    {
+      "sku": "FRANKINCENSE-30",
+      "productId": 361,
+      "regularPrice": 63,
+      "depotPrice": 52,
+      "warehousePrice": 47,
+      "quantity": 10
+    },
+    {
+      "sku": "Probiotic-Pet",
+      "productId": 40,
+      "regularPrice": 64,
+      "depotPrice": 52,
+      "warehousePrice": 47,
+      "quantity": 11
+    },
+    {
+      "sku": "ANTI-HWASH-1L",
+      "productId": 47,
+      "regularPrice": 65,
+      "depotPrice": 53,
+      "warehousePrice": 48,
+      "quantity": 12
+    },
+    {
+      "sku": "SHAM-1l",
+      "productId": 50,
+      "regularPrice": 66,
+      "depotPrice": 54,
+      "warehousePrice": 49,
+      "quantity": 13
+    },
+    {
+      "sku": "C-URIN-1kg",
+      "productId": 53,
+      "regularPrice": 67,
+      "depotPrice": 55,
+      "warehousePrice": 50,
+      "quantity": 14
+    },
+    {
+      "sku": "DEGR-1L",
+      "productId": 54,
+      "regularPrice": 99,
+      "depotPrice": 81,
+      "warehousePrice": 73,
+      "quantity": 57
+    },
+    {
+      "sku": "TEST-PACK",
+      "productId": 59,
+      "regularPrice": 888,
+      "depotPrice": 728,
+      "warehousePrice": 657,
+      "quantity": 23
+    },
+    {
+      "sku": "SLEEP",
+      "productId": 69,
+      "regularPrice": 70,
+      "depotPrice": 57,
+      "warehousePrice": 52,
+      "quantity": 17
+    },
+    {
+      "sku": "WOUND-50ml",
+      "productId": 81,
+      "regularPrice": 71,
+      "depotPrice": 58,
+      "warehousePrice": 53,
+      "quantity": 18
+    },
+    {
+      "sku": "HONEY",
+      "productId": 88,
+      "regularPrice": 72,
+      "depotPrice": 59,
+      "warehousePrice": 53,
+      "quantity": 19
+    },
+    {
+      "sku": "TULSI-C",
+      "productId": 90,
+      "regularPrice": 73,
+      "depotPrice": 60,
+      "warehousePrice": 54,
+      "quantity": 20
+    },
+    {
+      "sku": "SHAV-250",
+      "productId": 25,
+      "regularPrice": 74,
+      "depotPrice": 61,
+      "warehousePrice": 55,
+      "quantity": 21
+    },
+    {
+      "sku": "BIO-FLORA KIDS",
+      "productId": 101,
+      "regularPrice": 75,
+      "depotPrice": 61,
+      "warehousePrice": 56,
+      "quantity": 22
+    },
+    {
+      "sku": "VAGIFORT",
+      "productId": 104,
+      "regularPrice": 76,
+      "depotPrice": 62,
+      "warehousePrice": 56,
+      "quantity": 23
+    },
+    {
+      "sku": "TOOTHPASTE",
+      "productId": 32,
+      "regularPrice": 77,
+      "depotPrice": 63,
+      "warehousePrice": 57,
+      "quantity": 24
+    },
+    {
+      "sku": "REF-BLOM",
+      "productId": 106,
+      "regularPrice": 78,
+      "depotPrice": 64,
+      "warehousePrice": 58,
+      "quantity": 25
+    }
+  ]
+}

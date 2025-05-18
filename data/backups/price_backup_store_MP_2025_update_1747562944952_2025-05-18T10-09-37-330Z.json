@@ -1,0 +1,30 @@
+{
+  "updateId": 1747562944952,
+  "storeName": "MP 2025",
+  "timestamp": "2025-05-18T10:09:45.400Z",
+  "connection": {
+    "id": 10,
+    "storeId": 10,
+    "host": "129.232.217.107",
+    "database": "pric_OpenCart2025",
+    "prefix": "ocjk_"
+  },
+  "products": [
+    {
+      "sku": "DEGR-1L",
+      "productId": 54,
+      "regularPrice": 99,
+      "depotPrice": 81,
+      "warehousePrice": 73,
+      "quantity": 57
+    },
+    {
+      "sku": "TEST-PACK",
+      "productId": 59,
+      "regularPrice": 888,
+      "depotPrice": 728,
+      "warehousePrice": 657,
+      "quantity": 23
+    }
+  ]
+}

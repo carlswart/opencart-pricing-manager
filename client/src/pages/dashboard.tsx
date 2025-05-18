@@ -7,7 +7,7 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { MilestoneCard } from "@/components/dashboard/milestone-card";
 import { UploadModal } from "@/components/modals/upload-modal";
 import { DatabaseSettingsModal } from "@/components/modals/database-settings-modal";
-import { SpreadsheetPreviewModal } from "@/components/modals/spreadsheet-preview-modal";
+// SpreadsheetPreviewModal import removed
 import { Store as StoreType, DbConnection } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +42,7 @@ export default function Dashboard() {
     setIsRefreshing(true);
     try {
       await queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/updates/recent'] });
+      // Updates query invalidation removed
       console.log("Dashboard data refreshed");
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -51,8 +51,7 @@ export default function Dashboard() {
     }
   };
   
-  // Define type for recent updates
-  type RecentUpdate = UpdateRecord;
+  // Recent updates type definition removed
   
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
@@ -91,70 +90,7 @@ export default function Dashboard() {
     setLocation("/update-history");
   };
   
-  const handleViewAllUpdates = () => {
-    setLocation("/update-history");
-  };
-  
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewData, setPreviewData] = useState<any>(null);
-  
-  // Handler to view update details
-  const handleViewUpdateDetails = async (id: number) => {
-    try {
-      const response = await fetch(`/api/updates/${id}/details`, {
-        credentials: "include",
-      });
-      
-      if (!response.ok) {
-        console.error("Failed to fetch update details");
-        return;
-      }
-      
-      const detailsData = await response.json();
-      
-      // Format the data for the preview modal
-      if (Array.isArray(detailsData)) {
-        // Find the update to get filename
-        const update = recentUpdates?.find(u => u.id === id);
-        const filename = update?.filename || "Unknown file";
-        
-        // Format the data for the preview modal
-        const formattedData = {
-          filename: filename,
-          recordCount: detailsData.length,
-          validationIssues: [],
-          // Map the product details
-          rows: detailsData.map(product => ({
-            sku: product.sku || product.model || "",
-            name: product.name || `Product ${product.sku || ""}`,
-            regularPrice: product.oldRegularPrice !== undefined ? product.oldRegularPrice : product.newRegularPrice,
-            depotPrice: product.oldDepotPrice !== undefined ? product.oldDepotPrice : product.newDepotPrice,
-            warehousePrice: product.oldWarehousePrice !== undefined ? product.oldWarehousePrice : product.newWarehousePrice,
-            quantity: product.oldQuantity !== undefined ? product.oldQuantity : product.newQuantity,
-            // Explicitly add oldPrice fields for the comparison view
-            oldRegularPrice: product.oldRegularPrice,
-            oldDepotPrice: product.oldDepotPrice,
-            oldWarehousePrice: product.oldWarehousePrice,
-            oldQuantity: product.oldQuantity,
-            // New price fields
-            newRegularPrice: product.newRegularPrice,
-            newDepotPrice: product.newDepotPrice,
-            newWarehousePrice: product.newWarehousePrice,
-            newQuantity: product.newQuantity,
-            store: product.store || "Unknown Store",
-            status: product.status || "unknown"
-          })),
-          backups: [],
-          hasBackups: false
-        };
-        
-        setPreviewData(formattedData);
-        setShowPreview(true);
-      }
-    } catch (error) {
-      console.error("Failed to fetch update details:", error);
-    }
-  };
+  // Recent updates preview handlers removed
 
   return (
     <div>
@@ -280,14 +216,7 @@ export default function Dashboard() {
         />
       )}
       
-      {/* Spreadsheet Preview Modal */}
-      <SpreadsheetPreviewModal 
-        open={showPreview}
-        onOpenChange={setShowPreview}
-        data={previewData}
-        onConfirm={() => setShowPreview(false)}
-        isHistoryView={true}
-      />
+      {/* Spreadsheet Preview Modal removed */}
     </div>
   );
 }
